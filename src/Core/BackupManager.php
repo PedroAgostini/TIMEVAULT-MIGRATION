@@ -47,18 +47,18 @@ final class BackupManager {
 	/**
 	 * Constructor.
 	 *
-	 * @param BackupRepository        $repository Backup registry.
-	 * @param JobQueue                $queue      Async job queue.
-	 * @param AuditLog                $audit      Append-only audit log.
-	 * @param EncryptionService       $encryption Encryption at rest.
-	 * @param StorageAdapterInterface $storage    Destination adapter (local in P1; selection in P3).
+	 * @param BackupRepository                         $repository Backup registry.
+	 * @param JobQueue                                 $queue      Async job queue.
+	 * @param AuditLog                                 $audit      Append-only audit log.
+	 * @param EncryptionService                        $encryption Encryption at rest.
+	 * @param array<string, StorageAdapterInterface>   $adapters   Available destinations, keyed by id ('local' always present; external ones only when explicitly enabled).
 	 */
 	public function __construct(
 		private BackupRepository $repository,
 		private JobQueue $queue,
 		private AuditLog $audit,
 		private EncryptionService $encryption,
-		private StorageAdapterInterface $storage
+		private array $adapters
 	) {}
 
 	/**
@@ -98,7 +98,17 @@ final class BackupManager {
 			return new \WP_Error( 'timevault_queue_unavailable', __( 'Action Scheduler is not available. Run "composer install" inside the plugin directory.', 'timevault' ) );
 		}
 
-		$uuid = $this->repository->create( $type, $this->storage->id(), array( 'options' => $options ) );
+		// Destination must be a registered adapter: 'local' always, external
+		// ones only after explicit opt-in (enabled + credentials stored).
+		$storage = (string) ( $options['storage'] ?? 'local' );
+
+		if ( ! isset( $this->adapters[ $storage ] ) ) {
+			return new \WP_Error( 'timevault_unknown_storage', __( 'Unknown or disabled storage destination.', 'timevault' ) );
+		}
+
+		unset( $options['storage'] );
+
+		$uuid = $this->repository->create( $type, $storage, array( 'options' => $options ) );
 
 		if ( is_wp_error( $uuid ) ) {
 			return $uuid;
@@ -108,7 +118,7 @@ final class BackupManager {
 			'backup_scheduled',
 			array(
 				'type'    => $type,
-				'storage' => $this->storage->id(),
+				'storage' => $storage,
 			),
 			'backup',
 			$uuid
@@ -275,15 +285,16 @@ final class BackupManager {
 			throw new \RuntimeException( 'Could not compute the package checksum.' );
 		}
 
-		$size   = (int) filesize( $artifact );
-		$stored = $this->storage->store( $artifact, $name );
+		$size    = (int) filesize( $artifact );
+		$adapter = $this->adapter_for( $row );
+		$stored  = $adapter->store( $artifact, $name );
 		$this->unwrap( $stored );
 
 		$this->repository->update(
 			$uuid,
 			array(
 				'status'          => 'completed',
-				'file_name'       => (string) $stored,
+				'file_name'       => $name,
 				'size_bytes'      => $size,
 				'checksum_sha256' => $checksum,
 				'is_encrypted'    => $encrypted,
@@ -291,15 +302,18 @@ final class BackupManager {
 			)
 		);
 
+		// Remote identifier (object key / Drive file id) kept in meta for retrieval.
+		$this->repository->merge_meta( $uuid, array( 'remote_id' => (string) $stored ) );
+
 		$this->audit->record(
 			'backup_completed',
 			array(
-				'file_name'       => (string) $stored,
+				'file_name'       => $name,
 				'size_bytes'      => $size,
 				'checksum_sha256' => $checksum,
 				'encrypted'       => (bool) $encrypted,
-				'storage'         => $this->storage->id(),
-				'storage_region'  => $this->storage->region(),
+				'storage'         => $adapter->id(),
+				'storage_region'  => $adapter->region(), // LGPD Art. 33 traceability.
 			),
 			'backup',
 			$uuid
@@ -335,6 +349,22 @@ final class BackupManager {
 	 */
 	private function next_step( string $uuid, string $step ): void {
 		$this->unwrap( $this->queue->dispatch( self::STEP_HOOK, array( $uuid, $step ) ) );
+	}
+
+	/**
+	 * Resolves the destination adapter recorded on the registry row.
+	 *
+	 * @param array<string, mixed> $row Registry row.
+	 * @throws \RuntimeException When the destination is no longer available (e.g. disabled after scheduling).
+	 */
+	private function adapter_for( array $row ): StorageAdapterInterface {
+		$id = (string) $row['storage'];
+
+		if ( ! isset( $this->adapters[ $id ] ) ) {
+			throw new \RuntimeException( 'Storage destination not available: ' . $id );
+		}
+
+		return $this->adapters[ $id ];
 	}
 
 	/**

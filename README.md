@@ -61,6 +61,24 @@ Todos os endpoints exigem a capability `manage_timevault` (+ nonce `X-WP-Nonce` 
 | `/backups` | POST | Agenda backup (`type`: `full`\|`db`; `files_scope`: `wp-content`\|`full`) → 202 + uuid |
 | `/backups/{uuid}` | GET | Status de um backup (polling de progresso) |
 | `/exports` | POST | Agenda export seletivo (`tables[]`, `include_uploads`) → 202 + uuid |
+| `/backups/{uuid}/download-token` | POST | Emite token HMAC de 5 min para download |
+| `/download?token=` | GET | Baixa o backup (auth pelo token assinado; checksum verificado antes) |
+| `/destinations` | GET | Destinos configurados (credenciais nunca retornadas) |
+| `/destinations/{s3\|gdrive}` | POST/DELETE | Configura/remove destino externo (opt-in) |
+
+### Destinos externos (opt-in)
+
+Nenhum destino externo é ativado por padrão. Para usar S3 ou Google Drive:
+
+1. Instale o SDK correspondente (autoload condicional — só onde for usar):
+   `composer require aws/aws-sdk-php` **ou** `composer require google/apiclient`
+2. Configure via `POST /destinations/s3` (bucket, prefix dedicado, region, credentials
+   `{access_key, secret_key}`) ou `POST /destinations/gdrive` (folder_id dedicado, region,
+   credentials = JSON da service account — escopo mínimo `drive.file`).
+3. Credenciais são cifradas com a `TIMEVAULT_ENCRYPTION_KEY` antes de tocar o banco — sem a
+   chave configurada, o plugin **recusa** salvá-las. A região de cada destino fica registrada
+   no log de auditoria (LGPD Art. 33).
+4. Agende backups com `"storage": "s3"` (ou `"gdrive"`) no `POST /backups`.
 
 O pipeline roda em 3 etapas assíncronas via Action Scheduler (`dump_db → package → finalize`);
 o resultado é um `timevault-{tipo}-{data}-{uuid8}.zip[.enc]` no diretório protegido, com

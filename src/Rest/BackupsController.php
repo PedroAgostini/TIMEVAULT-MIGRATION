@@ -74,6 +74,10 @@ final class BackupsController extends AbstractController {
 							'enum'    => array( 'wp-content', 'full' ),
 							'default' => 'wp-content',
 						),
+						'storage'     => array(
+							'type'    => 'string',
+							'default' => 'local',
+						),
 					),
 				),
 			)
@@ -134,7 +138,13 @@ final class BackupsController extends AbstractController {
 	public function create_backup( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
 		$type = (string) $request['type'];
 
-		$uuid = $this->plugin->backups()->schedule( $type, array( 'files_scope' => (string) $request['files_scope'] ) );
+		$uuid = $this->plugin->backups()->schedule(
+			$type,
+			array(
+				'files_scope' => (string) $request['files_scope'],
+				'storage'     => (string) $request['storage'], // Validated against the registered adapters by the manager.
+			)
+		);
 
 		if ( is_wp_error( $uuid ) ) {
 			return $uuid;

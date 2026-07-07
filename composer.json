@@ -15,6 +15,10 @@
         "wp-coding-standards/wpcs": "^3.1",
         "yoast/phpunit-polyfills": "^2.0"
     },
+    "suggest": {
+        "aws/aws-sdk-php": "Required for the S3 storage destination (install only where S3 is used)",
+        "google/apiclient": "Required for the Google Drive storage destination (install only where Drive is used)"
+    },
     "autoload": {
         "psr-4": {
             "Timevault\\": "src/"

@@ -68,6 +68,13 @@ final class Plugin {
 	private ?Core\ExportManager $export_manager = null;
 
 	/**
+	 * Shared destination settings (encrypted credentials).
+	 *
+	 * @var Storage\DestinationSettings|null
+	 */
+	private ?Storage\DestinationSettings $destination_settings = null;
+
+	/**
 	 * Retrieves the singleton instance.
 	 */
 	public static function instance(): Plugin {
@@ -96,6 +103,8 @@ final class Plugin {
 		( new Admin\AdminMenu( $this ) )->register();
 		( new Rest\StatusController( $this ) )->register();
 		( new Rest\BackupsController( $this ) )->register();
+		( new Rest\DestinationsController( $this ) )->register();
+		( new Rest\DownloadController( $this ) )->register();
 
 		// Action Scheduler executes backup pipeline steps through this hook.
 		add_action( Core\BackupManager::STEP_HOOK, array( $this->backups(), 'handle_step' ), 10, 2 );
@@ -150,18 +159,27 @@ final class Plugin {
 	 */
 	public function backups(): Core\BackupManager {
 		if ( null === $this->backup_manager ) {
-			$adapters = $this->storage_adapters();
-
 			$this->backup_manager = new Core\BackupManager(
 				$this->backup_repository(),
 				$this->queue(),
 				$this->audit_log(),
 				$this->encryption(),
-				$adapters['local'] // Destination selection per job arrives with P3.
+				$this->storage_adapters()
 			);
 		}
 
 		return $this->backup_manager;
+	}
+
+	/**
+	 * External destination configuration (credentials encrypted at rest).
+	 */
+	public function destination_settings(): Storage\DestinationSettings {
+		if ( null === $this->destination_settings ) {
+			$this->destination_settings = new Storage\DestinationSettings( $this->encryption(), $this->audit_log() );
+		}
+
+		return $this->destination_settings;
 	}
 
 	/**
@@ -178,14 +196,27 @@ final class Plugin {
 	/**
 	 * Registered storage adapters, keyed by adapter id.
 	 *
-	 * Only the local adapter ships enabled. External destinations (S3,
-	 * Google Drive, SFTP — P3) are opt-in per site, never active by default.
+	 * Only the local adapter is always available. External destinations are
+	 * registered ONLY when the site owner explicitly enabled them with
+	 * encrypted credentials stored (opt-in, never active by default).
 	 *
 	 * @return array<string, Storage\StorageAdapterInterface>
 	 */
 	public function storage_adapters(): array {
-		return array(
+		$adapters = array(
 			'local' => new Storage\LocalAdapter(),
 		);
+
+		$settings = $this->destination_settings();
+
+		foreach ( $settings->enabled() as $id => $config ) {
+			if ( 's3' === $id ) {
+				$adapters['s3'] = new Storage\S3Adapter( $config, $settings );
+			} elseif ( 'gdrive' === $id ) {
+				$adapters['gdrive'] = new Storage\GoogleDriveAdapter( $config, $settings );
+			}
+		}
+
+		return $adapters;
 	}
 }

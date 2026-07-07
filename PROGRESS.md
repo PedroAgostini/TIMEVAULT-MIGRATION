@@ -6,8 +6,9 @@
 > **Ao concluir qualquer fase ou decisão relevante, atualize este arquivo.**
 
 **Última atualização:** 2026-07-07
-**Fase atual:** ✅ P0 + P1 concluídos → **próximo passo: P3 (Storage Adapters S3/Google Drive)**
-**Versão atual do plugin:** 0.2.0
+**Fase atual:** ✅ P0 + P1 + P3 concluídos → **próximo passo: P2 (Import/Restore — camada mais crítica)**
+**Versão atual do plugin:** 0.3.0
+**Git:** repositório em https://github.com/PedroAgostini/TIMEVAULT-MIGRATION.git (branch `main`)
 
 ---
 
@@ -19,12 +20,12 @@ Ordem de execução recomendada (definida no CLAUDE.md, seção 8):
 |-------|------|-----------|--------|
 | 1 | **P0** | Scaffolding e estrutura inicial | ✅ Concluído (2026-07-07) |
 | 2 | **P1** | Core Engine: BackupManager + ExportManager | ✅ Concluído (2026-07-07) |
-| 3 | **P3** | Storage Adapters (S3, Google Drive — Local já existe) | ⬜ Próximo |
-| 4 | **P2** | Import/Restore Engine (camada mais crítica) | ⬜ Pendente |
+| 3 | **P3** | Storage Adapters (S3, Google Drive — Local já existe) | ✅ Concluído (2026-07-07) |
+| 4 | **P2** | Import/Restore Engine (camada mais crítica) | ⬜ Próximo |
 | 5 | **P5** | PrivacyService / LGPD | ⬜ Pendente |
 | 6 | **P7** | Testes PHPUnit (rodar continuamente a partir daqui) | ⬜ Pendente |
 | 7 | **P4** | Auditoria de segurança (`/security-review`) antes de release | ⬜ Pendente |
-| 8 | **P6** | UI/UX (aguarda estrutura de design do usuário) | ⬜ Bloqueado — depende de design tokens |
+| 8 | **P6** | UI/UX | ⬜ Desbloqueado — usuário forneceu [TIMEVAULT-DESIGN-SYSTEM.md](TIMEVAULT-DESIGN-SYSTEM.md) |
 
 ---
 
@@ -82,26 +83,65 @@ storage + LocalAdapter, JobQueue (Action Scheduler), Capabilities e Paths. Detal
 - Manifest JSON registra `wp_config_excluded: true`, prefixo do banco (para migração no P2),
   contagens de tabelas/linhas/arquivos.
 
+## O que o P3 entregou (2026-07-07) — Storage Adapters + Download seguro
+
+### Novos componentes
+
+| Arquivo | Papel |
+|---------|-------|
+| `src/Storage/SafeName.php` | Validação de nome de arquivo compartilhada por todos os adapters (anti path-traversal na borda). |
+| `src/Storage/DestinationSettings.php` | Config de destinos externos (option `timevault_destinations`, autoload off). Credenciais **sempre** cifradas via EncryptionService — sem chave configurada, **recusa** salvar (nunca plaintext). Habilitar exige credenciais já armazenadas (opt-in duplo). Toda mudança auditada com região (LGPD Art. 33). |
+| `src/Storage/S3Adapter.php` | S3/compatível (MinIO, R2 via endpoint). SDK condicional (`composer require aws/aws-sdk-php` — está em `suggest`, não em `require`). Operações confinadas a bucket+prefix; chaves de objeto validadas contra o prefix configurado. |
+| `src/Storage/GoogleDriveAdapter.php` | Drive via service account, escopo **`drive.file` apenas** (menor privilégio: só arquivos criados pelo plugin). Upload resumable em chunks de 8 MiB. Pasta dedicada (`folder_id`). SDK condicional (`google/apiclient` em `suggest`). |
+| `src/Rest/DestinationsController.php` | `GET /destinations`, `POST/DELETE /destinations/{s3\|gdrive}`. Credenciais são **write-only**: aceitas no POST, nunca retornadas. |
+| `src/Rest/DownloadController.php` | **Fecha item do checklist.** `POST /backups/{uuid}/download-token` (capability) emite token HMAC (wp_salt) com TTL de 5 min vinculado a um backup; `GET /download?token=` valida assinatura em tempo constante + expiração, **verifica o checksum SHA-256 antes de entregar**, audita emissão e download. Nunca link público direto. |
+
+### Alterações em arquivos existentes
+
+- `EncryptionService`: + `encrypt_string()`/`decrypt_string()` (secretbox sodium / AES-256-GCM)
+  para credenciais em repouso.
+- `BackupManager`: recebe registry de adapters; `options['storage']` selecionado no agendamento e
+  validado contra os adapters registrados; `file_name` agora guarda o nome amigável e
+  `meta.remote_id` o identificador remoto (key S3 / file id Drive); auditoria registra
+  `storage_region` na conclusão.
+- `LocalAdapter`: + `local_path()` (download local sem duplicar arquivo grande); `safe_name`
+  delega ao SafeName.
+- `Plugin`: `destination_settings()`; `storage_adapters()` monta adapters externos **somente**
+  dos destinos habilitados; registra os dois novos controllers.
+- `BackupsController`: parâmetro `storage` no POST /backups.
+- `composer.json`: SDKs em `suggest` (autoload condicional — instalar só onde usar).
+- Versão 0.3.0.
+
+### Decisões do P3 (não regredir!)
+
+- SDKs externos ficam em `suggest`, não `require` — sites sem S3/Drive não carregam nada extra;
+  adapters retornam `WP_Error timevault_sdk_missing` com instrução clara se a classe não existir.
+- Credencial sem chave de criptografia configurada = erro (`timevault_credentials_need_key`);
+  jamais armazenar plaintext como fallback.
+- Token de download: HMAC-SHA256 com `wp_salt('auth')`, payload `uuid|expiração`, comparação
+  com `hash_equals`. NÃO é single-use (hardening futuro anotado nas pendências).
+- Download verifica o checksum do artefato **antes** de entregar (gate de integridade).
+
 ## Pendências e avisos para a próxima sessão
 
 1. **Ambiente local sem PHP/Composer** (Windows, verificado em 2026-07-07): `php -l` e
    `composer install` ainda não foram executados. **Nenhum código foi validado em runtime** —
-   antes do P3, subir num WordPress real ou `wp-env`/Docker, rodar `composer install`, ativar,
+   antes do P2, subir num WordPress real ou `wp-env`/Docker, rodar `composer install`, ativar,
    disparar `POST /wp-json/timevault/v1/backups` e acompanhar o pipeline.
-2. **Git não inicializado.** Recomendado `git init` + commit antes de continuar (usuário ainda
-   não autorizou — perguntar/confirmar).
-3. **P6 (UI/UX) bloqueado:** aguarda o usuário fornecer a estrutura de design.
-4. **Download de backup ainda não existe** (endpoint autenticado com token assinado de curta
-   expiração — requisito do checklist). Implementar junto com P3 ou P2.
-5. **Retenção/expiração** (`expires_at` já existe na tabela) — implementação fica no P5.
+2. **Token de download não é single-use** (TTL 5 min + capability na emissão + auditoria).
+   Hardening futuro: registrar jti consumido para invalidar reuso dentro do TTL.
+3. **SFTPAdapter** consta na arquitetura do CLAUDE.md mas não no prompt P3 — fica como fase futura.
+4. **Retenção/expiração** (`expires_at` já existe na tabela) — implementação fica no P5.
+5. **P6 desbloqueado**: o usuário adicionou `TIMEVAULT-DESIGN-SYSTEM.md` na raiz — usar como
+   fonte de tokens/componentes quando chegar a fase de UI.
 6. **Nada de telemetria/chamada externa** sem opt-in — princípio inegociável do projeto.
 
 ## Como retomar (nova sessão)
 
 1. Ler [CLAUDE.md](CLAUDE.md) — seções 3 (arquitetura), 4 (segurança) e 7 (prompts P0–P7).
 2. Ler este arquivo para o estado atual.
-3. Executar a próxima fase pendente do roadmap acima (agora: **P3**, prompt na seção 7 do CLAUDE.md),
-   respeitando as convenções e decisões de segurança listadas.
+3. Executar a próxima fase pendente do roadmap acima (agora: **P2 — Import/Restore**, prompt na
+   seção 7 do CLAUDE.md), respeitando as convenções e decisões de segurança listadas.
 4. Ao terminar a fase: marcar o status na tabela, registrar o que foi entregue, novas decisões
    e pendências, e atualizar a data no topo.
 

@@ -161,16 +161,42 @@ final class LocalAdapter implements StorageAdapterInterface {
 	}
 
 	/**
-	 * Rejects any name that is not a plain, already-sanitized file name —
-	 * path traversal defense at the adapter boundary, not only at callers.
+	 * Absolute path of a stored backup — local-only shortcut used by the
+	 * download endpoint to stream without duplicating large files.
+	 *
+	 * @param string $remote_id File name returned by store().
+	 * @return string|\WP_Error
+	 */
+	public function local_path( string $remote_id ): string|\WP_Error {
+		$name = $this->safe_name( $remote_id );
+
+		if ( is_wp_error( $name ) ) {
+			return $name;
+		}
+
+		$path = trailingslashit( Paths::backup_dir() ) . $name;
+
+		if ( ! is_file( $path ) ) {
+			return new \WP_Error( 'timevault_storage_not_found', __( 'Backup file not found.', 'timevault' ) );
+		}
+
+		return $path;
+	}
+
+	/**
+	 * Shared traversal defense (SafeName) plus local hardening-file guard.
 	 *
 	 * @param string $name Candidate file name.
 	 * @return string|\WP_Error
 	 */
 	private function safe_name( string $name ): string|\WP_Error {
-		$clean = sanitize_file_name( basename( $name ) );
+		$clean = SafeName::validate( $name );
 
-		if ( '' === $clean || $clean !== $name || in_array( $clean, self::RESERVED_FILES, true ) ) {
+		if ( is_wp_error( $clean ) ) {
+			return $clean;
+		}
+
+		if ( in_array( $clean, self::RESERVED_FILES, true ) ) {
 			return new \WP_Error( 'timevault_storage_bad_name', __( 'Invalid backup file name.', 'timevault' ) );
 		}
 

@@ -386,6 +386,95 @@ final class EncryptionService {
 	}
 
 	/**
+	 * Encrypts a short string (e.g. storage credentials) for storage in the
+	 * options table. Returns an opaque base64 token. Same key policy as
+	 * files: no key in wp-config.php, no encryption — callers must refuse
+	 * to store plaintext instead of falling back.
+	 *
+	 * @param string $plaintext Secret to protect.
+	 * @return string|\WP_Error
+	 */
+	public function encrypt_string( string $plaintext ): string|\WP_Error {
+		$key = $this->key();
+
+		if ( null === $key ) {
+			return new \WP_Error( 'timevault_encryption_no_key', __( 'Encryption key is not configured in wp-config.php.', 'timevault' ) );
+		}
+
+		// phpcs:disable WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- Ciphertext transport encoding.
+		if ( function_exists( 'sodium_crypto_secretbox' ) ) {
+			$nonce = random_bytes( SODIUM_CRYPTO_SECRETBOX_NONCEBYTES );
+
+			return base64_encode( 'S' . $nonce . sodium_crypto_secretbox( $plaintext, $nonce, $key ) );
+		}
+
+		if ( function_exists( 'openssl_encrypt' ) ) {
+			$iv     = random_bytes( 12 );
+			$tag    = '';
+			$cipher = openssl_encrypt( $plaintext, 'aes-256-gcm', $key, OPENSSL_RAW_DATA, $iv, $tag, 'timevault-string-v1', 16 );
+
+			if ( false === $cipher ) {
+				return new \WP_Error( 'timevault_encryption_failed', __( 'OpenSSL encryption failed.', 'timevault' ) );
+			}
+
+			return base64_encode( 'O' . $iv . $tag . $cipher );
+		}
+		// phpcs:enable
+
+		return new \WP_Error( 'timevault_encryption_no_backend', __( 'Neither libsodium nor OpenSSL is available on this server.', 'timevault' ) );
+	}
+
+	/**
+	 * Decrypts a string produced by encrypt_string(). Fails closed on any
+	 * tampering or key mismatch.
+	 *
+	 * @param string $encoded Opaque token.
+	 * @return string|\WP_Error
+	 */
+	public function decrypt_string( string $encoded ): string|\WP_Error {
+		$key = $this->key();
+
+		if ( null === $key ) {
+			return new \WP_Error( 'timevault_encryption_no_key', __( 'Encryption key is not configured in wp-config.php.', 'timevault' ) );
+		}
+
+		$raw = base64_decode( $encoded, true ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode -- Ciphertext transport encoding.
+
+		if ( false === $raw || strlen( $raw ) < 2 ) {
+			return $this->corrupted();
+		}
+
+		$method = $raw[0];
+		$body   = substr( $raw, 1 );
+
+		if ( 'S' === $method && function_exists( 'sodium_crypto_secretbox_open' ) ) {
+			if ( strlen( $body ) <= SODIUM_CRYPTO_SECRETBOX_NONCEBYTES ) {
+				return $this->corrupted();
+			}
+
+			$plain = sodium_crypto_secretbox_open(
+				substr( $body, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES ),
+				substr( $body, 0, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES ),
+				$key
+			);
+
+			return ( false === $plain ) ? $this->tampered() : $plain;
+		}
+
+		if ( 'O' === $method && function_exists( 'openssl_decrypt' ) ) {
+			if ( strlen( $body ) < 28 ) {
+				return $this->corrupted();
+			}
+
+			$plain = openssl_decrypt( substr( $body, 28 ), 'aes-256-gcm', $key, OPENSSL_RAW_DATA, substr( $body, 0, 12 ), substr( $body, 12, 16 ), 'timevault-string-v1' );
+
+			return ( false === $plain ) ? $this->tampered() : $plain;
+		}
+
+		return $this->corrupted();
+	}
+
+	/**
 	 * Reads a 4-byte big-endian chunk length with a sanity ceiling.
 	 *
 	 * @param resource $in Source handle.
