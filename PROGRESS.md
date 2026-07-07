@@ -6,8 +6,8 @@
 > **Ao concluir qualquer fase ou decisão relevante, atualize este arquivo.**
 
 **Última atualização:** 2026-07-07
-**Fase atual:** ✅ P0 + P1 + P3 + P2 concluídos e **VALIDADOS EM RUNTIME** → **próximo passo: P5 (LGPD/PrivacyService)**
-**Versão atual do plugin:** 0.4.0 · **Schema DB:** v2
+**Fase atual:** ✅ P0 + P1 + P3 + P2 + P5 concluídos e **VALIDADOS EM RUNTIME** → **próximo passo: P7 (testes PHPUnit) ou P6 (UI/UX)**
+**Versão atual do plugin:** 0.5.0 · **Schema DB:** v2
 **Git:** repositório em https://github.com/PedroAgostini/TIMEVAULT-MIGRATION.git (branch `main`)
 
 ## Ambiente de teste local (Laragon) — configurado em 2026-07-07
@@ -50,6 +50,35 @@ Pipeline testado ponta a ponta num WordPress real:
   `SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1` ao .htaccess do site.
 
 ---
+
+## O que o P5 entregou (2026-07-07) — PrivacyService / LGPD
+
+### Novos componentes
+
+| Arquivo | Papel |
+|---------|-------|
+| `src/Privacy/Anonymizer.php` | Pseudonimização de dados pessoais em exports staging/dev. Expõe um **transformer de linha** aplicado pelo dumper na origem (nunca reescreve SQL). Mascaramento determinístico via HMAC(`wp_salt`) por site — mesmo valor → mesmo mascarado (preserva joins/unicidade). Cobre `users`, `comments` e meta_keys conhecidas (first_name, phone, endereço…). |
+| `src/Core/PrivacyService.php` | Política de retenção (get/set), varredura `apply_retention_policy` (expira por idade/quantidade com piso `min_keep`, apaga artefato e marca `expired`), e `get_processing_record` (registro de tratamento LGPD). |
+| `src/Rest/PrivacyController.php` | `GET /privacy/processing-record`, `GET/POST /privacy/retention`, `POST /privacy/retention/run`. |
+
+### Alterações em arquivos existentes
+
+- `DatabaseDumper`: novo `set_row_transformer()` — transforma cada linha estruturada antes de serializar.
+- `BackupManager`: aplica o transformer quando `options['anonymize']`; manifest ganha `privacy.anonymized`.
+- `ExportManager`/`BackupsController`: opção `anonymize` no `POST /exports`.
+- `Plugin`: serviço `privacy()`; hook `timevault_retention_sweep`; agenda a varredura diária **em
+  `init`** (o data store do Action Scheduler só existe a partir de `init` — agendar em
+  `plugins_loaded` dava "called too early" e não persistia). Fix aplicado.
+- `uninstall.php`: remove options `timevault_retention`/`timevault_destinations`/`timevault_notify_email`.
+- Versão 0.5.0.
+
+### Validação de runtime do P5 (15/15)
+
+- ✅ Anonimização: email/nome/URL/telefone **reais ausentes** do dump; valores mascarados
+  presentes; determinístico; dump normal (controle) ainda contém o dado real.
+- ✅ Retenção: 7 backups completos + política `max_count=2` → 5 expirados, 2 mantidos; piso respeitado.
+- ✅ Registro de tratamento: personal_data, finalidades, destino local, telemetria=false, nota LGPD.
+- ✅ Varredura diária agendada em `init` sem notice; phpcs 100% limpo.
 
 ## O que o P2 entregou (2026-07-07) — Import/Restore Engine (camada mais crítica)
 
@@ -107,8 +136,8 @@ Pipeline testado ponta a ponta num WordPress real:
 | 2 | **P1** | Core Engine: BackupManager + ExportManager | ✅ Concluído (2026-07-07) |
 | 3 | **P3** | Storage Adapters (S3, Google Drive — Local já existe) | ✅ Concluído (2026-07-07) |
 | 4 | **P2** | Import/Restore Engine (camada mais crítica) | ✅ Concluído (2026-07-07) |
-| 5 | **P5** | PrivacyService / LGPD | ⬜ Próximo |
-| 6 | **P7** | Testes PHPUnit (rodar continuamente a partir daqui) | ⬜ Pendente |
+| 5 | **P5** | PrivacyService / LGPD | ✅ Concluído (2026-07-07) |
+| 6 | **P7** | Testes PHPUnit (rodar continuamente a partir daqui) | ⬜ Próximo |
 | 7 | **P4** | Auditoria de segurança (`/security-review`) antes de release | ⬜ Pendente |
 | 8 | **P6** | UI/UX | ⬜ Desbloqueado — usuário forneceu [TIMEVAULT-DESIGN-SYSTEM.md](TIMEVAULT-DESIGN-SYSTEM.md) |
 

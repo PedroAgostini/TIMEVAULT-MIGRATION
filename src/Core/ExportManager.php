@@ -57,6 +57,8 @@ final class ExportManager {
 				array(
 					'tables'          => $tables,
 					'include_uploads' => $include_uploads,
+					// Staging/dev exports pseudonymize personal data (LGPD, P5).
+					'anonymize'       => ! empty( $selection['anonymize'] ),
 				)
 			)
 		);

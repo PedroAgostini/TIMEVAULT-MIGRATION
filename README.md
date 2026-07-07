@@ -69,6 +69,24 @@ Todos os endpoints exigem a capability `manage_timevault` (+ nonce `X-WP-Nonce` 
 | `/restore/confirm` | POST | Confirma (frase `RESTORE` + token) e agenda o restore (rate-limited) |
 | `/restores` | GET | Histórico de restaurações |
 | `/restores/{uuid}` | GET | Status de um restore (polling) |
+| `/privacy/processing-record` | GET | Registro de operações de tratamento (LGPD) |
+| `/privacy/retention` | GET/POST | Lê/define a política de retenção |
+| `/privacy/retention/run` | POST | Executa a varredura de retenção agora |
+
+### Privacidade / LGPD (P5)
+
+- **Anonimização opt-in** de exports staging/dev: com `"anonymize": true` no `POST /exports`,
+  dados pessoais (email, nome, URL, telefone, endereço em `wp_users`/`wp_usermeta`/`wp_comments`)
+  são pseudonimizados **na origem** (transformador de linha no dumper, nunca reescrevendo SQL).
+  O mascaramento é determinístico (HMAC por site) — o mesmo valor mascara igual, preservando
+  joins e unicidade, mas o dado real nunca sai do site. O manifest registra `privacy.anonymized`.
+- **Retenção automática**: política configurável (`max_age_days`, `max_count`, piso `min_keep`)
+  aplicada por uma varredura diária (Action Scheduler). Backups expirados têm o artefato apagado
+  e o registro marcado `expired` (mantido para prestação de contas). Nunca deleta abaixo do piso.
+- **Registro de operações de tratamento** gerado automaticamente: dados pessoais tocados,
+  finalidades, destinos (com região p/ transferência internacional, Art. 33), retenção e postura
+  de segurança — pronto para anexar à documentação de compliance da agência.
+- **Sem telemetria**: nada é enviado para fora do site sem opt-in explícito e configurável.
 
 ### Restauração / migração (P2 — camada mais crítica)
 

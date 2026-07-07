@@ -110,6 +110,10 @@ final class BackupsController extends AbstractController {
 						'type'    => 'boolean',
 						'default' => false,
 					),
+					'anonymize'       => array(
+						'type'    => 'boolean',
+						'default' => false,
+					),
 				),
 			)
 		);
@@ -180,6 +184,7 @@ final class BackupsController extends AbstractController {
 			array(
 				'tables'          => (array) $request['tables'],
 				'include_uploads' => (bool) $request['include_uploads'],
+				'anonymize'       => (bool) $request['anonymize'],
 			)
 		);
 

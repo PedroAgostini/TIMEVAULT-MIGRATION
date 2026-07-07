@@ -262,7 +262,16 @@ final class BackupManager {
 				)
 			);
 		} else {
-			$stats = ( new DatabaseDumper() )->dump( $workdir . '/database.sql', $only, ! empty( $options['all_tables'] ) );
+			$dumper = new DatabaseDumper();
+
+			// Staging/dev exports get personal data pseudonymized at the row
+			// level before it is ever written to the dump (LGPD, P5).
+			if ( ! empty( $options['anonymize'] ) ) {
+				$dumper->set_row_transformer( ( new \Timevault\Privacy\Anonymizer() )->transformer() );
+				$this->repository->merge_meta( $uuid, array( 'anonymized' => true ) );
+			}
+
+			$stats = $dumper->dump( $workdir . '/database.sql', $only, ! empty( $options['all_tables'] ) );
 			$this->unwrap( $stats );
 			$this->repository->merge_meta( $uuid, array( 'db' => $stats ) );
 		}
@@ -479,6 +488,10 @@ final class BackupManager {
 				'rows'   => 0,
 			) ),
 			'files_scope' => $files_scope,
+			'privacy'     => array(
+				// True when this export had personal data pseudonymized (LGPD).
+				'anonymized' => ! empty( $row['meta']['anonymized'] ),
+			),
 			'security'    => array(
 				'wp_config_excluded' => true,
 				'checksum_algorithm' => 'sha256',

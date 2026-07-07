@@ -89,6 +89,13 @@ final class Plugin {
 	private ?Core\ImportManager $import_manager = null;
 
 	/**
+	 * Shared privacy/LGPD service.
+	 *
+	 * @var Core\PrivacyService|null
+	 */
+	private ?Core\PrivacyService $privacy = null;
+
+	/**
 	 * Retrieves the singleton instance.
 	 */
 	public static function instance(): Plugin {
@@ -120,10 +127,28 @@ final class Plugin {
 		( new Rest\DestinationsController( $this ) )->register();
 		( new Rest\DownloadController( $this ) )->register();
 		( new Rest\RestoreController( $this ) )->register();
+		( new Rest\PrivacyController( $this ) )->register();
 
 		// Action Scheduler executes pipeline steps through these hooks.
 		add_action( Core\BackupManager::STEP_HOOK, array( $this->backups(), 'handle_step' ), 10, 2 );
 		add_action( Core\ImportManager::STEP_HOOK, array( $this->imports(), 'handle_step' ), 10, 2 );
+		add_action( Core\PrivacyService::RETENTION_HOOK, array( $this->privacy(), 'apply_retention_policy' ) );
+
+		// Scheduling touches the Action Scheduler store, which only initializes
+		// on `init` — registering it earlier (plugins_loaded) is "called too
+		// early" and does not persist.
+		add_action( 'init', array( $this, 'schedule_maintenance' ), 20 );
+	}
+
+	/**
+	 * Ensures the recurring retention sweep is scheduled (daily). Idempotent.
+	 */
+	public function schedule_maintenance(): void {
+		$queue = $this->queue();
+
+		if ( $queue->is_available() ) {
+			$queue->schedule_recurring( DAY_IN_SECONDS, Core\PrivacyService::RETENTION_HOOK );
+		}
 	}
 
 	/**
@@ -226,6 +251,22 @@ final class Plugin {
 		}
 
 		return $this->import_manager;
+	}
+
+	/**
+	 * Privacy/LGPD service (anonymization policy, retention, processing record).
+	 */
+	public function privacy(): Core\PrivacyService {
+		if ( null === $this->privacy ) {
+			$this->privacy = new Core\PrivacyService(
+				$this->backup_repository(),
+				$this->audit_log(),
+				$this->destination_settings(),
+				$this->storage_adapters()
+			);
+		}
+
+		return $this->privacy;
 	}
 
 	/**

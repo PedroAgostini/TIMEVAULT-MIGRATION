@@ -39,6 +39,24 @@ final class DatabaseDumper {
 	private const ROWS_PER_INSERT = 100;
 
 	/**
+	 * Optional per-row transformer applied before serialization (anonymization).
+	 *
+	 * @var callable|null
+	 */
+	private $row_transformer = null;
+
+	/**
+	 * Sets a row transformer: (string $table, array $row) => array $row.
+	 * Used by the PrivacyService to anonymize staging/dev exports at the
+	 * structured-row level (never by rewriting SQL text).
+	 *
+	 * @param callable|null $transformer Transformer or null to clear.
+	 */
+	public function set_row_transformer( ?callable $transformer ): void {
+		$this->row_transformer = $transformer;
+	}
+
+	/**
 	 * Dumps tables to a SQL file.
 	 *
 	 * @param string             $target_path Absolute path of the .sql file to create.
@@ -194,6 +212,11 @@ final class DatabaseDumper {
 				$tuples = array();
 
 				foreach ( $chunk as $row ) {
+					if ( null !== $this->row_transformer ) {
+						// Anonymization happens on structured data, before serialization.
+						$row = (array) ( $this->row_transformer )( $table, $row );
+					}
+
 					$tuples[] = $this->row_values( $row, $fields );
 				}
 

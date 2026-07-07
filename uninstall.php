@@ -37,3 +37,6 @@ $wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}timevault_restores" );
 delete_option( 'timevault_schema_version' );
 delete_option( 'timevault_dir_suffix' );
 delete_option( 'timevault_delete_data_on_uninstall' );
+delete_option( 'timevault_retention' );
+delete_option( 'timevault_destinations' );
+delete_option( 'timevault_notify_email' );
