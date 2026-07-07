@@ -1,0 +1,191 @@
+<?php
+/**
+ * Plugin bootstrap and lightweight service container.
+ *
+ * @package Timevault
+ */
+
+declare( strict_types=1 );
+
+namespace Timevault;
+
+defined( 'ABSPATH' ) || exit;
+
+/**
+ * Central bootstrap: wires the layers together (Admin UI, REST API,
+ * Core Engine, Storage Adapters, Job Queue) and exposes lazily built
+ * shared services.
+ */
+final class Plugin {
+
+	/**
+	 * Singleton instance.
+	 *
+	 * @var Plugin|null
+	 */
+	private static ?Plugin $instance = null;
+
+	/**
+	 * Shared audit log service.
+	 *
+	 * @var Core\AuditLog|null
+	 */
+	private ?Core\AuditLog $audit_log = null;
+
+	/**
+	 * Shared encryption service.
+	 *
+	 * @var Core\EncryptionService|null
+	 */
+	private ?Core\EncryptionService $encryption = null;
+
+	/**
+	 * Shared job queue (Action Scheduler wrapper).
+	 *
+	 * @var Queue\JobQueue|null
+	 */
+	private ?Queue\JobQueue $queue = null;
+
+	/**
+	 * Shared backup registry.
+	 *
+	 * @var Core\BackupRepository|null
+	 */
+	private ?Core\BackupRepository $backup_repository = null;
+
+	/**
+	 * Shared backup orchestrator.
+	 *
+	 * @var Core\BackupManager|null
+	 */
+	private ?Core\BackupManager $backup_manager = null;
+
+	/**
+	 * Shared export manager.
+	 *
+	 * @var Core\ExportManager|null
+	 */
+	private ?Core\ExportManager $export_manager = null;
+
+	/**
+	 * Retrieves the singleton instance.
+	 */
+	public static function instance(): Plugin {
+		if ( null === self::$instance ) {
+			self::$instance = new self();
+		}
+
+		return self::$instance;
+	}
+
+	/**
+	 * Use Plugin::instance().
+	 */
+	private function __construct() {}
+
+	/**
+	 * Boots the plugin on `plugins_loaded`.
+	 */
+	public function boot(): void {
+		load_plugin_textdomain( 'timevault', false, dirname( plugin_basename( TIMEVAULT_FILE ) ) . '/languages' );
+
+		if ( is_admin() ) {
+			Activation\Activator::maybe_upgrade();
+		}
+
+		( new Admin\AdminMenu( $this ) )->register();
+		( new Rest\StatusController( $this ) )->register();
+		( new Rest\BackupsController( $this ) )->register();
+
+		// Action Scheduler executes backup pipeline steps through this hook.
+		add_action( Core\BackupManager::STEP_HOOK, array( $this->backups(), 'handle_step' ), 10, 2 );
+	}
+
+	/**
+	 * Append-only audit log (LGPD Art. 6, VI — accountability).
+	 */
+	public function audit_log(): Core\AuditLog {
+		if ( null === $this->audit_log ) {
+			$this->audit_log = new Core\AuditLog();
+		}
+
+		return $this->audit_log;
+	}
+
+	/**
+	 * Encryption service. The key lives in wp-config.php, never in the database.
+	 */
+	public function encryption(): Core\EncryptionService {
+		if ( null === $this->encryption ) {
+			$this->encryption = new Core\EncryptionService();
+		}
+
+		return $this->encryption;
+	}
+
+	/**
+	 * Job queue for long-running work (backup, export, restore).
+	 */
+	public function queue(): Queue\JobQueue {
+		if ( null === $this->queue ) {
+			$this->queue = new Queue\JobQueue();
+		}
+
+		return $this->queue;
+	}
+
+	/**
+	 * Backup registry (timevault_backups table).
+	 */
+	public function backup_repository(): Core\BackupRepository {
+		if ( null === $this->backup_repository ) {
+			$this->backup_repository = new Core\BackupRepository();
+		}
+
+		return $this->backup_repository;
+	}
+
+	/**
+	 * Backup orchestrator (async step pipeline).
+	 */
+	public function backups(): Core\BackupManager {
+		if ( null === $this->backup_manager ) {
+			$adapters = $this->storage_adapters();
+
+			$this->backup_manager = new Core\BackupManager(
+				$this->backup_repository(),
+				$this->queue(),
+				$this->audit_log(),
+				$this->encryption(),
+				$adapters['local'] // Destination selection per job arrives with P3.
+			);
+		}
+
+		return $this->backup_manager;
+	}
+
+	/**
+	 * Selective export manager.
+	 */
+	public function exports(): Core\ExportManager {
+		if ( null === $this->export_manager ) {
+			$this->export_manager = new Core\ExportManager( $this->backups() );
+		}
+
+		return $this->export_manager;
+	}
+
+	/**
+	 * Registered storage adapters, keyed by adapter id.
+	 *
+	 * Only the local adapter ships enabled. External destinations (S3,
+	 * Google Drive, SFTP — P3) are opt-in per site, never active by default.
+	 *
+	 * @return array<string, Storage\StorageAdapterInterface>
+	 */
+	public function storage_adapters(): array {
+		return array(
+			'local' => new Storage\LocalAdapter(),
+		);
+	}
+}
