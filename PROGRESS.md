@@ -124,10 +124,12 @@ storage + LocalAdapter, JobQueue (Action Scheduler), Capabilities e Paths. Detal
 
 ## Pendências e avisos para a próxima sessão
 
-1. **Ambiente local sem PHP/Composer** (Windows, verificado em 2026-07-07): `php -l` e
-   `composer install` ainda não foram executados. **Nenhum código foi validado em runtime** —
-   antes do P2, subir num WordPress real ou `wp-env`/Docker, rodar `composer install`, ativar,
-   disparar `POST /wp-json/timevault/v1/backups` e acompanhar o pipeline.
+1. **Ambiente local configurado em 2026-07-07**: Laragon instalado via winget (`C:\laragon`,
+   PHP 8.3.30 + MySQL + Composer embutidos; extensões zip/sodium/openssl/mysqli habilitadas no
+   php.ini criado a partir do template). `composer install` executado (vendor/ com Action
+   Scheduler 3.9.3), `php -l` limpo nos 29 arquivos e **phpcs 100% limpo**. **Falta ainda o
+   teste em WordPress real**: criar site no Laragon, linkar o plugin em wp-content/plugins/timevault,
+   ativar, configurar TIMEVAULT_ENCRYPTION_KEY e disparar POST /backups.
 2. **Token de download não é single-use** (TTL 5 min + capability na emissão + auditoria).
    Hardening futuro: registrar jti consumido para invalidar reuso dentro do TTL.
 3. **SFTPAdapter** consta na arquitetura do CLAUDE.md mas não no prompt P3 — fica como fase futura.

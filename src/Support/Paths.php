@@ -111,7 +111,7 @@ final class Paths {
 		$root_prefix = trailingslashit( wp_normalize_path( $root ) );
 		$target_norm = wp_normalize_path( $target );
 
-		if ( $target_norm === untrailingslashit( $root_prefix ) || ! str_starts_with( $target_norm . '/', $root_prefix ) ) {
+		if ( untrailingslashit( $root_prefix ) === $target_norm || ! str_starts_with( $target_norm . '/', $root_prefix ) ) {
 			return;
 		}
 
@@ -121,7 +121,6 @@ final class Paths {
 		);
 
 		foreach ( $iterator as $file ) {
-			/** @var \SplFileInfo $file */
 			if ( $file->isDir() && ! $file->isLink() ) {
 				// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_rmdir -- Cleanup inside our own hardened directory.
 				rmdir( $file->getPathname() );

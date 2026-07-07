@@ -46,6 +46,7 @@ final class AuditLog {
 
 		$user = wp_get_current_user();
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Append-only write to the dedicated audit table.
 		$wpdb->insert(
 			$wpdb->prefix . 'timevault_audit_log',
 			array(
@@ -77,11 +78,12 @@ final class AuditLog {
 		$offset = max( 0, $offset );
 		$table  = $wpdb->prefix . 'timevault_audit_log';
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is built from the trusted $wpdb->prefix; values are prepared.
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- Dedicated audit table; identifier from the trusted prefix; values prepared.
 		return (array) $wpdb->get_results(
 			$wpdb->prepare( "SELECT * FROM {$table} ORDER BY id DESC LIMIT %d OFFSET %d", $limit, $offset ),
 			ARRAY_A
 		);
+		// phpcs:enable
 	}
 
 	/**

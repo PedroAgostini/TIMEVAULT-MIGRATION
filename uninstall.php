@@ -28,7 +28,7 @@ if ( ! (bool) get_option( 'timevault_delete_data_on_uninstall', false ) ) {
 
 global $wpdb;
 
-// phpcs:disable WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Uninstall cleanup; table names come from the trusted prefix.
+// phpcs:disable WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Uninstall cleanup; table names come from the trusted prefix.
 $wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}timevault_audit_log" );
 $wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}timevault_backups" );
 // phpcs:enable

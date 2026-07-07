@@ -11,6 +11,8 @@ namespace Timevault\Core;
 
 defined( 'ABSPATH' ) || exit;
 
+// phpcs:disable WordPress.WP.AlternativeFunctions -- Streaming cryptography requires raw file handles and byte-level I/O; WP_Filesystem has no streaming API.
+
 /**
  * Authenticated streaming encryption for backup archives.
  *
@@ -83,7 +85,6 @@ final class EncryptionService {
 			return new \WP_Error( 'timevault_encryption_no_backend', __( 'Neither libsodium nor OpenSSL is available on this server.', 'timevault' ) );
 		}
 
-		// phpcs:disable WordPress.WP.AlternativeFunctions -- Streaming crypto requires raw file handles; WP_Filesystem has no streaming API.
 		$in = fopen( $source_path, 'rb' );
 
 		if ( false === $in ) {
@@ -103,7 +104,6 @@ final class EncryptionService {
 
 		fclose( $in );
 		fclose( $out );
-		// phpcs:enable
 
 		if ( is_wp_error( $result ) ) {
 			wp_delete_file( $target_path ); // Never leave a partial/unauthenticated artifact behind.
@@ -129,7 +129,6 @@ final class EncryptionService {
 			return new \WP_Error( 'timevault_encryption_no_key', __( 'Encryption key is not configured in wp-config.php.', 'timevault' ) );
 		}
 
-		// phpcs:disable WordPress.WP.AlternativeFunctions -- Streaming crypto requires raw file handles.
 		$in = fopen( $source_path, 'rb' );
 
 		if ( false === $in ) {
@@ -168,7 +167,6 @@ final class EncryptionService {
 
 		fclose( $in );
 		fclose( $out );
-		// phpcs:enable
 
 		if ( is_wp_error( $result ) ) {
 			wp_delete_file( $target_path ); // Fail closed: no partially decrypted output.
@@ -419,7 +417,7 @@ final class EncryptionService {
 
 			return base64_encode( 'O' . $iv . $tag . $cipher );
 		}
-		// phpcs:enable
+		// phpcs:enable WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
 
 		return new \WP_Error( 'timevault_encryption_no_backend', __( 'Neither libsodium nor OpenSSL is available on this server.', 'timevault' ) );
 	}
@@ -501,15 +499,17 @@ final class EncryptionService {
 	 */
 	private function read_exact( $in, int $bytes ) {
 		$data = '';
+		$have = 0;
 
-		while ( strlen( $data ) < $bytes ) {
-			$part = fread( $in, $bytes - strlen( $data ) );
+		while ( $have < $bytes ) {
+			$part = fread( $in, $bytes - $have );
 
 			if ( false === $part || '' === $part ) {
 				return false;
 			}
 
 			$data .= $part;
+			$have += strlen( $part );
 		}
 
 		return $data;

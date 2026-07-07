@@ -151,7 +151,7 @@ final class DatabaseDumper {
 		$create = $wpdb->get_row( "SHOW CREATE TABLE {$qt}", ARRAY_N );
 
 		if ( ! isset( $create[1] ) ) {
-			throw new \RuntimeException( 'Could not read the definition of table ' . $table );
+			throw new \RuntimeException( 'Could not read the definition of table ' . esc_html( $table ) );
 		}
 
 		$this->write( $handle, "--\n-- Table: {$table}\n--\n\nDROP TABLE IF EXISTS {$qt};\n" . $create[1] . ";\n\n" );
@@ -263,7 +263,7 @@ final class DatabaseDumper {
 	}
 
 	/**
-	 * fwrite that throws on failure (disk full, revoked handle).
+	 * Writes to the dump handle, throwing on failure (disk full, revoked handle).
 	 *
 	 * @param resource $handle Output handle.
 	 * @param string   $data   Bytes to write.

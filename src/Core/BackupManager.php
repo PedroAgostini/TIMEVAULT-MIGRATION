@@ -16,9 +16,8 @@ use Timevault\Support\Paths;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Orchestrates backups as an asynchronous step pipeline:
- *
- *     dump_db → package → finalize
+ * Orchestrates backups as an asynchronous step pipeline
+ * (dump_db → package → finalize).
  *
  * Each step runs as its own Action Scheduler action — long work is never
  * executed synchronously inside a web request, and a step that dies never
@@ -47,11 +46,11 @@ final class BackupManager {
 	/**
 	 * Constructor.
 	 *
-	 * @param BackupRepository                         $repository Backup registry.
-	 * @param JobQueue                                 $queue      Async job queue.
-	 * @param AuditLog                                 $audit      Append-only audit log.
-	 * @param EncryptionService                        $encryption Encryption at rest.
-	 * @param array<string, StorageAdapterInterface>   $adapters   Available destinations, keyed by id ('local' always present; external ones only when explicitly enabled).
+	 * @param BackupRepository                       $repository Backup registry.
+	 * @param JobQueue                               $queue      Async job queue.
+	 * @param AuditLog                               $audit      Append-only audit log.
+	 * @param EncryptionService                      $encryption Encryption at rest.
+	 * @param array<string, StorageAdapterInterface> $adapters   Available destinations, keyed by id ('local' always present; external ones only when explicitly enabled).
 	 */
 	public function __construct(
 		private BackupRepository $repository,
@@ -148,12 +147,17 @@ final class BackupManager {
 			return; // Stale or replayed action — a finished pipeline never re-runs.
 		}
 
+		if ( ! in_array( $step, array( 'dump_db', 'package', 'finalize' ), true ) ) {
+			$this->fail( $uuid, 'Unknown backup step: ' . $step );
+
+			return;
+		}
+
 		try {
 			match ( $step ) {
 				'dump_db'  => $this->step_dump_db( $row ),
 				'package'  => $this->step_package( $row ),
 				'finalize' => $this->step_finalize( $row ),
-				default    => throw new \InvalidArgumentException( 'Unknown backup step: ' . $step ),
 			};
 		} catch ( \Throwable $e ) {
 			$this->fail( $uuid, $e->getMessage() );
@@ -361,7 +365,7 @@ final class BackupManager {
 		$id = (string) $row['storage'];
 
 		if ( ! isset( $this->adapters[ $id ] ) ) {
-			throw new \RuntimeException( 'Storage destination not available: ' . $id );
+			throw new \RuntimeException( 'Storage destination not available: ' . esc_html( $id ) );
 		}
 
 		return $this->adapters[ $id ];
@@ -443,7 +447,7 @@ final class BackupManager {
 	 */
 	private function unwrap( mixed $result ): mixed {
 		if ( is_wp_error( $result ) ) {
-			throw new \RuntimeException( $result->get_error_message() );
+			throw new \RuntimeException( esc_html( $result->get_error_message() ) );
 		}
 
 		return $result;

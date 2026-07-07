@@ -221,9 +221,10 @@ final class S3Adapter implements StorageAdapterInterface {
 	/**
 	 * Builds the SDK client with on-demand decrypted credentials.
 	 *
-	 * @return \Aws\S3\S3Client|\WP_Error
+	 * @return object \Aws\S3\S3Client on success, \WP_Error otherwise (native
+	 *                union with `object` is not allowed, callers use is_wp_error()).
 	 */
-	private function client(): object|\WP_Error {
+	private function client(): object {
 		if ( ! class_exists( '\\Aws\\S3\\S3Client' ) ) {
 			return new \WP_Error( 'timevault_sdk_missing', __( 'The AWS SDK is not installed. Run "composer require aws/aws-sdk-php" inside the plugin directory.', 'timevault' ) );
 		}

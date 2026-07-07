@@ -255,9 +255,10 @@ final class GoogleDriveAdapter implements StorageAdapterInterface {
 	/**
 	 * Builds the Drive service with the minimum `drive.file` scope.
 	 *
-	 * @return object|\WP_Error \Google\Service\Drive when the SDK is present.
+	 * @return object \Google\Service\Drive on success, \WP_Error otherwise (native
+	 *                union with `object` is not allowed, callers use is_wp_error()).
 	 */
-	private function service(): object|\WP_Error {
+	private function service(): object {
 		if ( ! class_exists( '\\Google\\Client' ) ) {
 			return new \WP_Error( 'timevault_sdk_missing', __( 'The Google API client is not installed. Run "composer require google/apiclient" inside the plugin directory.', 'timevault' ) );
 		}

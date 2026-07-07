@@ -28,10 +28,10 @@ final class FilePackager {
 	/**
 	 * Creates a ZIP package.
 	 *
-	 * @param string                                                     $zip_path    Absolute path of the .zip to create.
-	 * @param array<string, string>                                      $named_files Map of archive entry => absolute file path.
-	 * @param array<string, array{root: string, exclude_paths?: array}>  $trees       Map of archive prefix => tree spec.
-	 * @param array<string, mixed>                                       $manifest    Manifest data; file stats are appended and it is embedded as manifest.json.
+	 * @param string                                                    $zip_path    Absolute path of the .zip to create.
+	 * @param array<string, string>                                     $named_files Map of archive entry => absolute file path.
+	 * @param array<string, array{root: string, exclude_paths?: array}> $trees       Map of archive prefix => tree spec.
+	 * @param array<string, mixed>                                      $manifest    Manifest data; file stats are appended and it is embedded as manifest.json.
 	 * @return array{count: int, bytes: int}|\WP_Error Package statistics.
 	 */
 	public function package( string $zip_path, array $named_files, array $trees, array $manifest ): array|\WP_Error {
@@ -148,7 +148,6 @@ final class FilePackager {
 		$iterator = new \RecursiveIteratorIterator( $filter, \RecursiveIteratorIterator::LEAVES_ONLY );
 
 		foreach ( $iterator as $file ) {
-			/** @var \SplFileInfo $file */
 			if ( ! $file->isFile() ) {
 				continue;
 			}
