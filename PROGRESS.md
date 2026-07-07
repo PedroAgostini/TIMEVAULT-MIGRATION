@@ -6,8 +6,8 @@
 > **Ao concluir qualquer fase ou decisão relevante, atualize este arquivo.**
 
 **Última atualização:** 2026-07-07
-**Fase atual:** ✅ P0 + P1 + P3 concluídos e **VALIDADOS EM RUNTIME** → **próximo passo: P2 (Import/Restore — camada mais crítica)**
-**Versão atual do plugin:** 0.3.0
+**Fase atual:** ✅ P0 + P1 + P3 + P2 concluídos e **VALIDADOS EM RUNTIME** → **próximo passo: P5 (LGPD/PrivacyService)**
+**Versão atual do plugin:** 0.4.0 · **Schema DB:** v2
 **Git:** repositório em https://github.com/PedroAgostini/TIMEVAULT-MIGRATION.git (branch `main`)
 
 ## Ambiente de teste local (Laragon) — configurado em 2026-07-07
@@ -51,17 +51,63 @@ Pipeline testado ponta a ponta num WordPress real:
 
 ---
 
-## Status do roadmap
+## O que o P2 entregou (2026-07-07) — Import/Restore Engine (camada mais crítica)
 
-Ordem de execução recomendada (definida no CLAUDE.md, seção 8):
+### Novos componentes
+
+| Arquivo | Papel |
+|---------|-------|
+| `src/Restore/PathGuard.php` | Defesa central contra zip-slip/path traversal. `validate_entry_name` rejeita `../`, path absoluto, drive letter, backslash, NUL, e nomes fora dos prefixos permitidos (`files/`, `uploads/`, `database.sql`, `manifest.json`). `safe_target` canonicaliza e revalida contenção no destino (defesa em profundidade). |
+| `src/Restore/ArchiveInspector.php` | Verifica checksum SHA-256 **antes** de processar; decifra (autenticado); valida TODA entrada do ZIP; guarda contra zip-bomb (tamanho/razão); lê manifest como JSON (nunca unserialize). `extract_to_staging` streama cada entrada para alvo revalidado. |
+| `src/Restore/SqlImporter.php` | Tokenizer de SQL que respeita strings (`\'`/`''`), backticks e comentários. Mantém versão "code" sem literais para classificação. Whitelist de statements; **aborta** em construções proibidas (`INTO OUTFILE`, `LOAD DATA`, `LOAD_FILE`, `DROP DATABASE`, `GRANT`…); executa via `$wpdb->query()` um a um (nunca eval/multi-statement). Pula tabelas próprias do Timevault e faz rewrite de prefixo só no identificador-alvo. |
+| `src/Restore/RestoreRepository.php` | Persistência da tabela `timevault_restores` (schema v2). |
+| `src/Restore/RateLimiter.php` | Rate limiter por usuário (transients). |
+| `src/Core/ImportManager.php` | **Orquestrador.** Pipeline assíncrono de 6 etapas: `safety_backup → validate → extract → restore_db → restore_files → finalize`. Backup de segurança síncrono antes de sobrescrever; preserva options operacionais + tabelas próprias; `copy_tree` com contenção para restore de arquivos. |
+| `src/Rest/RestoreController.php` | Dupla confirmação (`/restore/prepare` emite token HMAC + `/restore/confirm` exige frase `RESTORE` + token) + rate limiting; `/restores` e `/restores/{uuid}`. |
+
+### Alterações em arquivos existentes
+
+- `Activator`: schema **v2** — nova tabela `timevault_restores`. `maybe_upgrade` cria automaticamente.
+- `BackupManager`: passos agora retornam o próximo (dirigível async **ou** síncrono); novo
+  `run_now()` para o backup de segurança síncrono; exclui **todos** os dirs `timevault-*` do
+  wp-content ao empacotar (evita varrer diretório de backup órfão).
+- `Plugin`: serviços `restore_repository()`, `imports()`; hook `timevault_restore_step`.
+- `uninstall.php`: dropa `timevault_restores`. Versão 0.4.0.
+
+### Bugs REAIS encontrados e corrigidos durante o teste de runtime (importante!)
+
+1. **Restore revertia o `timevault_dir_suffix`** (parte do wp_options) → o diretório de backup
+   "se movia" e **orfanava todos os backups no meio do próprio restore**. Fix: `snapshot_bookkeeping`
+   /`restore_bookkeeping` preservam suffix, schema_version e mantêm o plugin ativo (+ `wp_cache_flush`).
+2. **Restore revertia as tabelas próprias do Timevault** (audit_log/backups/restores) → perdia a
+   trilha de auditoria e o registro do backup de segurança. Fix: SqlImporter pula statements que
+   miram essas tabelas (validado: 9 statements pulados = 3 tabelas × DROP/CREATE/INSERT).
+3. **Falso positivo de `LOAD_FILE`**: o check de proibidos rodava no statement inteiro, batendo em
+   dados. Fix: classificação roda na versão "code" (sem conteúdo de strings).
+4. Ambiente: o Apache do Laragon precisava reiniciar para carregar o `zip` no PHP web (o Action
+   Scheduler processa jobs via loopback HTTP ao Apache, não no CLI).
+
+### Validação de runtime do P2 (WordPress real)
+
+- ✅ Restore end-to-end: post apagado **volta** (mesmo ID); status `completed`.
+- ✅ Backup de segurança automático criado **antes** de sobrescrever; registro sobrevive ao restore.
+- ✅ Suffix/diretório de backup preservado; auditoria completa
+  (`restore_scheduled → restore_safety_backup → restore_db_applied → restore_completed`).
+- ✅ 12/12 testes adversariais: zip-slip, path absoluto, drive letter, backslash, NUL, fora de
+  prefixo, `INTO OUTFILE` aborta, LOAD_FILE-em-dados não é falso positivo.
+- ✅ 6/6 dupla confirmação: prepare emite token; frase errada → 400; token adulterado → erro;
+  confirmação correta → 202.
+- ✅ phpcs 100% limpo; `php -l` limpo (35 arquivos src).
+
+## Status do roadmap
 
 | Ordem | Fase | Descrição | Status |
 |-------|------|-----------|--------|
 | 1 | **P0** | Scaffolding e estrutura inicial | ✅ Concluído (2026-07-07) |
 | 2 | **P1** | Core Engine: BackupManager + ExportManager | ✅ Concluído (2026-07-07) |
 | 3 | **P3** | Storage Adapters (S3, Google Drive — Local já existe) | ✅ Concluído (2026-07-07) |
-| 4 | **P2** | Import/Restore Engine (camada mais crítica) | ⬜ Próximo |
-| 5 | **P5** | PrivacyService / LGPD | ⬜ Pendente |
+| 4 | **P2** | Import/Restore Engine (camada mais crítica) | ✅ Concluído (2026-07-07) |
+| 5 | **P5** | PrivacyService / LGPD | ⬜ Próximo |
 | 6 | **P7** | Testes PHPUnit (rodar continuamente a partir daqui) | ⬜ Pendente |
 | 7 | **P4** | Auditoria de segurança (`/security-review`) antes de release | ⬜ Pendente |
 | 8 | **P6** | UI/UX | ⬜ Desbloqueado — usuário forneceu [TIMEVAULT-DESIGN-SYSTEM.md](TIMEVAULT-DESIGN-SYSTEM.md) |

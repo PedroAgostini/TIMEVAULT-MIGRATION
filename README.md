@@ -65,6 +65,43 @@ Todos os endpoints exigem a capability `manage_timevault` (+ nonce `X-WP-Nonce` 
 | `/download?token=` | GET | Baixa o backup (auth pelo token assinado; checksum verificado antes) |
 | `/destinations` | GET | Destinos configurados (credenciais nunca retornadas) |
 | `/destinations/{s3\|gdrive}` | POST/DELETE | Configura/remove destino externo (opt-in) |
+| `/restore/prepare` | POST | Valida o pacote e emite token de confirmação (rate-limited) |
+| `/restore/confirm` | POST | Confirma (frase `RESTORE` + token) e agenda o restore (rate-limited) |
+| `/restores` | GET | Histórico de restaurações |
+| `/restores/{uuid}` | GET | Status de um restore (polling) |
+
+### Restauração / migração (P2 — camada mais crítica)
+
+O restore roda num pipeline assíncrono de 6 etapas
+(`safety_backup → validate → extract → restore_db → restore_files → finalize`)
+com salvaguardas não-negociáveis, nessa ordem:
+
+1. **Backup de segurança automático**: um backup full do estado atual é feito **até o fim**
+   (síncrono) **antes** de qualquer sobrescrita. Se falhar, o restore aborta sem tocar no site.
+2. **Validação**: o SHA-256 do artefato é verificado antes de processar os bytes; então
+   decifra (autenticado) e **cada entrada do ZIP** é validada (PathGuard: rejeita `../`, caminhos
+   absolutos, drive letters, backslash, NUL, fora dos prefixos); o manifest é lido como JSON
+   (nunca `unserialize`). Guarda também contra zip-bomb (tamanho/razão de compressão).
+3. **Extração**: cada entrada é streamada para um alvo revalidado dentro de um staging
+   (nunca `ZipArchive::extractTo` sobre nomes hostis).
+4. **Restore de SQL**: um importador tokeniza o dump respeitando strings/comentários, classifica
+   cada statement contra uma whitelist e executa um a um via `$wpdb->query()` — **nunca `eval`**,
+   nunca multi-statement. Construções perigosas (`INTO OUTFILE`, `LOAD DATA`, `LOAD_FILE`,
+   `DROP DATABASE`, `GRANT`…) **abortam** o restore. As tabelas operacionais do próprio Timevault
+   (audit log, registro de backups/restores) são **preservadas** para não perder a trilha de
+   auditoria nem a referência ao backup de segurança. As options internas (localização do
+   diretório de backup, versão de schema) e o estado "plugin ativo" também são preservados.
+5. **Dupla confirmação + rate limiting** são exigidos na camada REST antes de agendar: o cliente
+   precisa do token de `/restore/prepare` **e** ecoar a frase exata `RESTORE` em `/restore/confirm`.
+   Toda tentativa é auditada.
+
+Fluxo do cliente:
+
+```
+POST /restore/prepare   { backup_uuid }              -> { summary, confirm_token, confirm_phrase }
+POST /restore/confirm   { token, confirm:"RESTORE" } -> 202 { restore_uuid }
+GET  /restores/{uuid}                                -> status (polling)
+```
 
 ### Destinos externos (opt-in)
 

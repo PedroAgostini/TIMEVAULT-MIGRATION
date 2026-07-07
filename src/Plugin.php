@@ -75,6 +75,20 @@ final class Plugin {
 	private ?Storage\DestinationSettings $destination_settings = null;
 
 	/**
+	 * Shared restore registry.
+	 *
+	 * @var Restore\RestoreRepository|null
+	 */
+	private ?Restore\RestoreRepository $restore_repository = null;
+
+	/**
+	 * Shared import/restore orchestrator.
+	 *
+	 * @var Core\ImportManager|null
+	 */
+	private ?Core\ImportManager $import_manager = null;
+
+	/**
 	 * Retrieves the singleton instance.
 	 */
 	public static function instance(): Plugin {
@@ -105,9 +119,11 @@ final class Plugin {
 		( new Rest\BackupsController( $this ) )->register();
 		( new Rest\DestinationsController( $this ) )->register();
 		( new Rest\DownloadController( $this ) )->register();
+		( new Rest\RestoreController( $this ) )->register();
 
-		// Action Scheduler executes backup pipeline steps through this hook.
+		// Action Scheduler executes pipeline steps through these hooks.
 		add_action( Core\BackupManager::STEP_HOOK, array( $this->backups(), 'handle_step' ), 10, 2 );
+		add_action( Core\ImportManager::STEP_HOOK, array( $this->imports(), 'handle_step' ), 10, 2 );
 	}
 
 	/**
@@ -180,6 +196,36 @@ final class Plugin {
 		}
 
 		return $this->destination_settings;
+	}
+
+	/**
+	 * Restore registry (timevault_restores table).
+	 */
+	public function restore_repository(): Restore\RestoreRepository {
+		if ( null === $this->restore_repository ) {
+			$this->restore_repository = new Restore\RestoreRepository();
+		}
+
+		return $this->restore_repository;
+	}
+
+	/**
+	 * Import/restore orchestrator (highest-risk component).
+	 */
+	public function imports(): Core\ImportManager {
+		if ( null === $this->import_manager ) {
+			$this->import_manager = new Core\ImportManager(
+				$this->restore_repository(),
+				$this->backup_repository(),
+				$this->backups(),
+				$this->queue(),
+				$this->audit_log(),
+				new Restore\ArchiveInspector( $this->encryption() ),
+				$this->storage_adapters()
+			);
+		}
+
+		return $this->import_manager;
 	}
 
 	/**

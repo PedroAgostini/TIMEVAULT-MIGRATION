@@ -23,7 +23,7 @@ final class Activator {
 	/**
 	 * Bump whenever the dbDelta schema below changes.
 	 */
-	private const SCHEMA_VERSION = '1';
+	private const SCHEMA_VERSION = '2';
 
 	private const SCHEMA_OPTION = 'timevault_schema_version';
 
@@ -82,6 +82,7 @@ final class Activator {
 		$charset_collate = $wpdb->get_charset_collate();
 		$audit_table     = $wpdb->prefix . 'timevault_audit_log';
 		$backups_table   = $wpdb->prefix . 'timevault_backups';
+		$restores_table  = $wpdb->prefix . 'timevault_restores';
 
 		/*
 		 * Audit log — append-only by application design: the AuditLog service
@@ -131,6 +132,30 @@ final class Activator {
 				meta longtext NULL,
 				PRIMARY KEY  (id),
 				UNIQUE KEY backup_uuid (backup_uuid),
+				KEY status (status),
+				KEY created_at (created_at)
+			) {$charset_collate};"
+		);
+
+		/*
+		 * Restore registry — tracks each restore attempt (the most sensitive
+		 * operation): which backup, the automatic safety backup taken before
+		 * overwriting, current pipeline step, and per-step results in JSON.
+		 */
+		dbDelta(
+			"CREATE TABLE {$restores_table} (
+				id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+				restore_uuid char(36) NOT NULL,
+				source_backup_uuid char(36) NOT NULL DEFAULT '',
+				safety_backup_uuid char(36) NOT NULL DEFAULT '',
+				status varchar(20) NOT NULL DEFAULT 'pending',
+				step varchar(24) NOT NULL DEFAULT '',
+				created_by bigint(20) unsigned NOT NULL DEFAULT 0,
+				created_at datetime NOT NULL,
+				completed_at datetime NULL,
+				meta longtext NULL,
+				PRIMARY KEY  (id),
+				UNIQUE KEY restore_uuid (restore_uuid),
 				KEY status (status),
 				KEY created_at (created_at)
 			) {$charset_collate};"

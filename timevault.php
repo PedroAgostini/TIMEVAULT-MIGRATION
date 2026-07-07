@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Timevault Migration & Backups
  * Description:       Private agency plugin for secure WordPress backup, export, import and migration. Privacy by design: no external network calls by default.
- * Version:           0.3.0
+ * Version:           0.4.0
  * Requires at least: 6.2
  * Requires PHP:      8.1
  * Author:            Trajet / TS01 Web Design
@@ -18,7 +18,7 @@ declare( strict_types=1 );
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'TIMEVAULT_VERSION', '0.3.0' );
+define( 'TIMEVAULT_VERSION', '0.4.0' );
 define( 'TIMEVAULT_FILE', __FILE__ );
 define( 'TIMEVAULT_DIR', plugin_dir_path( __FILE__ ) );
 define( 'TIMEVAULT_URL', plugin_dir_url( __FILE__ ) );

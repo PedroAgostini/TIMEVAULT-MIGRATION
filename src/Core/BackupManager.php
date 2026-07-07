@@ -154,23 +154,90 @@ final class BackupManager {
 		}
 
 		try {
-			match ( $step ) {
+			$next = match ( $step ) {
 				'dump_db'  => $this->step_dump_db( $row ),
 				'package'  => $this->step_package( $row ),
 				'finalize' => $this->step_finalize( $row ),
 			};
+
+			if ( null !== $next ) {
+				$this->next_step( $uuid, $next );
+			}
 		} catch ( \Throwable $e ) {
 			$this->fail( $uuid, $e->getMessage() );
 		}
 	}
 
 	/**
+	 * Runs a backup to completion synchronously (no Action Scheduler).
+	 *
+	 * Used for the automatic safety backup taken before a restore, where the
+	 * ordering "backup completes BEFORE anything is overwritten" must be
+	 * guaranteed. Not for web requests — callers are already async jobs.
+	 *
+	 * @param string               $type    Backup type: full|db.
+	 * @param array<string, mixed> $options Options (storage, files_scope).
+	 * @return string|\WP_Error Completed backup UUID.
+	 */
+	public function run_now( string $type, array $options = array() ): string|\WP_Error {
+		if ( ! in_array( $type, self::TYPES, true ) ) {
+			return new \WP_Error( 'timevault_invalid_type', __( 'Invalid backup type.', 'timevault' ) );
+		}
+
+		$storage = (string) ( $options['storage'] ?? 'local' );
+
+		if ( ! isset( $this->adapters[ $storage ] ) ) {
+			return new \WP_Error( 'timevault_unknown_storage', __( 'Unknown or disabled storage destination.', 'timevault' ) );
+		}
+
+		unset( $options['storage'] );
+
+		$uuid = $this->repository->create( $type, $storage, array( 'options' => $options ) );
+
+		if ( is_wp_error( $uuid ) ) {
+			return $uuid;
+		}
+
+		$this->audit->record(
+			'backup_scheduled',
+			array(
+				'type'    => $type,
+				'storage' => $storage,
+				'sync'    => true,
+			),
+			'backup',
+			$uuid
+		);
+
+		try {
+			$step = 'dump_db';
+
+			while ( null !== $step ) {
+				$row  = $this->repository->get( $uuid );
+				$step = match ( $step ) {
+					'dump_db'  => $this->step_dump_db( (array) $row ),
+					'package'  => $this->step_package( (array) $row ),
+					'finalize' => $this->step_finalize( (array) $row ),
+					default    => null,
+				};
+			}
+		} catch ( \Throwable $e ) {
+			$this->fail( $uuid, $e->getMessage() );
+
+			return new \WP_Error( 'timevault_safety_backup_failed', $e->getMessage() );
+		}
+
+		return $uuid;
+	}
+
+	/**
 	 * Step 1: dump the database into the working directory.
 	 *
 	 * @param array<string, mixed> $row Registry row.
+	 * @return string Next step.
 	 * @throws \RuntimeException On failure.
 	 */
-	private function step_dump_db( array $row ): void {
+	private function step_dump_db( array $row ): string {
 		$uuid = (string) $row['backup_uuid'];
 		$this->repository->update( $uuid, array( 'status' => 'running' ) );
 
@@ -200,7 +267,7 @@ final class BackupManager {
 			$this->repository->merge_meta( $uuid, array( 'db' => $stats ) );
 		}
 
-		$this->next_step( $uuid, 'package' );
+		return 'package';
 	}
 
 	/**
@@ -208,9 +275,10 @@ final class BackupManager {
 	 * a JSON manifest.
 	 *
 	 * @param array<string, mixed> $row Registry row.
+	 * @return string Next step.
 	 * @throws \RuntimeException On failure.
 	 */
-	private function step_package( array $row ): void {
+	private function step_package( array $row ): string {
 		$uuid    = (string) $row['backup_uuid'];
 		$workdir = Paths::working_dir( $uuid );
 		$options = (array) ( $row['meta']['options'] ?? array() );
@@ -228,9 +296,17 @@ final class BackupManager {
 			$files_scope = ( 'full' === ( $options['files_scope'] ?? '' ) ) ? 'full' : 'wp-content';
 			$root        = ( 'full' === $files_scope ) ? untrailingslashit( ABSPATH ) : WP_CONTENT_DIR;
 
+			// Exclude the cache and EVERY timevault-* directory in wp-content —
+			// not just the active one — so a relocated/orphaned backup store is
+			// never swept into a new backup.
+			$exclude = array_merge(
+				array( WP_CONTENT_DIR . '/cache' ),
+				(array) glob( WP_CONTENT_DIR . '/timevault-*', GLOB_ONLYDIR )
+			);
+
 			$trees['files'] = array(
 				'root'          => $root,
-				'exclude_paths' => array( Paths::backup_dir(), WP_CONTENT_DIR . '/cache' ),
+				'exclude_paths' => $exclude,
 			);
 		}
 
@@ -248,16 +324,18 @@ final class BackupManager {
 		$this->unwrap( $stats );
 
 		$this->repository->merge_meta( $uuid, array( 'files' => $stats ) );
-		$this->next_step( $uuid, 'finalize' );
+
+		return 'finalize';
 	}
 
 	/**
 	 * Step 3: encrypt, checksum, store, complete.
 	 *
 	 * @param array<string, mixed> $row Registry row.
+	 * @return null No further step.
 	 * @throws \RuntimeException On failure.
 	 */
-	private function step_finalize( array $row ): void {
+	private function step_finalize( array $row ): ?string {
 		$uuid     = (string) $row['backup_uuid'];
 		$workdir  = Paths::working_dir( $uuid );
 		$artifact = $workdir . '/package.zip';
@@ -325,6 +403,8 @@ final class BackupManager {
 
 		Paths::delete_tree( $workdir );
 		$this->notify( $uuid, true );
+
+		return null;
 	}
 
 	/**

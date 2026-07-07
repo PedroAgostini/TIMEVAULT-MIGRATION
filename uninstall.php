@@ -31,6 +31,7 @@ global $wpdb;
 // phpcs:disable WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Uninstall cleanup; table names come from the trusted prefix.
 $wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}timevault_audit_log" );
 $wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}timevault_backups" );
+$wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}timevault_restores" );
 // phpcs:enable
 
 delete_option( 'timevault_schema_version' );
