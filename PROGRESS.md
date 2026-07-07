@@ -6,9 +6,48 @@
 > **Ao concluir qualquer fase ou decisão relevante, atualize este arquivo.**
 
 **Última atualização:** 2026-07-07
-**Fase atual:** ✅ P0 + P1 + P3 concluídos → **próximo passo: P2 (Import/Restore — camada mais crítica)**
+**Fase atual:** ✅ P0 + P1 + P3 concluídos e **VALIDADOS EM RUNTIME** → **próximo passo: P2 (Import/Restore — camada mais crítica)**
 **Versão atual do plugin:** 0.3.0
 **Git:** repositório em https://github.com/PedroAgostini/TIMEVAULT-MIGRATION.git (branch `main`)
+
+## Ambiente de teste local (Laragon) — configurado em 2026-07-07
+
+- **Laragon** em `C:\laragon` (PHP 8.3.30, MySQL 8.4.3, Composer embutidos). Apache + MySQL rodando.
+- **PHP CLI:** `C:\laragon\bin\php\php-8.3.30-Win32-vs16-x64\php.exe`. O `php.ini` foi criado a
+  partir do template `php.ini-development` com estas extensões habilitadas: zip, sodium, openssl,
+  mysqli, curl, mbstring, gd. **Atenção:** o `zip` exigiu correção manual (o template usa formato
+  de linha diferente); confirme com `php -r "var_dump(class_exists('ZipArchive'));"`.
+- **WP-CLI:** baixado em `C:\laragon\bin\wp-cli.phar`, com wrapper `C:\laragon\bin\wp.cmd`.
+- **Site de teste:** `C:\laragon\www\timevault-test` (WordPress 6.6 pt_BR). URL:
+  `http://localhost/timevault-test`. Admin: `admin` / `admin123`. Banco: `timevault_test`
+  (root, sem senha, host 127.0.0.1). REST usa `?rest_route=` (permalinks plain, sem mod_rewrite).
+- **Plugin:** junction `wp-content/plugins/timevault` → a pasta do projeto (edições refletem direto).
+- `TIMEVAULT_ENCRYPTION_KEY` e `WP_DEBUG=true` definidas no wp-config.php do site de teste.
+- **Rodar o pipeline** (Action Scheduler não roda sozinho no CLI): agendar via
+  `\Timevault\Plugin::instance()->backups()->schedule('db'|'full', ...)` e processar com
+  `wp.cmd action-scheduler run` (as 3 etapas encadeadas fecham em 1 pass).
+
+### Resultado da validação de runtime (2026-07-07)
+
+Toolchain: `composer install` OK, `php -l` limpo (29/29), **phpcs 100% limpo** (0/0).
+Pipeline testado ponta a ponta num WordPress real:
+
+- ✅ Ativação: 2 tabelas criadas, schema_version=1, sufixo aleatório do diretório, hardening
+  (.htaccess/index.php/web.config) presentes.
+- ✅ Backup **db**: pipeline assíncrono das 3 etapas (ações encadeadas no Action Scheduler)
+  → `.zip.enc` cifrado, `is_encrypted=1`, checksum registrado, auditoria `backup_completed`.
+- ✅ **Round-trip de criptografia**: checksum confere; decrypt OK; ZIP contém `database.sql`
+  (com CREATE TABLE) + `manifest.json`; manifest confirma `wp_config_excluded:true` e
+  `serialization:json`; work dir limpo (0 sobras).
+- ✅ Backup **full**: 12,3 MB, 413 arquivos empacotados; **wp-config.php NÃO incluído**; nenhuma
+  entrada com `..`; manifest presente.
+- ✅ **Download via HTTP**: token HMAC emitido (capability-gated), download só com o token
+  (sem header de auth) entrega o arquivo correto; **gate de checksum confere**.
+- ✅ Segurança negativa: request sem auth → 401; token adulterado → 401.
+- ⚠️ Basic auth de Application Password via HTTP retorna 401 no Laragon (Apache strip do header
+  `Authorization`) — é config do ambiente, não do plugin; o bloqueio 401 sem auth prova o
+  permission_callback. Para testar endpoints cookie/basic no futuro, adicionar
+  `SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1` ao .htaccess do site.
 
 ---
 
