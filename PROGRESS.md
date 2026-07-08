@@ -5,10 +5,26 @@
 > requisitos de segurança e roteiro de prompts P0–P7), depois este arquivo para saber onde paramos.
 > **Ao concluir qualquer fase ou decisão relevante, atualize este arquivo.**
 
-**Última atualização:** 2026-07-07
-**Fase atual:** ✅ P0 + P1 + P3 + P2 + P5 concluídos e **VALIDADOS EM RUNTIME** → **próximo passo: P7 (testes PHPUnit) ou P6 (UI/UX)**
+**Última atualização:** 2026-07-08
+**Fase atual:** ✅ P0 + P1 + P3 + P2 + P5 + P7 concluídos e **VALIDADOS EM RUNTIME** → **próximo passo: P4 (security-review) ou P6 (UI/UX)**
 **Versão atual do plugin:** 0.5.0 · **Schema DB:** v2
 **Git:** repositório em https://github.com/PedroAgostini/TIMEVAULT-MIGRATION.git (branch `main`)
+
+## Como rodar os testes (P7)
+
+- Banco de testes descartável: `timevault_tests` (MySQL do Laragon, root sem senha).
+- Config: `tests/wp-tests-config.php` (aponta ABSPATH p/ `C:/laragon/www/timevault-test/` e usa a
+  constante `TIMEVAULT_ENCRYPTION_KEY` + `TIMEVAULT_BACKUP_DIR` no temp).
+- Rodar (PowerShell):
+  ```
+  $phpDir='C:\laragon\bin\php\php-8.3.30-Win32-vs16-x64'
+  $env:PATH="$phpDir;$env:PATH"; $env:WP_PHP_BINARY="$phpDir\php.exe"
+  $env:WP_CORE_DIR='C:/laragon/www/timevault-test/'
+  & "$phpDir\php.exe" vendor\phpunit\phpunit\phpunit
+  ```
+- **Importante:** `php` precisa estar no PATH (o WP test suite chama `WP_PHP_BINARY` p/ instalar).
+  O wp-phpunit lê `WP_TESTS_CONFIG_FILE_PATH` como **constante** (definida em `tests/bootstrap.php`).
+- Resultado atual: **57 testes, 111 asserções, 100% verdes.**
 
 ## Ambiente de teste local (Laragon) — configurado em 2026-07-07
 
@@ -50,6 +66,27 @@ Pipeline testado ponta a ponta num WordPress real:
   `SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1` ao .htaccess do site.
 
 ---
+
+## O que o P7 entregou (2026-07-08) — Testes PHPUnit
+
+Suíte com `wp-phpunit` (WP test suite via Composer). **57 testes, 111 asserções, 100% verdes.**
+Prioridade em import/restore (superfície mais crítica). Arquivos em `tests/`:
+
+| Arquivo | Cobre |
+|---------|-------|
+| `tests/bootstrap.php` + `tests/wp-tests-config.php` + `phpunit.xml.dist` | Infra do WP test suite + banco `timevault_tests`. |
+| `Restore/PathGuardTest.php` | 9 nomes maliciosos (traversal, absoluto, drive letter, backslash, NUL, fora de prefixo, vazio) + 5 legítimos + contenção de `safe_target`. |
+| `Restore/SqlImporterTest.php` | Execução/contagem, `;` dentro de string não divide, **INTO OUTFILE aborta**, LOAD_FILE em dados não é falso positivo, **tabelas próprias puladas**, dump corrompido → erro. |
+| `Restore/ArchiveInspectorTest.php` | **Checksum inválido**, checksum ausente, **ZIP com zip-slip recusado** (inspect + extract), manifest ausente, manifest não-JSON (serializado), pacote válido aceito. |
+| `Core/EncryptionServiceTest.php` | Round-trip multi-chunk, **adulteração falha fechada** (sem plaintext parcial), **truncamento rejeitado**, string round-trip/adulteração. |
+| `Storage/LocalAdapterTest.php` | store/retrieve/delete, nomes maliciosos, fonte ausente, exclui hardening, **S3 sem SDK → `timevault_sdk_missing`** (credencial/SDK indisponível). |
+| `Privacy/AnonymizerTest.php` | Mascara colunas de user, **determinístico**, meta_keys conhecidas, colunas desconhecidas intactas. |
+| `Core/BackupManagerTest.php` | `run_now('db')` completa com artefato válido (checksum confere, decifra, manifest ok); storage/tipo inválidos rejeitados. |
+| `Core/ImportManagerTest.php` | `validate_package` happy path, backup inexistente, **artefato adulterado → checksum error**. |
+
+**Nota de escopo:** o restore destrutivo completo (restore_db faz DDL que dá commit implícito e
+quebraria o isolamento transacional do teste) é coberto pelo teste de runtime num site real
+(documentado no P2), não pela suíte automatizada — para manter o banco de testes íntegro.
 
 ## O que o P5 entregou (2026-07-07) — PrivacyService / LGPD
 
@@ -137,8 +174,8 @@ Pipeline testado ponta a ponta num WordPress real:
 | 3 | **P3** | Storage Adapters (S3, Google Drive — Local já existe) | ✅ Concluído (2026-07-07) |
 | 4 | **P2** | Import/Restore Engine (camada mais crítica) | ✅ Concluído (2026-07-07) |
 | 5 | **P5** | PrivacyService / LGPD | ✅ Concluído (2026-07-07) |
-| 6 | **P7** | Testes PHPUnit (rodar continuamente a partir daqui) | ⬜ Próximo |
-| 7 | **P4** | Auditoria de segurança (`/security-review`) antes de release | ⬜ Pendente |
+| 6 | **P7** | Testes PHPUnit (57 testes, 100% verdes) | ✅ Concluído (2026-07-08) |
+| 7 | **P4** | Auditoria de segurança (`/security-review`) antes de release | ⬜ Próximo |
 | 8 | **P6** | UI/UX | ⬜ Desbloqueado — usuário forneceu [TIMEVAULT-DESIGN-SYSTEM.md](TIMEVAULT-DESIGN-SYSTEM.md) |
 
 ---

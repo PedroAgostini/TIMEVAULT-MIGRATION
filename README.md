@@ -13,11 +13,32 @@ Plugin WordPress **privado** (uso interno de agência — não será publicado n
 ## Setup de desenvolvimento
 
 ```bash
-composer install   # autoload PSR-4 + Action Scheduler + phpcs/phpunit
+composer install   # autoload PSR-4 + Action Scheduler + phpcs/phpunit + wp-phpunit
 composer lint      # WordPress Coding Standards
+composer test      # PHPUnit (precisa do banco de testes — ver abaixo)
 ```
 
 > O plugin funciona sem `composer install` (há um autoloader PSR-4 de fallback), mas a fila de jobs (Action Scheduler) só fica disponível com as dependências instaladas.
+
+### Testes (PHPUnit + WP test suite)
+
+Os testes usam `wp-phpunit` (test suite do WordPress via Composer, sem svn) contra um banco
+**descartável** `timevault_tests`. Configuração em [tests/wp-tests-config.php](tests/wp-tests-config.php)
+(aceita override por variáveis de ambiente: `WP_CORE_DIR`, `WP_TESTS_DB_*`, `WP_PHP_BINARY`).
+
+```bash
+# 1. crie o banco de testes uma vez
+mysql -u root -e "CREATE DATABASE IF NOT EXISTS timevault_tests"
+
+# 2. rode (php precisa estar no PATH; WP_CORE_DIR aponta para um WordPress local)
+WP_CORE_DIR=/caminho/para/wordpress/ vendor/bin/phpunit
+```
+
+Cobertura (57 testes) com foco na superfície mais crítica (import/restore): PathGuard
+(zip-slip/traversal), SqlImporter (tokenizer, construções proibidas, tabelas próprias, dump
+corrompido), ArchiveInspector (checksum inválido, ZIP malicioso, manifest), EncryptionService
+(round-trip, adulteração, truncamento), LocalAdapter + guard de SDK ausente, Anonymizer
+(determinismo), BackupManager (`run_now` + integridade) e ImportManager (validação + checksum).
 
 **Deploy:** a pasta do plugin no servidor deve se chamar `timevault` (slug oficial).
 
