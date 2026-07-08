@@ -274,9 +274,13 @@
 	function toast( kind, title, msg ) {
 		var host = document.getElementById( 'tv-toasts' );
 		if ( ! host ) {
-			host = h( 'div', { class: 'tv-toasts', id: 'tv-toasts', aria: { live: 'polite' } }, [] );
+			// Themed wrapper so the CSS custom properties resolve (the toasts
+			// live on <body>, outside the main .timevault-app element). The
+			// inline styles neutralize the .timevault-app layout.
+			host = h( 'div', { class: 'tv-toasts timevault-app', id: 'tv-toasts', 'data-theme': state.theme, aria: { live: 'polite' }, style: 'min-height:0;padding:0;margin:0;background:none' }, [] );
 			document.body.appendChild( host );
 		}
+		host.setAttribute( 'data-theme', state.theme );
 		var tt = h( 'div', { class: 'tv-toast tv-glass tv-toast--' + kind }, [
 			h( 'div', { class: 'tv-toast__title', text: title } ),
 			msg ? h( 'div', { text: msg } ) : null,
