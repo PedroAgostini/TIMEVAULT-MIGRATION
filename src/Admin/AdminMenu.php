@@ -95,7 +95,7 @@ final class AdminMenu {
 				'root'         => esc_url_raw( rest_url( 'timevault/v1' ) ),
 				'rootFallback' => esc_url_raw( add_query_arg( 'rest_route', '/timevault/v1', site_url( '/' ) ) ),
 				'nonce'        => wp_create_nonce( 'wp_rest' ),
-				'logo'         => esc_url_raw( TIMEVAULT_URL . 'assets/images/TIMEVAULT-LOGO-2.webp' ),
+				'logo'         => esc_url_raw( TIMEVAULT_URL . 'assets/images/TIMEVAULT-LOGO-2-cropped.webp' ),
 				'encryptConst' => EncryptionService::KEY_CONSTANT,
 				'siteHost'     => (string) wp_parse_url( home_url(), PHP_URL_HOST ),
 			)

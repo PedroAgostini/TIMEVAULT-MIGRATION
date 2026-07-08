@@ -206,22 +206,16 @@
 }
 
 .tv-header__logoFrame {
-	width: 272px;
-	height: 108px;
-	overflow: hidden;
-	display: block;
-	position: relative;
+	width: 300px;
+	display: flex;
+	align-items: flex-start;
 }
 
 .tv-header__logo {
-	position: absolute;
-	left: 50%;
-	top: 50%;
-	width: 300px;
+	width: 100%;
 	height: auto;
-	max-width: none;
+	max-width: 100%;
 	display: block;
-	transform: translate(-50%, -50%);
 	filter: drop-shadow(0 14px 24px rgba(30, 25, 15, 0.14));
 }
 
@@ -1374,12 +1368,7 @@
 	}
 
 	.tv-header__logoFrame {
-		width: 248px;
-		height: 98px;
-	}
-
-	.tv-header__logo {
-		width: 274px;
+		width: min(100%, 270px);
 	}
 
 	.tv-header__actions,
