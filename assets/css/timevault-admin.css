@@ -200,7 +200,6 @@
 
 .tv-header__brand {
 	display: grid;
-	gap: var(--tv-space-4);
 	align-content: start;
 	justify-items: start;
 	min-width: 0;

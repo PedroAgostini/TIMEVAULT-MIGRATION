@@ -463,9 +463,6 @@
 				h( 'div', { class: 'tv-header__logoFrame' }, [
 					cfg.logo ? h( 'img', { class: 'tv-header__logo', src: cfg.logo, alt: 'Timevault' } ) : h( 'span', { class: 'tv-header__logo tv-header__logo--icon', html: ICONS.vault } ),
 				] ),
-				h( 'div', { class: 'tv-header__titles' }, [
-					h( 'p', { text: t( 'subtitle' ) } ),
-				] ),
 			] ),
 			h( 'div', { class: 'tv-header__actions' }, [
 				h( 'div', { class: 'tv-controls' }, [ themeBtn, langSel ] ),
