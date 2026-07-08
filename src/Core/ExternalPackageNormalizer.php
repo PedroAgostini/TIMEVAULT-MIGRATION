@@ -155,7 +155,7 @@ final class ExternalPackageNormalizer {
 				continue;
 			}
 
-			$mapped = $this->map_external_entry( $name, ! $sql_written );
+			$mapped = $this->map_external_entry( $name, ! $sql_written, false );
 
 			if ( null === $mapped ) {
 				continue;
@@ -244,7 +244,7 @@ final class ExternalPackageNormalizer {
 					return $size;
 				}
 
-				$mapped = null === $name ? null : $this->map_external_entry( $name, ! $sql_written );
+				$mapped = null === $name ? null : $this->map_external_entry( $name, ! $sql_written, true );
 
 				if ( null === $mapped ) {
 					if ( $size > 0 && 0 !== fseek( $handle, (int) $size, SEEK_CUR ) ) {
@@ -321,15 +321,23 @@ final class ExternalPackageNormalizer {
 	/**
 	 * Maps a third-party entry to a Timevault-safe relative entry.
 	 *
-	 * @param string $name            Clean external entry name.
-	 * @param bool   $allow_database  Whether a database dump has not yet been selected.
+	 * @param string $name                 Clean external entry name.
+	 * @param bool   $allow_database       Whether a database dump has not yet been selected.
+	 * @param bool   $wp_content_relative  True when the source stores paths relative to
+	 *                                     wp-content (All-in-One WP Migration): then EVERY
+	 *                                     entry is site content and is imported.
 	 * @return string|null
 	 */
-	private function map_external_entry( string $name, bool $allow_database ): ?string {
+	private function map_external_entry( string $name, bool $allow_database, bool $wp_content_relative ): ?string {
 		$lower    = strtolower( $name );
 		$basename = basename( $lower );
 
 		if ( 'wp-config.php' === $basename ) {
+			return null;
+		}
+
+		// Root-level metadata written by migration tools — not site content.
+		if ( false === strpos( $name, '/' ) && in_array( $basename, array( 'package.json', 'multisite.json', 'blogs.json' ), true ) ) {
 			return null;
 		}
 
@@ -347,12 +355,25 @@ final class ExternalPackageNormalizer {
 		$wp_content_pos = strpos( $lower, 'wp-content/' );
 
 		if ( false !== $wp_content_pos ) {
-			$inside = substr( $name, $wp_content_pos + strlen( 'wp-content/' ) );
-
-			return $this->map_wp_content_entry( $inside );
+			return $this->map_wp_content_entry( substr( $name, $wp_content_pos + strlen( 'wp-content/' ) ) );
 		}
 
-		return $this->map_wp_content_entry( $name );
+		// A WPRESS archive stores everything relative to wp-content, so every
+		// remaining entry is site content — import all of it.
+		if ( $wp_content_relative ) {
+			return $this->map_wp_content_entry( $name );
+		}
+
+		// A ZIP without a wp-content/ prefix might be a full-site export; only
+		// take known content directories so wp-admin/wp-includes/root files and
+		// secrets are not pulled in.
+		foreach ( array( 'uploads/', 'plugins/', 'themes/', 'mu-plugins/', 'languages/' ) as $prefix ) {
+			if ( str_starts_with( $lower, $prefix ) ) {
+				return $this->map_wp_content_entry( $name );
+			}
+		}
+
+		return null;
 	}
 
 	/**
@@ -362,24 +383,30 @@ final class ExternalPackageNormalizer {
 	 * @return string|null
 	 */
 	private function map_wp_content_entry( string $inside ): ?string {
-		$inside = ltrim( $inside, '/' );
+		$inside = ltrim( str_replace( '\\', '/', $inside ), '/' );
 		$lower  = strtolower( $inside );
 
 		if ( '' === $inside || 'wp-config.php' === basename( $lower ) ) {
 			return null;
 		}
 
+		// Never re-import a backup tool's own archive folders (avoids nesting
+		// backups-of-backups).
+		foreach ( array( 'ai1wm-backups/', 'updraft/', 'timevault-' ) as $skip ) {
+			if ( str_starts_with( $lower, $skip ) ) {
+				return null;
+			}
+		}
+
+		// Media goes to the uploads tree so restore places it in the uploads dir.
 		if ( str_starts_with( $lower, 'uploads/' ) ) {
 			return 'uploads/' . substr( $inside, strlen( 'uploads/' ) );
 		}
 
-		foreach ( array( 'plugins/', 'themes/', 'mu-plugins/', 'languages/' ) as $prefix ) {
-			if ( str_starts_with( $lower, $prefix ) ) {
-				return 'files/' . $inside;
-			}
-		}
-
-		return null;
+		// Everything else under wp-content (plugins, themes, mu-plugins,
+		// languages, and any custom folder or root file) is imported into
+		// wp-content so the migration brings the whole site over.
+		return 'files/' . $inside;
 	}
 
 	/**

@@ -7,8 +7,23 @@
 
 **Última atualização:** 2026-07-08
 **Fase atual:** ✅ **TODAS as fases (P0–P7) concluídas e VALIDADAS.** Roteiro do brief completo.
-**Versão atual do plugin:** 0.7.7 · **Schema DB:** v2
+**Versão atual do plugin:** 0.7.8 · **Schema DB:** v2
 **Git:** repositório em https://github.com/PedroAgostini/TIMEVAULT-MIGRATION.git (branch `main`)
+
+## Fix: import .wpress agora traz TUDO (2026-07-08, v0.7.8)
+
+- **Bug:** o mapeador (`map_wp_content_entry`) só aceitava `uploads/plugins/themes/mu-plugins/
+  languages` e **descartava** o resto do wp-content (pastas customizadas, arquivos na raiz do
+  wp-content etc.). Import do All-in-One não trazia "tudo".
+- **Fix:** `map_wp_content_entry` virou catch-all — **todo** conteúdo do wp-content vai para
+  `files/` (uploads para `uploads/`), exceto `wp-config.php` e as pastas de backup das próprias
+  ferramentas (`ai1wm-backups/`, `updraft/`, `timevault-`). `map_external_entry` ganhou o flag
+  `wp_content_relative`: WPRESS (caminhos relativos ao wp-content) importa tudo; ZIP sem prefixo
+  `wp-content/` continua conservador (só pastas de conteúdo conhecidas, p/ não puxar wp-admin/
+  wp-includes/arquivos-raiz). Metadados do AIO na raiz (`package.json`, `multisite.json`) são pulados.
+- **Validado em runtime:** `.wpress` com uploads (+subpastas), themes, plugins, mu-plugins, pasta
+  customizada e arquivo na raiz do wp-content → todos importados; `wp-config.php` e metadados
+  excluídos. 69 testes verdes, phpcs limpo.
 
 ## Fix de import .wpress / All-in-One WP Migration (2026-07-08)
 
