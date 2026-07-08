@@ -6,8 +6,8 @@
 > **Ao concluir qualquer fase ou decisão relevante, atualize este arquivo.**
 
 **Última atualização:** 2026-07-08
-**Fase atual:** ✅ P0 + P1 + P3 + P2 + P5 + P7 + P4 concluídos e **VALIDADOS EM RUNTIME** → **próximo passo: P6 (UI/UX) — última fase**
-**Versão atual do plugin:** 0.5.0 · **Schema DB:** v2
+**Fase atual:** ✅ **TODAS as fases (P0–P7) concluídas e VALIDADAS.** Roteiro do brief completo.
+**Versão atual do plugin:** 0.6.0 · **Schema DB:** v2
 **Git:** repositório em https://github.com/PedroAgostini/TIMEVAULT-MIGRATION.git (branch `main`)
 
 ## Como rodar os testes (P7)
@@ -66,6 +66,26 @@ Pipeline testado ponta a ponta num WordPress real:
   `SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1` ao .htaccess do site.
 
 ---
+
+## O que o P6 entregou (2026-07-08) — UI/UX (dashboard admin)
+
+Dashboard admin completo seguindo o `TIMEVAULT-DESIGN-SYSTEM.md` (preto + âmbar `#ffa300` +
+glassmorphism, Plus Jakarta Sans + JetBrains Mono, a "Espinha Temporal" como assinatura).
+
+| Arquivo | Papel |
+|---------|-------|
+| `assets/css/timevault-admin.css` | Design system completo em CSS, escopado sob `.timevault-app` (não vaza pro wp-admin). Tokens, glass, botões, badges, Espinha Temporal, progresso, tabela, modal, toasts, estados vazios. A11y: foco âmbar 2px, `prefers-reduced-motion`, texto preto sobre âmbar. |
+| `assets/js/timevault-admin.js` | App vanilla JS (sem build/CDN). Renderiza via `textContent` (anti-XSS). Carrega `/overview` + `/backups` + `/restores`; cards de status; Espinha Temporal (nó "agora" pulsando); histórico com filtros; **polling de 3s** enquanto há jobs ativos; **modal de dupla confirmação** (digitar `RESTORE` + checkbox de arquivos + nota do backup de segurança); toasts; download via token. |
+| `assets/fonts/README.md` | Como ativar as fontes de marca locais (sem CDN — privacy/LGPD); cai pra stack do sistema sem elas. |
+| `src/Admin/AdminMenu.php` | Enfileira os assets só na tela do plugin; localiza `TimevaultConfig` (root REST + nonce + logo); renderiza o shell do app com fallback no-JS/loading (checklist de saúde SSR). |
+| `src/Rest/StatusController.php` | Novo `GET /overview` — agrega último backup, totais, espaço usado, jobs ativos, próxima manutenção, retenção. |
+
+**Preview visual publicado** (Artifact) com o CSS real + estado populado, incluindo o modal aberto.
+**Nota:** os `.woff2` da marca não estão no bundle (não os tenho); a UI usa a stack do sistema até
+serem adicionados (instruções em `assets/fonts/README.md`). Validado: `/overview` retorna 200, o
+shell renderiza sem fatal, assets servidos (HTTP 200), JS com sintaxe válida (node --check),
+phpcs limpo, 57 testes verdes. **Falta apenas a verificação visual final no wp-admin logado** (fazer
+no navegador). Versão 0.6.0.
 
 ## O que o P7 entregou (2026-07-08) — Testes PHPUnit
 
@@ -176,7 +196,7 @@ quebraria o isolamento transacional do teste) é coberto pelo teste de runtime n
 | 5 | **P5** | PrivacyService / LGPD | ✅ Concluído (2026-07-07) |
 | 6 | **P7** | Testes PHPUnit (57 testes, 100% verdes) | ✅ Concluído (2026-07-08) |
 | 7 | **P4** | Auditoria de segurança — ver [SECURITY-REVIEW.md](SECURITY-REVIEW.md) | ✅ Concluído (2026-07-08) |
-| 8 | **P6** | UI/UX | ⬜ Próximo — design em [TIMEVAULT-DESIGN-SYSTEM.md](TIMEVAULT-DESIGN-SYSTEM.md) + logo em assets |
+| 8 | **P6** | UI/UX — dashboard admin (design system aplicado) | ✅ Concluído (2026-07-08) |
 
 ---
 

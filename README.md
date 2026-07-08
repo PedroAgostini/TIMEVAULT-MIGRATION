@@ -78,6 +78,7 @@ Todos os endpoints exigem a capability `manage_timevault` (+ nonce `X-WP-Nonce` 
 | Endpoint | Método | Função |
 |----------|--------|--------|
 | `/status` | GET | Saúde do ambiente (chave, fila, hardening) |
+| `/overview` | GET | Agregado do dashboard (último backup, totais, espaço, jobs, retenção) |
 | `/backups` | GET | Histórico paginado (`per_page`, `page`) |
 | `/backups` | POST | Agenda backup (`type`: `full`\|`db`; `files_scope`: `wp-content`\|`full`) → 202 + uuid |
 | `/backups/{uuid}` | GET | Status de um backup (polling de progresso) |
