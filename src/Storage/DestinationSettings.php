@@ -21,11 +21,11 @@ defined( 'ABSPATH' ) || exit;
  * Security rules enforced here:
  * - Credentials are ALWAYS encrypted (EncryptionService) before touching the
  *   database. If no encryption key is configured, saving credentials is
- *   refused — there is no plaintext fallback.
+ *   refused - there is no plaintext fallback.
  * - No destination is enabled by default; enabling requires credentials
  *   already stored (explicit opt-in, twice).
  * - Every configuration change is audited with the destination region
- *   (LGPD Art. 33 — international data transfer traceability). Credentials
+ *   (LGPD Art. 33 - international data transfer traceability). Credentials
  *   never reach the audit log.
  */
 final class DestinationSettings {
@@ -114,7 +114,7 @@ final class DestinationSettings {
 		if ( null !== $credentials ) {
 			if ( ! $this->encryption->is_configured() ) {
 				// No plaintext fallback, ever: without a key we refuse to store secrets.
-				return new \WP_Error( 'timevault_credentials_need_key', __( 'Define TIMEVAULT_ENCRYPTION_KEY in wp-config.php before saving storage credentials — they are never stored in plain text.', 'timevault' ) );
+				return new \WP_Error( 'timevault_credentials_need_key', __( 'Define TIMEVAULT_ENCRYPTION_KEY in wp-config.php before saving storage credentials. They are never stored in plain text.', 'timevault' ) );
 			}
 
 			$blob = $this->encryption->encrypt_string( (string) wp_json_encode( $credentials ) );

@@ -16,9 +16,9 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Endpoints (capability-gated by AbstractController):
  *
- *   GET    /timevault/v1/destinations       — configured destinations overview
- *   POST   /timevault/v1/destinations/{id}  — configure/enable a destination
- *   DELETE /timevault/v1/destinations/{id}  — remove a destination
+ *   GET    /timevault/v1/destinations       - configured destinations overview
+ *   POST   /timevault/v1/destinations/{id}  - configure/enable a destination
+ *   DELETE /timevault/v1/destinations/{id}  - remove a destination
  *
  * Credentials are WRITE-ONLY through this API: they are accepted on POST,
  * encrypted at rest, and never returned by any endpoint.

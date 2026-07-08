@@ -12,7 +12,7 @@ namespace Timevault\Core;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Records who did what, when and to what (LGPD Art. 6, VI — accountability).
+ * Records who did what, when and to what (LGPD Art. 6, VI - accountability).
  *
  * Append-only by design: this class intentionally exposes NO update or delete
  * API, and no other plugin code may write to the table directly.

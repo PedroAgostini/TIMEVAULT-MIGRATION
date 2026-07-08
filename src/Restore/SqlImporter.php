@@ -20,11 +20,11 @@ defined( 'ABSPATH' ) || exit;
  * Defenses:
  * - A hand-written tokenizer splits the dump into individual statements while
  *   respecting quoted strings (`\'` and `''`), backtick identifiers and both
- *   line and block comments — so a `;` inside a value never splits a statement.
+ *   line and block comments - so a `;` inside a value never splits a statement.
  * - Every statement is classified: only an allow-list of DDL/DML is executed;
  *   dangerous constructs (INTO OUTFILE/DUMPFILE, LOAD DATA, LOAD_FILE, GRANT,
  *   CREATE/DROP USER, DROP DATABASE/SCHEMA) ABORT the whole restore.
- * - Statements are executed one at a time through $wpdb->query() — the driver
+ * - Statements are executed one at a time through $wpdb->query() - the driver
  *   is NOT put into multi-statement mode.
  * - Optional table-prefix rewrite touches only the target identifier of
  *   DDL/DML headers, never row data.
@@ -42,7 +42,7 @@ final class SqlImporter {
 	private const FORBIDDEN = array( 'INTO OUTFILE', 'INTO DUMPFILE', 'LOAD DATA', 'LOAD_FILE', 'DROP DATABASE', 'DROP SCHEMA', 'CREATE USER', 'DROP USER', 'GRANT ', 'CREATE FUNCTION', 'CREATE TRIGGER', 'CREATE PROCEDURE', 'SET GLOBAL', '@@GLOBAL' );
 
 	/**
-	 * Cap on a single accumulated statement (32 MiB) — guards against a
+	 * Cap on a single accumulated statement (32 MiB) - guards against a
 	 * pathological unterminated statement exhausting memory.
 	 */
 	private const MAX_STATEMENT_BYTES = 33554432;
@@ -194,7 +194,7 @@ final class SqlImporter {
 					$buffer .= $char; // Literal contents go to the full SQL only.
 
 					if ( '\\' === $char && '' !== $next ) {
-						$buffer .= $next; // Escaped char (e.g. \' \\) — consume both.
+						$buffer .= $next; // Escaped char (e.g. \' \\) - consume both.
 						++$i;
 						continue;
 					}

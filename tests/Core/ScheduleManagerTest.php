@@ -1,6 +1,6 @@
 <?php
 /**
- * ScheduleManager tests — automatic backup config and rotation.
+ * ScheduleManager tests - automatic backup config and rotation.
  *
  * @package Timevault
  */

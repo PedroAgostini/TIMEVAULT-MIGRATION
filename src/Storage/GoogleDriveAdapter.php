@@ -15,10 +15,10 @@ defined( 'ABSPATH' ) || exit;
  * Google Drive destination via service account.
  *
  * Security rules:
- * - Requires the Google API client (`composer require google/apiclient`) —
+ * - Requires the Google API client (`composer require google/apiclient`) -
  *   loaded conditionally, never bundled for sites that don't use Drive.
  * - Scope is `drive.file` only (minimum privilege): the service account can
- *   see and touch ONLY files this plugin created — never the whole Drive.
+ *   see and touch ONLY files this plugin created - never the whole Drive.
  * - Uploads go to a dedicated folder (folder_id), resumable in 8 MiB chunks
  *   so large backups never load into memory.
  * - Service-account credentials are decrypted on demand and never logged.
@@ -62,7 +62,7 @@ final class GoogleDriveAdapter implements StorageAdapterInterface {
 	}
 
 	/**
-	 * Declared data location — informational, recorded for LGPD Art. 33
+	 * Declared data location - informational, recorded for LGPD Art. 33
 	 * (Google Drive is an international transfer for Brazilian sites).
 	 */
 	public function region(): ?string {

@@ -1,6 +1,6 @@
 <?php
 /**
- * ImportManager tests — non-destructive validation paths.
+ * ImportManager tests - non-destructive validation paths.
  *
  * @package Timevault
  */

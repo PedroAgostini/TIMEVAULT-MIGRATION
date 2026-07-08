@@ -21,10 +21,10 @@ defined( 'ABSPATH' ) || exit;
  *   selection is validated (whitelist) against the actual SHOW TABLES output
  *   before any query is built.
  * - Identifiers are backtick-escaped (backticks doubled); every VALUE is
- *   quoted through $wpdb->prepare( '%s' ) — no raw concatenation of data.
+ *   quoted through $wpdb->prepare( '%s' ) - no raw concatenation of data.
  * - Rows are read in batches (keyset pagination when a single integer
  *   primary key exists) so memory stays bounded on large tables.
- * - Output is plain SQL text only — no PHP serialization anywhere.
+ * - Output is plain SQL text only - no PHP serialization anywhere.
  */
 final class DatabaseDumper {
 
@@ -183,7 +183,7 @@ final class DatabaseDumper {
 		$fields     = array_map( static fn( array $c ): string => (string) $c['Field'], $columns );
 		$column_sql = implode( ', ', array_map( array( $this, 'quote_identifier' ), $fields ) );
 
-		// Keyset pagination when there is a single integer primary key —
+		// Keyset pagination when there is a single integer primary key -
 		// OFFSET degrades quadratically on large tables.
 		$pk  = $this->integer_primary_key( $columns );
 		$qpk = ( null !== $pk ) ? $this->quote_identifier( $pk ) : '';

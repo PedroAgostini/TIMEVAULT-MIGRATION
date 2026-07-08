@@ -34,7 +34,7 @@ abstract class AbstractController {
 	abstract public function register_routes(): void;
 
 	/**
-	 * Real permission check — capability-based, never `__return_true`.
+	 * Real permission check - capability-based, never `__return_true`.
 	 *
 	 * Cookie-authenticated requests are additionally covered by core's
 	 * X-WP-Nonce (`wp_rest`) validation, which runs before this callback:

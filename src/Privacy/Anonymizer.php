@@ -17,7 +17,7 @@ defined( 'ABSPATH' ) || exit;
  * Design: instead of rewriting SQL text (fragile), this exposes a row
  * transformer that the DatabaseDumper applies to each structured row before
  * it is serialized. Masking is DETERMINISTIC (HMAC-derived) so the same
- * source value always maps to the same masked value — joins, uniqueness and
+ * source value always maps to the same masked value - joins, uniqueness and
  * referential integrity survive, but the real value never leaves the site.
  *
  * Only well-known WordPress core columns are touched; unknown tables/columns
@@ -28,7 +28,7 @@ final class Anonymizer {
 
 	/**
 	 * Per-table PII columns and their masking strategy, keyed by the table's
-	 * base name (prefix-agnostic — matched as a suffix of the real table).
+	 * base name (prefix-agnostic - matched as a suffix of the real table).
 	 *
 	 * @var array<string, array<string, string>>
 	 */

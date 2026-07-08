@@ -146,7 +146,7 @@ final class Plugin {
 		add_action( 'timevault_backup_completed', array( $this->schedule(), 'on_backup_completed' ) );
 
 		// Scheduling touches the Action Scheduler store, which only initializes
-		// on `init` — registering it earlier (plugins_loaded) is "called too
+		// on `init` - registering it earlier (plugins_loaded) is "called too
 		// early" and does not persist.
 		add_action( 'init', array( $this, 'schedule_maintenance' ), 20 );
 	}
@@ -164,7 +164,7 @@ final class Plugin {
 	}
 
 	/**
-	 * Append-only audit log (LGPD Art. 6, VI — accountability).
+	 * Append-only audit log (LGPD Art. 6, VI - accountability).
 	 */
 	public function audit_log(): Core\AuditLog {
 		if ( null === $this->audit_log ) {

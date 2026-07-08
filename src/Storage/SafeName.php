@@ -13,7 +13,7 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * Path-traversal defense shared by every storage adapter: a backup file name
- * must be a plain, already-sanitized basename. Anything else is rejected —
+ * must be a plain, already-sanitized basename. Anything else is rejected -
  * adapters never "fix" a suspicious name silently.
  */
 final class SafeName {

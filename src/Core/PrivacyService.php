@@ -20,7 +20,7 @@ defined( 'ABSPATH' ) || exit;
  *
  * Responsibilities:
  * - Anonymization of staging/dev exports (delegated to Anonymizer, applied at
- *   dump time by BackupManager) — this class owns the policy/reporting side.
+ *   dump time by BackupManager) - this class owns the policy/reporting side.
  * - Configurable retention with automatic expiration of old backups
  *   (apply_retention_policy, driven by a recurring Action Scheduler job).
  * - A lightweight processing-activities record (what personal data the plugin

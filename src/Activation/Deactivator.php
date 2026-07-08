@@ -16,7 +16,7 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * Deactivation only stops scheduled work. Tables, capability, options and
- * backup archives are intentionally preserved — removing data is uninstall's
+ * backup archives are intentionally preserved - removing data is uninstall's
  * job, and even then only with explicit opt-in (this is a backup plugin;
  * losing backups by accident is the worst possible failure mode).
  */

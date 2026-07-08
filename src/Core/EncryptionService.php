@@ -16,7 +16,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Authenticated streaming encryption for backup archives.
  *
- * Primary cipher: libsodium secretstream (XChaCha20-Poly1305) — per-chunk
+ * Primary cipher: libsodium secretstream (XChaCha20-Poly1305) - per-chunk
  * authentication with native protection against truncation, reordering and
  * tampering. Fallback: OpenSSL AES-256-GCM in chunked mode, reproducing the
  * same guarantees manually (chunk index + final flag bound as AAD, per-file
@@ -42,7 +42,7 @@ final class EncryptionService {
 	private const METHOD_OPENSSL = 2;
 
 	/**
-	 * Plaintext bytes per chunk (1 MiB) — bounds memory usage for large archives.
+	 * Plaintext bytes per chunk (1 MiB) - bounds memory usage for large archives.
 	 */
 	private const CHUNK_SIZE = 1048576;
 
@@ -386,7 +386,7 @@ final class EncryptionService {
 	/**
 	 * Encrypts a short string (e.g. storage credentials) for storage in the
 	 * options table. Returns an opaque base64 token. Same key policy as
-	 * files: no key in wp-config.php, no encryption — callers must refuse
+	 * files: no key in wp-config.php, no encryption - callers must refuse
 	 * to store plaintext instead of falling back.
 	 *
 	 * @param string $plaintext Secret to protect.

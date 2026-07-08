@@ -15,7 +15,7 @@ defined( 'ABSPATH' ) || exit;
  * Central defense against zip-slip and path traversal during restore.
  *
  * Two layers, both required:
- * 1. validate_entry_name(): rejects an archive entry name BEFORE extraction —
+ * 1. validate_entry_name(): rejects an archive entry name BEFORE extraction -
  *    absolute paths, drive letters, `..` segments, backslashes, NUL bytes,
  *    and anything that does not sit under an allowed top-level prefix.
  * 2. safe_target(): after joining the (already validated) relative name to a
@@ -77,7 +77,7 @@ final class PathGuard {
 			}
 		}
 
-		// A trailing slash denotes a directory entry — allowed structurally.
+		// A trailing slash denotes a directory entry - allowed structurally.
 		$is_dir = str_ends_with( $name, '/' );
 
 		if ( ! $is_dir && in_array( $name, self::ALLOWED_ROOT_FILES, true ) ) {

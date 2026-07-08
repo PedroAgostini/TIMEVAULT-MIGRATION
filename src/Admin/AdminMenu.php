@@ -52,7 +52,7 @@ final class AdminMenu {
 	 */
 	public function add_menu(): void {
 		$this->hook = (string) add_menu_page(
-			__( 'Timevault — Migration & Backups', 'timevault' ),
+			__( 'Timevault Migration & Backups', 'timevault' ),
 			__( 'Timevault', 'timevault' ),
 			Capabilities::MANAGE,
 			self::SLUG,
@@ -93,6 +93,7 @@ final class AdminMenu {
 			'TimevaultConfig',
 			array(
 				'root'         => esc_url_raw( rest_url( 'timevault/v1' ) ),
+				'rootFallback' => esc_url_raw( add_query_arg( 'rest_route', '/timevault/v1', site_url( '/' ) ) ),
 				'nonce'        => wp_create_nonce( 'wp_rest' ),
 				'logo'         => esc_url_raw( TIMEVAULT_URL . 'assets/images/TIMEVAULT-LOGO.png' ),
 				'encryptConst' => EncryptionService::KEY_CONSTANT,

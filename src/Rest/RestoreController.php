@@ -25,7 +25,7 @@ defined( 'ABSPATH' ) || exit;
  *        Rate-limited. Requires the exact confirmation phrase AND the token
  *        from step 1. Only then is the restore scheduled.
  *
- *   GET /restores, GET /restores/{uuid} — history and status polling.
+ *   GET /restores, GET /restores/{uuid} - history and status polling.
  *
  * Every step is capability-gated (AbstractController) and audited.
  */
@@ -115,7 +115,7 @@ final class RestoreController extends AbstractController {
 	}
 
 	/**
-	 * POST /restore/prepare — validate + issue confirmation token.
+	 * POST /restore/prepare - validate + issue confirmation token.
 	 *
 	 * @param \WP_REST_Request $request Request.
 	 * @return \WP_REST_Response|\WP_Error
@@ -147,7 +147,7 @@ final class RestoreController extends AbstractController {
 	}
 
 	/**
-	 * POST /restore/confirm — verify confirmation, schedule restore.
+	 * POST /restore/confirm - verify confirmation, schedule restore.
 	 *
 	 * @param \WP_REST_Request $request Request.
 	 * @return \WP_REST_Response|\WP_Error

@@ -16,14 +16,14 @@ defined( 'ABSPATH' ) || exit;
  * Spaces via custom endpoint).
  *
  * Security rules:
- * - Requires the AWS SDK (`composer require aws/aws-sdk-php`) — loaded
+ * - Requires the AWS SDK (`composer require aws/aws-sdk-php`) - loaded
  *   conditionally, never bundled for sites that don't use S3.
  * - Credentials come decrypted on demand from DestinationSettings and only
  *   live in memory for the duration of the call.
  * - Minimum scope by construction: all operations are confined to the
  *   configured bucket + prefix (dedicated folder). The IAM user should only
  *   have Get/Put/Delete/List on that prefix.
- * - Object keys derive from validated basenames only — no caller-controlled
+ * - Object keys derive from validated basenames only - no caller-controlled
  *   paths.
  */
 final class S3Adapter implements StorageAdapterInterface {
@@ -56,7 +56,7 @@ final class S3Adapter implements StorageAdapterInterface {
 	}
 
 	/**
-	 * Bucket region — recorded in the audit trail (LGPD Art. 33).
+	 * Bucket region - recorded in the audit trail (LGPD Art. 33).
 	 */
 	public function region(): ?string {
 		$region = (string) ( $this->config['region'] ?? '' );
@@ -269,7 +269,7 @@ final class S3Adapter implements StorageAdapterInterface {
 
 	/**
 	 * Validates a stored object key: must be inside the configured prefix and
-	 * carry a safe basename — rejects anything a tampered registry row could
+	 * carry a safe basename - rejects anything a tampered registry row could
 	 * try to smuggle in.
 	 *
 	 * @param string $remote_id Object key.
@@ -293,7 +293,7 @@ final class S3Adapter implements StorageAdapterInterface {
 
 	/**
 	 * Wraps SDK exceptions. AWS exception messages do not include the secret
-	 * key, but we truncate defensively anyway — this string can reach logs.
+	 * key, but we truncate defensively anyway - this string can reach logs.
 	 *
 	 * @param \Throwable $e SDK exception.
 	 */

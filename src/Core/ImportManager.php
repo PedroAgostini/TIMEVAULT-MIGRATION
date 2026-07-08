@@ -1,6 +1,6 @@
 <?php
 /**
- * Import/restore engine — the highest-risk component of the plugin.
+ * Import/restore engine - the highest-risk component of the plugin.
  *
  * @package Timevault
  */
@@ -34,7 +34,7 @@ defined( 'ABSPATH' ) || exit;
  * - extract: entries are streamed to individually re-validated target paths
  *   inside a staging directory (no ZipArchive::extractTo on hostile names).
  * - restore_db: a whitelist-classified, tokenized SQL importer runs each
- *   statement through $wpdb->query() — never eval, never multi-statement.
+ *   statement through $wpdb->query() - never eval, never multi-statement.
  * - Double confirmation and rate limiting are enforced at the REST layer
  *   before schedule_restore() is ever reached; every attempt is audited.
  */
@@ -129,7 +129,7 @@ final class ImportManager {
 	 * @param string $tmp_path      Absolute path of the uploaded temp file.
 	 * @param string $original_name Client-supplied file name (used only to detect encryption).
 	 * @return string|\WP_Error New backup UUID.
-	 * @throws \RuntimeException On validation failure — caught internally and returned as a WP_Error.
+	 * @throws \RuntimeException On validation failure - caught internally and returned as a WP_Error.
 	 */
 	public function import_uploaded_package( string $tmp_path, string $original_name ): string|\WP_Error {
 		if ( ! is_readable( $tmp_path ) || ! is_file( $tmp_path ) ) {
@@ -406,7 +406,7 @@ final class ImportManager {
 
 			// Snapshot Timevault's OWN bookkeeping before the dump overwrites
 			// wp_options. Restoring an old dump would otherwise revert the
-			// backup-directory suffix (relocating — and orphaning — every
+			// backup-directory suffix (relocating - and orphaning - every
 			// backup, mid-restore), roll back the schema version, and possibly
 			// deactivate the plugin, killing the pipeline. These few rows must
 			// reflect reality, not the restored snapshot.

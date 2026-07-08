@@ -1,6 +1,6 @@
 <?php
 /**
- * ArchiveInspector tests — package validation and safe extraction.
+ * ArchiveInspector tests - package validation and safe extraction.
  *
  * @package Timevault
  */

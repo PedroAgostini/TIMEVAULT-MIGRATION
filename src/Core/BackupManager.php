@@ -19,7 +19,7 @@ defined( 'ABSPATH' ) || exit;
  * Orchestrates backups as an asynchronous step pipeline
  * (dump_db → package → finalize).
  *
- * Each step runs as its own Action Scheduler action — long work is never
+ * Each step runs as its own Action Scheduler action - long work is never
  * executed synchronously inside a web request, and a step that dies never
  * leaves the pipeline half-applied (the registry row records the failure).
  *
@@ -144,7 +144,7 @@ final class BackupManager {
 		$row = $this->repository->get( $uuid );
 
 		if ( null === $row || in_array( (string) $row['status'], array( 'completed', 'failed' ), true ) ) {
-			return; // Stale or replayed action — a finished pipeline never re-runs.
+			return; // Stale or replayed action - a finished pipeline never re-runs.
 		}
 
 		if ( ! in_array( $step, array( 'dump_db', 'package', 'finalize' ), true ) ) {
@@ -173,7 +173,7 @@ final class BackupManager {
 	 *
 	 * Used for the automatic safety backup taken before a restore, where the
 	 * ordering "backup completes BEFORE anything is overwritten" must be
-	 * guaranteed. Not for web requests — callers are already async jobs.
+	 * guaranteed. Not for web requests - callers are already async jobs.
 	 *
 	 * @param string               $type    Backup type: full|db.
 	 * @param array<string, mixed> $options Options (storage, files_scope).
@@ -305,8 +305,8 @@ final class BackupManager {
 			$files_scope = ( 'full' === ( $options['files_scope'] ?? '' ) ) ? 'full' : 'wp-content';
 			$root        = ( 'full' === $files_scope ) ? untrailingslashit( ABSPATH ) : WP_CONTENT_DIR;
 
-			// Exclude the cache and EVERY timevault-* directory in wp-content —
-			// not just the active one — so a relocated/orphaned backup store is
+			// Exclude the cache and EVERY timevault-* directory in wp-content -
+			// not just the active one - so a relocated/orphaned backup store is
 			// never swept into a new backup.
 			$exclude = array_merge(
 				array( WP_CONTENT_DIR . '/cache' ),
@@ -369,7 +369,7 @@ final class BackupManager {
 			$this->audit->record( 'backup_unencrypted', array( 'reason' => 'encryption key not configured' ), 'backup', $uuid );
 		}
 
-		// Checksum of the FINAL artifact — verifiable before restore without decrypting.
+		// Checksum of the FINAL artifact - verifiable before restore without decrypting.
 		$checksum = hash_file( 'sha256', $artifact );
 
 		if ( false === $checksum ) {
@@ -503,7 +503,7 @@ final class BackupManager {
 			'security'    => array(
 				'wp_config_excluded' => true,
 				'checksum_algorithm' => 'sha256',
-				'serialization'      => 'json', // Manifest and meta are JSON only — never PHP serialize.
+				'serialization'      => 'json', // Manifest and meta are JSON only - never PHP serialize.
 			),
 		);
 	}

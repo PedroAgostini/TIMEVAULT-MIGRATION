@@ -16,10 +16,10 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Endpoints (capability-gated by AbstractController):
  *
- *   GET  /timevault/v1/privacy/processing-record — the processing-activities record
- *   GET  /timevault/v1/privacy/retention          — current retention policy
- *   POST /timevault/v1/privacy/retention          — update retention policy
- *   POST /timevault/v1/privacy/retention/run       — run the retention sweep now
+ *   GET  /timevault/v1/privacy/processing-record - the processing-activities record
+ *   GET  /timevault/v1/privacy/retention          - current retention policy
+ *   POST /timevault/v1/privacy/retention          - update retention policy
+ *   POST /timevault/v1/privacy/retention/run       - run the retention sweep now
  */
 final class PrivacyController extends AbstractController {
 

@@ -16,7 +16,7 @@ defined( 'ABSPATH' ) || exit;
  * delegated to the same audited, asynchronous pipeline as backups.
  *
  * Table names are shape-validated here and whitelist-validated against the
- * real SHOW TABLES output inside DatabaseDumper — a request can never reach
+ * real SHOW TABLES output inside DatabaseDumper - a request can never reach
  * a query with an arbitrary identifier.
  */
 final class ExportManager {

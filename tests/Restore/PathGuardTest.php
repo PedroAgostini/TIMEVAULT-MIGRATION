@@ -1,6 +1,6 @@
 <?php
 /**
- * PathGuard tests — path-traversal / zip-slip defense.
+ * PathGuard tests - path-traversal / zip-slip defense.
  *
  * @package Timevault
  */
@@ -71,7 +71,7 @@ final class PathGuardTest extends WP_UnitTestCase {
 
 		$target = PathGuard::safe_target( $root, 'files/sub/x.txt' );
 		$this->assertIsString( $target );
-		// Compare against the canonicalized root (realpath) — on Windows the
+		// Compare against the canonicalized root (realpath) - on Windows the
 		// temp dir may resolve to an 8.3 short path, which safe_target adopts.
 		$this->assertStringStartsWith( trailingslashit( wp_normalize_path( (string) realpath( $root ) ) ), wp_normalize_path( (string) $target ) );
 

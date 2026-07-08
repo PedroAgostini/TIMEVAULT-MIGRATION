@@ -13,7 +13,7 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * Thin wrapper around Action Scheduler (same library WooCommerce uses).
- * Long-running work (backup, export, restore) must always go through here —
+ * Long-running work (backup, export, restore) must always go through here -
  * never synchronous blocking execution inside a web request.
  */
 final class JobQueue {

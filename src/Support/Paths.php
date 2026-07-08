@@ -93,7 +93,7 @@ final class Paths {
 	}
 
 	/**
-	 * Recursively deletes a directory — but ONLY inside the backup directory,
+	 * Recursively deletes a directory - but ONLY inside the backup directory,
 	 * and never the backup directory itself. Any path outside that boundary
 	 * is silently refused (defense against a corrupted/hostile path ever
 	 * reaching cleanup code).
@@ -136,13 +136,13 @@ final class Paths {
 	/**
 	 * Writes deny-all rules for Apache/LiteSpeed (.htaccess), IIS (web.config)
 	 * and an empty index.php against directory listing. Nginx cannot be
-	 * configured from PHP — the README documents the required server block.
+	 * configured from PHP - the README documents the required server block.
 	 *
 	 * @param string $dir Directory to harden.
 	 */
 	private static function harden( string $dir ): void {
 		$htaccess = <<<'HTACCESS'
-# Timevault — deny all direct web access to backup archives.
+# Timevault - deny all direct web access to backup archives.
 <IfModule mod_authz_core.c>
 	Require all denied
 </IfModule>

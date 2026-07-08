@@ -1,6 +1,6 @@
 <?php
 /**
- * BackupManager tests — synchronous pipeline + integrity.
+ * BackupManager tests - synchronous pipeline + integrity.
  *
  * @package Timevault
  */

@@ -12,7 +12,7 @@ namespace Timevault\Core;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * CRUD over the timevault_backups table. Metadata only — file contents never
+ * CRUD over the timevault_backups table. Metadata only - file contents never
  * touch the database. All writes go through $wpdb->insert/update (prepared);
  * reads use $wpdb->prepare.
  */

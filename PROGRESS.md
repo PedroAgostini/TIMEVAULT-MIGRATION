@@ -7,8 +7,20 @@
 
 **Última atualização:** 2026-07-08
 **Fase atual:** ✅ **TODAS as fases (P0–P7) concluídas e VALIDADAS.** Roteiro do brief completo.
-**Versão atual do plugin:** 0.6.0 · **Schema DB:** v2
+**Versão atual do plugin:** 0.7.2 · **Schema DB:** v2
 **Git:** repositório em https://github.com/PedroAgostini/TIMEVAULT-MIGRATION.git (branch `main`)
+
+## Ajuste pós-roadmap (2026-07-08) — chave automática no wp-config.php
+
+- Na ativação, se `TIMEVAULT_ENCRYPTION_KEY` ainda não estiver configurada, o plugin tenta gerar uma
+  chave forte e inserir o `define()` automaticamente no `wp-config.php`, antes do `wp-settings.php`.
+- A chave continua fora do banco; o banco armazena apenas o status da tentativa quando a escrita falha.
+- Se o `wp-config.php` não estiver gravável ou não puder ser alterado com segurança, a ativação não
+  quebra: o dashboard segue mostrando que a chave precisa ser configurada manualmente.
+- Arquivos: `src/Support/EncryptionKeyInstaller.php`, `src/Activation/Activator.php`,
+  `src/Rest/StatusController.php`, `uninstall.php`, `README.md`.
+- Testes: `EncryptionKeyInstallerTest` cobre inserção antes do `wp-settings.php`, recusa de
+  definição duplicada e falha segura sem âncora. Resultado atual: **67 testes, 151 asserções, 100% verdes.**
 
 ## Como rodar os testes (P7)
 
@@ -24,7 +36,7 @@
   ```
 - **Importante:** `php` precisa estar no PATH (o WP test suite chama `WP_PHP_BINARY` p/ instalar).
   O wp-phpunit lê `WP_TESTS_CONFIG_FILE_PATH` como **constante** (definida em `tests/bootstrap.php`).
-- Resultado atual: **57 testes, 111 asserções, 100% verdes.**
+- Resultado atual: **67 testes, 151 asserções, 100% verdes.**
 
 ## Ambiente de teste local (Laragon) — configurado em 2026-07-07
 
@@ -118,7 +130,7 @@ O usuário apontou (com razão) que faltavam as abas de **Exportar** e **Importa
     rate limiting e validação de extensão (.zip/.enc).
   - Aba de upload no dashboard (com barra de progresso via XHR e aviso sobre a chave de criptografia
     precisar ser a mesma do site de origem).
-- Testes: +2 (import registra / rejeita lixo) → **59 testes verdes**. phpcs limpo. Endpoints
+- Testes: +2 (import registra / rejeita lixo) → **59 testes verdes** na época. phpcs limpo. Endpoints
   validados em runtime (import registra, checksum confere, aceito pelo restore; `/exports/tables` 200).
 
 ## O que o P6 entregou (2026-07-08) — UI/UX (dashboard admin)
@@ -138,12 +150,12 @@ glassmorphism, Plus Jakarta Sans + JetBrains Mono, a "Espinha Temporal" como ass
 **Nota:** os `.woff2` da marca não estão no bundle (não os tenho); a UI usa a stack do sistema até
 serem adicionados (instruções em `assets/fonts/README.md`). Validado: `/overview` retorna 200, o
 shell renderiza sem fatal, assets servidos (HTTP 200), JS com sintaxe válida (node --check),
-phpcs limpo, 57 testes verdes. **Falta apenas a verificação visual final no wp-admin logado** (fazer
+phpcs limpo, 57 testes verdes na época. **Falta apenas a verificação visual final no wp-admin logado** (fazer
 no navegador). Versão 0.6.0.
 
 ## O que o P7 entregou (2026-07-08) — Testes PHPUnit
 
-Suíte com `wp-phpunit` (WP test suite via Composer). **57 testes, 111 asserções, 100% verdes.**
+Suíte com `wp-phpunit` (WP test suite via Composer). **67 testes, 151 asserções, 100% verdes.**
 Prioridade em import/restore (superfície mais crítica). Arquivos em `tests/`:
 
 | Arquivo | Cobre |
@@ -157,6 +169,7 @@ Prioridade em import/restore (superfície mais crítica). Arquivos em `tests/`:
 | `Privacy/AnonymizerTest.php` | Mascara colunas de user, **determinístico**, meta_keys conhecidas, colunas desconhecidas intactas. |
 | `Core/BackupManagerTest.php` | `run_now('db')` completa com artefato válido (checksum confere, decifra, manifest ok); storage/tipo inválidos rejeitados. |
 | `Core/ImportManagerTest.php` | `validate_package` happy path, backup inexistente, **artefato adulterado → checksum error**. |
+| `Support/EncryptionKeyInstallerTest.php` | Geração/inserção segura da chave no `wp-config.php`, antes do `wp-settings.php`; recusa duplicidade; falha segura sem âncora. |
 
 **Nota de escopo:** o restore destrutivo completo (restore_db faz DDL que dá commit implícito e
 quebraria o isolamento transacional do teste) é coberto pelo teste de runtime num site real
@@ -248,7 +261,7 @@ quebraria o isolamento transacional do teste) é coberto pelo teste de runtime n
 | 3 | **P3** | Storage Adapters (S3, Google Drive — Local já existe) | ✅ Concluído (2026-07-07) |
 | 4 | **P2** | Import/Restore Engine (camada mais crítica) | ✅ Concluído (2026-07-07) |
 | 5 | **P5** | PrivacyService / LGPD | ✅ Concluído (2026-07-07) |
-| 6 | **P7** | Testes PHPUnit (57 testes, 100% verdes) | ✅ Concluído (2026-07-08) |
+| 6 | **P7** | Testes PHPUnit (67 testes, 100% verdes) | ✅ Concluído (2026-07-08) |
 | 7 | **P4** | Auditoria de segurança — ver [SECURITY-REVIEW.md](SECURITY-REVIEW.md) | ✅ Concluído (2026-07-08) |
 | 8 | **P6** | UI/UX — dashboard admin (design system aplicado) | ✅ Concluído (2026-07-08) |
 

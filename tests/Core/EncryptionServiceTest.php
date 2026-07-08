@@ -1,6 +1,6 @@
 <?php
 /**
- * EncryptionService tests — authenticated round trip and tamper detection.
+ * EncryptionService tests - authenticated round trip and tamper detection.
  *
  * @package Timevault
  */

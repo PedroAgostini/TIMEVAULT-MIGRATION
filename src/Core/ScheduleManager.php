@@ -18,7 +18,7 @@ defined( 'ABSPATH' ) || exit;
  * only the newest N automatic backups, deleting older ones so the host's
  * storage does not grow without bound.
  *
- * Rotation touches ONLY automatic backups (meta.options.auto) — manual
+ * Rotation touches ONLY automatic backups (meta.options.auto) - manual
  * backups the operator created on purpose are never auto-deleted here.
  */
 final class ScheduleManager {

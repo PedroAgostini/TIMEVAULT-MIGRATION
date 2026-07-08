@@ -4,7 +4,7 @@
  *
  * Points the wp-phpunit bootstrap at a dedicated, disposable test database
  * (timevault_tests) and the local WordPress core. Never point DB_NAME at a
- * real site DB — the suite wipes it.
+ * real site DB - the suite wipes it.
  *
  * @package Timevault
  */

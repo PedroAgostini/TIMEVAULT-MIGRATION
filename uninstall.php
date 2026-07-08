@@ -5,7 +5,7 @@
  * Conservative by default: tables, options and backup archives are only
  * removed when the site owner explicitly opted in via the
  * `timevault_delete_data_on_uninstall` option. Backup archives on disk are
- * NEVER deleted automatically — for a backup plugin, silently destroying
+ * NEVER deleted automatically - for a backup plugin, silently destroying
  * backups is the worst possible failure mode.
  *
  * @package Timevault
@@ -36,6 +36,7 @@ $wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}timevault_restores" );
 
 delete_option( 'timevault_schema_version' );
 delete_option( 'timevault_dir_suffix' );
+delete_option( 'timevault_key_install_status' );
 delete_option( 'timevault_delete_data_on_uninstall' );
 delete_option( 'timevault_retention' );
 delete_option( 'timevault_schedule' );

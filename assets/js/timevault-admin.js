@@ -1,5 +1,5 @@
 /*
- * Timevault — admin dashboard.
+ * Timevault admin dashboard.
  * Vanilla JS, no build step, no external requests (privacy by design).
  * User-supplied strings are always set via textContent (never innerHTML).
  */
@@ -15,12 +15,12 @@
 	/* ── i18n ────────────────────────────────────────────────── */
 	var STR = {
 		'pt-BR': {
-			subtitle: 'Backup, exportação e migração — preservação do estado do site.',
+			subtitle: 'Backup, exportação e migração para preservar o estado do site.',
 			backupDb: 'Só banco de dados', backupFull: 'Criar backup completo',
 			tabBackups: 'Backups', tabExport: 'Exportar', tabImport: 'Importar',
 			theme: 'Alternar tema', lang: 'Idioma',
 			keyMissing1: 'A chave de criptografia não está configurada. Defina a constante ',
-			keyMissing2: ' no wp-config.php antes de criar backups — a chave nunca fica no banco.',
+			keyMissing2: ' no wp-config.php antes de criar backups. A chave nunca fica no banco.',
 			cardLast: 'Último backup', cardCount: 'Backups guardados', cardCountMeta: 'Concluídos e íntegros',
 			cardSpace: 'Espaço usado', nextClean: 'Próxima limpeza: ', retentionOff: 'Retenção desligada',
 			cardHealth: 'Saúde do ambiente', hEncryption: 'Criptografia', hQueue: 'Fila', hDir: 'Diretório',
@@ -28,17 +28,18 @@
 			queued: 'Na fila', processing: 'Processando',
 			spineTitle: 'Espinha temporal', sortNewest: 'Mais recentes primeiro', sortOldest: 'Mais antigos primeiro',
 			encrypted: 'Cifrado', dbType: 'Banco', download: 'Baixar', restore: 'Restaurar', del: 'Excluir',
+			backupName: 'Nome do backup', saveName: 'Salvar nome',
 			prev: 'Anteriores', next: 'Próximos', pageOf: 'de',
 			stCompleted: 'Íntegro', stPending: 'Na fila', stRunning: 'Em andamento', stFailed: 'Falhou', stExpired: 'Expirado',
-			emptyTitle: 'Nenhum backup ainda.', emptyText: 'Crie o primeiro para preservar o estado atual do site — banco de dados e arquivos, cifrados em repouso.', emptyCta: 'Criar backup agora',
+			emptyTitle: 'Nenhum backup ainda.', emptyText: 'Crie o primeiro para preservar o estado atual do site: banco de dados e arquivos, cifrados em repouso.', emptyCta: 'Criar backup agora',
 			historyTitle: 'Histórico', fAll: 'Todos', fFull: 'Completo', fDb: 'Banco', fExport: 'Export',
 			thDate: 'Data', thType: 'Tipo', thSize: 'Tamanho', thDest: 'Destino', thStatus: 'Status', emptyFilter: 'Nenhum backup neste filtro.',
 			exportTitle: 'Exportação', exportDesc: 'Gere um pacote portátil para migrar ou levar uma cópia a staging. Ao gerar, o download começa automaticamente quando o pacote fica pronto.',
 			scope: 'Escopo', scopeAll: 'Tudo (banco + arquivos)', scopeSel: 'Selecionar tabelas',
 			tables: 'Tabelas', selectAll: 'Selecionar todas', clear: 'Limpar',
-			includeUploads: 'Incluir a pasta de uploads (mídia).', anonymize: 'Anonimizar dados pessoais', anonymizeHint: '(staging/dev — mascara e-mail, nome, telefone; determinístico)',
+			includeUploads: 'Incluir a pasta de uploads (mídia).', anonymize: 'Anonimizar dados pessoais', anonymizeHint: '(staging/dev: mascara e-mail, nome, telefone; determinístico)',
 			genExport: 'Gerar exportação', generating: 'Gerando…', preparingDl: 'Preparando download…',
-			importTitle: 'Importar backup (migração)', importDesc: 'Envie um pacote gerado pelo Timevault em outro site. Ele é validado (checksum, estrutura, decifragem) e adicionado à lista — a restauração é sempre um passo separado, com dupla confirmação.',
+			importTitle: 'Importar backup (migração)', importDesc: 'Envie um pacote gerado pelo Timevault em outro site. Ele é validado (checksum, estrutura, decifragem) e adicionado à lista. A restauração é sempre um passo separado, com dupla confirmação.',
 			importWarn1: 'Atenção: ', importWarn2: 'pacotes cifrados só podem ser lidos com a MESMA ', importWarn3: ' definida no site de origem. Chaves diferentes = pacote ilegível.',
 			importFile: 'Pacote (.zip ou .zip.enc)', doImport: 'Importar pacote',
 			restoreTitle: 'Restaurar este backup vai substituir o site atual.',
@@ -53,21 +54,22 @@
 			tExportFail: 'A exportação falhou', tImported: 'Pacote importado', tImportedMsg: 'Ele aparece em Backups e já pode ser restaurado.',
 			tRestoreStart: 'Restauração iniciada', tRestoreStartMsg: 'Um backup de segurança está sendo criado antes de sobrescrever.',
 			tDeleted: 'Backup excluído', tDeletedMsg: 'O arquivo e o registro foram removidos.',
+			tRenamed: 'Nome salvo',
 			errNoSelection: 'Selecione ao menos uma tabela ou inclua os uploads.', errNoSelectionT: 'Selecione algo para exportar',
 			errBackup: 'Não foi possível criar o backup', errDownload: 'Download indisponível', errExport: 'Não foi possível exportar',
-			errPrepare: 'Não foi possível preparar a restauração', errRestore: 'Não foi possível restaurar', errDelete: 'Não foi possível excluir', errImport: 'Não foi possível importar',
+			errPrepare: 'Não foi possível preparar a restauração', errRestore: 'Não foi possível restaurar', errDelete: 'Não foi possível excluir', errImport: 'Não foi possível importar', errRename: 'Não foi possível salvar o nome',
 			chooseFile: 'Escolha um arquivo', chooseFileMsg: 'Selecione um pacote .zip ou .zip.enc.', loadFail: 'Não foi possível carregar o Timevault: ', close: 'Fechar', loading: 'Carregando…',
 			schedTitle: 'Backup automático', schedDesc: 'Roda sozinho na frequência escolhida e mantém apenas os mais recentes.',
 			schedFreq: 'Frequência', schedOff: 'Desligado', schedDaily: 'Diário', schedWeekly: 'Semanal', schedMonthly: 'Mensal',
-			schedKeep: 'Manter', schedKeepUnit: 'backups automáticos', schedNote: 'Ao passar do limite, os automáticos mais antigos são excluídos com rotatividade — os manuais nunca são tocados.',
+			schedKeep: 'Manter', schedKeepUnit: 'backups automáticos', schedNote: 'Ao passar do limite, os automáticos mais antigos são excluídos com rotatividade; os manuais nunca são tocados.',
 			tSchedSaved: 'Agendamento salvo', errSched: 'Não foi possível salvar o agendamento',
 		},
 		en: {
-			subtitle: 'Backup, export and migration — preserve your site’s state.',
+			subtitle: 'Backup, export and migration to preserve your site’s state.',
 			backupDb: 'Database only', backupFull: 'Create full backup',
 			tabBackups: 'Backups', tabExport: 'Export', tabImport: 'Import',
 			theme: 'Toggle theme', lang: 'Language',
-			keyMissing1: 'The encryption key is not configured. Define the ', keyMissing2: ' constant in wp-config.php before creating backups — the key never lives in the database.',
+			keyMissing1: 'The encryption key is not configured. Define the ', keyMissing2: ' constant in wp-config.php before creating backups. The key never lives in the database.',
 			cardLast: 'Last backup', cardCount: 'Stored backups', cardCountMeta: 'Completed and verified',
 			cardSpace: 'Space used', nextClean: 'Next cleanup: ', retentionOff: 'Retention off',
 			cardHealth: 'Environment health', hEncryption: 'Encryption', hQueue: 'Queue', hDir: 'Directory',
@@ -75,17 +77,18 @@
 			queued: 'Queued', processing: 'Processing',
 			spineTitle: 'Temporal spine', sortNewest: 'Newest first', sortOldest: 'Oldest first',
 			encrypted: 'Encrypted', dbType: 'Database', download: 'Download', restore: 'Restore', del: 'Delete',
+			backupName: 'Backup name', saveName: 'Save name',
 			prev: 'Previous', next: 'Next', pageOf: 'of',
 			stCompleted: 'Verified', stPending: 'Queued', stRunning: 'Running', stFailed: 'Failed', stExpired: 'Expired',
-			emptyTitle: 'No backups yet.', emptyText: 'Create the first one to preserve the current state of the site — database and files, encrypted at rest.', emptyCta: 'Create backup now',
+			emptyTitle: 'No backups yet.', emptyText: 'Create the first one to preserve the current state of the site: database and files, encrypted at rest.', emptyCta: 'Create backup now',
 			historyTitle: 'History', fAll: 'All', fFull: 'Full', fDb: 'Database', fExport: 'Export',
 			thDate: 'Date', thType: 'Type', thSize: 'Size', thDest: 'Destination', thStatus: 'Status', emptyFilter: 'No backups in this filter.',
 			exportTitle: 'Export', exportDesc: 'Generate a portable package to migrate or take a copy to staging. When you generate it, the download starts automatically once the package is ready.',
 			scope: 'Scope', scopeAll: 'Everything (database + files)', scopeSel: 'Select tables',
 			tables: 'Tables', selectAll: 'Select all', clear: 'Clear',
-			includeUploads: 'Include the uploads folder (media).', anonymize: 'Anonymize personal data', anonymizeHint: '(staging/dev — masks email, name, phone; deterministic)',
+			includeUploads: 'Include the uploads folder (media).', anonymize: 'Anonymize personal data', anonymizeHint: '(staging/dev: masks email, name, phone; deterministic)',
 			genExport: 'Generate export', generating: 'Generating…', preparingDl: 'Preparing download…',
-			importTitle: 'Import backup (migration)', importDesc: 'Upload a package created by Timevault on another site. It is validated (checksum, structure, decryption) and added to the list — restoring is always a separate step, with double confirmation.',
+			importTitle: 'Import backup (migration)', importDesc: 'Upload a package created by Timevault on another site. It is validated (checksum, structure, decryption) and added to the list. Restoring is always a separate step, with double confirmation.',
 			importWarn1: 'Note: ', importWarn2: 'encrypted packages can only be read with the SAME ', importWarn3: ' defined on the source site. Different keys = unreadable package.',
 			importFile: 'Package (.zip or .zip.enc)', doImport: 'Import package',
 			restoreTitle: 'Restoring this backup will replace the current site.',
@@ -100,21 +103,22 @@
 			tExportFail: 'The export failed', tImported: 'Package imported', tImportedMsg: 'It appears under Backups and can be restored.',
 			tRestoreStart: 'Restore started', tRestoreStartMsg: 'A safety backup is being created before overwriting.',
 			tDeleted: 'Backup deleted', tDeletedMsg: 'The file and record were removed.',
+			tRenamed: 'Name saved',
 			errNoSelection: 'Select at least one table or include the uploads.', errNoSelectionT: 'Select something to export',
 			errBackup: 'Could not create the backup', errDownload: 'Download unavailable', errExport: 'Could not export',
-			errPrepare: 'Could not prepare the restore', errRestore: 'Could not restore', errDelete: 'Could not delete', errImport: 'Could not import',
+			errPrepare: 'Could not prepare the restore', errRestore: 'Could not restore', errDelete: 'Could not delete', errImport: 'Could not import', errRename: 'Could not save the name',
 			chooseFile: 'Choose a file', chooseFileMsg: 'Select a .zip or .zip.enc package.', loadFail: 'Could not load Timevault: ', close: 'Close', loading: 'Loading…',
 			schedTitle: 'Automatic backup', schedDesc: 'Runs on its own at the chosen frequency and keeps only the most recent ones.',
 			schedFreq: 'Frequency', schedOff: 'Off', schedDaily: 'Daily', schedWeekly: 'Weekly', schedMonthly: 'Monthly',
-			schedKeep: 'Keep', schedKeepUnit: 'automatic backups', schedNote: 'Past the limit, the oldest automatic backups are rotated out — manual backups are never touched.',
+			schedKeep: 'Keep', schedKeepUnit: 'automatic backups', schedNote: 'Past the limit, the oldest automatic backups are rotated out; manual backups are never touched.',
 			tSchedSaved: 'Schedule saved', errSched: 'Could not save the schedule',
 		},
 		es: {
-			subtitle: 'Copia, exportación y migración — preserva el estado del sitio.',
+			subtitle: 'Copia, exportación y migración para preservar el estado del sitio.',
 			backupDb: 'Solo base de datos', backupFull: 'Crear copia completa',
 			tabBackups: 'Copias', tabExport: 'Exportar', tabImport: 'Importar',
 			theme: 'Cambiar tema', lang: 'Idioma',
-			keyMissing1: 'La clave de cifrado no está configurada. Define la constante ', keyMissing2: ' en wp-config.php antes de crear copias — la clave nunca queda en la base de datos.',
+			keyMissing1: 'La clave de cifrado no está configurada. Define la constante ', keyMissing2: ' en wp-config.php antes de crear copias. La clave nunca queda en la base de datos.',
 			cardLast: 'Última copia', cardCount: 'Copias guardadas', cardCountMeta: 'Completas e íntegras',
 			cardSpace: 'Espacio usado', nextClean: 'Próxima limpieza: ', retentionOff: 'Retención desactivada',
 			cardHealth: 'Salud del entorno', hEncryption: 'Cifrado', hQueue: 'Cola', hDir: 'Directorio',
@@ -122,17 +126,18 @@
 			queued: 'En cola', processing: 'Procesando',
 			spineTitle: 'Espina temporal', sortNewest: 'Más recientes primero', sortOldest: 'Más antiguas primero',
 			encrypted: 'Cifrado', dbType: 'Base de datos', download: 'Descargar', restore: 'Restaurar', del: 'Eliminar',
+			backupName: 'Nombre de la copia', saveName: 'Guardar nombre',
 			prev: 'Anteriores', next: 'Siguientes', pageOf: 'de',
 			stCompleted: 'Íntegra', stPending: 'En cola', stRunning: 'En curso', stFailed: 'Falló', stExpired: 'Expirada',
-			emptyTitle: 'Aún no hay copias.', emptyText: 'Crea la primera para preservar el estado actual del sitio — base de datos y archivos, cifrados en reposo.', emptyCta: 'Crear copia ahora',
+			emptyTitle: 'Aún no hay copias.', emptyText: 'Crea la primera para preservar el estado actual del sitio: base de datos y archivos, cifrados en reposo.', emptyCta: 'Crear copia ahora',
 			historyTitle: 'Historial', fAll: 'Todas', fFull: 'Completa', fDb: 'Base de datos', fExport: 'Export',
 			thDate: 'Fecha', thType: 'Tipo', thSize: 'Tamaño', thDest: 'Destino', thStatus: 'Estado', emptyFilter: 'No hay copias en este filtro.',
 			exportTitle: 'Exportación', exportDesc: 'Genera un paquete portátil para migrar o llevar una copia a staging. Al generarlo, la descarga empieza automáticamente cuando el paquete está listo.',
 			scope: 'Alcance', scopeAll: 'Todo (base de datos + archivos)', scopeSel: 'Seleccionar tablas',
 			tables: 'Tablas', selectAll: 'Seleccionar todas', clear: 'Limpiar',
-			includeUploads: 'Incluir la carpeta de uploads (medios).', anonymize: 'Anonimizar datos personales', anonymizeHint: '(staging/dev — enmascara correo, nombre, teléfono; determinista)',
+			includeUploads: 'Incluir la carpeta de uploads (medios).', anonymize: 'Anonimizar datos personales', anonymizeHint: '(staging/dev: enmascara correo, nombre, teléfono; determinista)',
 			genExport: 'Generar exportación', generating: 'Generando…', preparingDl: 'Preparando descarga…',
-			importTitle: 'Importar copia (migración)', importDesc: 'Sube un paquete creado por Timevault en otro sitio. Se valida (checksum, estructura, descifrado) y se añade a la lista — restaurar es siempre un paso aparte, con doble confirmación.',
+			importTitle: 'Importar copia (migración)', importDesc: 'Sube un paquete creado por Timevault en otro sitio. Se valida (checksum, estructura, descifrado) y se añade a la lista. Restaurar es siempre un paso aparte, con doble confirmación.',
 			importWarn1: 'Atención: ', importWarn2: 'los paquetes cifrados solo se leen con la MISMA ', importWarn3: ' definida en el sitio de origen. Claves distintas = paquete ilegible.',
 			importFile: 'Paquete (.zip o .zip.enc)', doImport: 'Importar paquete',
 			restoreTitle: 'Restaurar esta copia reemplazará el sitio actual.',
@@ -147,13 +152,14 @@
 			tExportFail: 'La exportación falló', tImported: 'Paquete importado', tImportedMsg: 'Aparece en Copias y puede restaurarse.',
 			tRestoreStart: 'Restauración iniciada', tRestoreStartMsg: 'Se está creando una copia de seguridad antes de sobrescribir.',
 			tDeleted: 'Copia eliminada', tDeletedMsg: 'El archivo y el registro se eliminaron.',
+			tRenamed: 'Nombre guardado',
 			errNoSelection: 'Selecciona al menos una tabla o incluye los uploads.', errNoSelectionT: 'Selecciona algo para exportar',
 			errBackup: 'No se pudo crear la copia', errDownload: 'Descarga no disponible', errExport: 'No se pudo exportar',
-			errPrepare: 'No se pudo preparar la restauración', errRestore: 'No se pudo restaurar', errDelete: 'No se pudo eliminar', errImport: 'No se pudo importar',
+			errPrepare: 'No se pudo preparar la restauración', errRestore: 'No se pudo restaurar', errDelete: 'No se pudo eliminar', errImport: 'No se pudo importar', errRename: 'No se pudo guardar el nombre',
 			chooseFile: 'Elige un archivo', chooseFileMsg: 'Selecciona un paquete .zip o .zip.enc.', loadFail: 'No se pudo cargar Timevault: ', close: 'Cerrar', loading: 'Cargando…',
 			schedTitle: 'Copia automática', schedDesc: 'Se ejecuta sola en la frecuencia elegida y conserva solo las más recientes.',
 			schedFreq: 'Frecuencia', schedOff: 'Desactivado', schedDaily: 'Diaria', schedWeekly: 'Semanal', schedMonthly: 'Mensual',
-			schedKeep: 'Conservar', schedKeepUnit: 'copias automáticas', schedNote: 'Al pasar el límite, las copias automáticas más antiguas se eliminan por rotación — las manuales nunca se tocan.',
+			schedKeep: 'Conservar', schedKeepUnit: 'copias automáticas', schedNote: 'Al pasar el límite, las copias automáticas más antiguas se eliminan por rotación; las manuales nunca se tocan.',
 			tSchedSaved: 'Programación guardada', errSched: 'No se pudo guardar la programación',
 		},
 	};
@@ -228,8 +234,28 @@
 	};
 
 	/* ── REST ────────────────────────────────────────────────── */
-	function api( path, method, body ) {
-		return fetch( cfg.root + path, {
+	function apiUrl( root, path ) {
+		var url = new URL( root, window.location.href );
+		var parts = String( path || '' ).split( '?' );
+		var endpoint = parts[ 0 ].charAt( 0 ) === '/' ? parts[ 0 ] : '/' + parts[ 0 ];
+		var query = new URLSearchParams( parts[ 1 ] || '' );
+		var restRoute = url.searchParams.get( 'rest_route' );
+
+		if ( restRoute !== null ) {
+			url.searchParams.set( 'rest_route', restRoute.replace( /\/+$/, '' ) + endpoint );
+		} else {
+			url.pathname = url.pathname.replace( /\/+$/, '' ) + endpoint;
+		}
+
+		query.forEach( function ( value, key ) {
+			url.searchParams.set( key, value );
+		} );
+
+		return url.toString();
+	}
+
+	function apiFetch( root, path, method, body ) {
+		return fetch( apiUrl( root, path ), {
 			method: method || 'GET',
 			headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': cfg.nonce },
 			credentials: 'same-origin',
@@ -237,10 +263,25 @@
 		} ).then( function ( res ) {
 			return res.json().then( function ( data ) {
 				if ( ! res.ok ) {
-					throw new Error( ( data && data.message ) || 'HTTP ' + res.status );
+					var err = new Error( ( data && data.message ) || 'HTTP ' + res.status );
+					err.code = data && data.code;
+					err.status = res.status;
+					throw err;
 				}
 				return data;
 			} );
+		} );
+	}
+
+	function api( path, method, body ) {
+		return apiFetch( cfg.root, path, method, body ).catch( function ( err ) {
+			if ( cfg.rootFallback && cfg.rootFallback !== cfg.root && ( err.code === 'rest_no_route' || err.status === 404 ) ) {
+				return apiFetch( cfg.rootFallback, path, method, body ).catch( function ( fallbackErr ) {
+					throw fallbackErr;
+				} );
+			}
+
+			throw err;
 		} );
 	}
 
@@ -261,7 +302,7 @@
 
 	function fmtDate( iso ) {
 		if ( ! iso ) {
-			return '—';
+			return '-';
 		}
 		var d = new Date( iso.replace( ' ', 'T' ) + ( /Z|[+-]\d\d:?\d\d$/.test( iso ) ? '' : 'Z' ) );
 		if ( isNaN( d.getTime() ) ) {
@@ -310,8 +351,39 @@
 	}
 
 	/* ── Data load ───────────────────────────────────────────── */
+	function overviewFromStatus( status ) {
+		return {
+			health: {
+				encryption_configured: !! status.encryption_configured,
+				key_install_status: status.key_install_status || null,
+				queue_available: !! status.queue_available,
+				backup_dir_protected: !! status.backup_dir_protected,
+			},
+			backups_completed: 0,
+			total_size_bytes: 0,
+			running_jobs: 0,
+			last_backup: null,
+			next_maintenance: null,
+			retention: null,
+			schedule: { enabled: false, frequency: 'weekly', keep: 6 },
+		};
+	}
+
 	function load() {
-		return Promise.all( [ api( '/overview' ), api( '/backups?per_page=50' ), api( '/restores' ) ] ).then( function ( r ) {
+		var overviewReq = api( '/overview' ).catch( function ( err ) {
+			if ( err.code === 'rest_no_route' || err.status === 404 ) {
+				return api( '/status' ).then( overviewFromStatus );
+			}
+			throw err;
+		} );
+		var restoresReq = api( '/restores' ).catch( function ( err ) {
+			if ( err.code === 'rest_no_route' || err.status === 404 ) {
+				return [];
+			}
+			throw err;
+		} );
+
+		return Promise.all( [ overviewReq, api( '/backups?per_page=50' ), restoresReq ] ).then( function ( r ) {
 			state.overview = r[ 0 ];
 			state.backups = r[ 1 ];
 			state.restores = r[ 2 ];
@@ -443,14 +515,14 @@
 		freqSel.addEventListener( 'change', save );
 		keepInput.addEventListener( 'change', save );
 
-		return h( 'div', { class: 'tv-panel tv-glass', style: 'margin-bottom:32px' }, [
+		return h( 'div', { class: 'tv-panel tv-glass tv-sched-panel' }, [
 			h( 'div', { class: 'tv-sched' }, [
-				h( 'div', { style: 'flex:1;min-width:240px' }, [
+				h( 'div', { class: 'tv-sched__copy' }, [
 					h( 'div', { class: 'tv-eyebrow', style: 'margin-bottom:4px', text: t( 'schedTitle' ) } ),
 					h( 'p', { style: 'color:var(--tv-text-muted);font-size:13px', text: t( 'schedDesc' ) } ),
 				] ),
 				h( 'label', { class: 'tv-sched__field' }, [ h( 'span', { class: 'tv-sched__lbl', text: t( 'schedFreq' ) } ), freqSel ] ),
-				h( 'label', { class: 'tv-sched__field' }, [ h( 'span', { class: 'tv-sched__lbl', text: t( 'schedKeep' ) } ), h( 'span', { style: 'display:flex;align-items:center;gap:8px' }, [ keepInput, h( 'span', { style: 'color:var(--tv-text-muted);font-size:13px', text: t( 'schedKeepUnit' ) } ) ] ) ] ),
+				h( 'label', { class: 'tv-sched__field' }, [ h( 'span', { class: 'tv-sched__lbl', text: t( 'schedKeep' ) } ), h( 'span', { class: 'tv-sched__keep' }, [ keepInput, h( 'span', { class: 'tv-sched__unit', text: t( 'schedKeepUnit' ) } ) ] ) ] ),
 			] ),
 			h( 'p', { class: 'tv-sched__note', text: t( 'schedNote' ) } ),
 		] );
@@ -486,7 +558,7 @@
 		} );
 
 		return h( 'div', { class: 'tv-cards' }, [
-			card( t( 'cardLast' ), last ? fmtBytes( last.size_bytes ) : '—', null, last ? [ h( 'span', { class: 'tv-data', text: fmtDate( last.created_at ) } ) ] : [ h( 'span', { text: t( 'noneYet' ) } ) ] ),
+			card( t( 'cardLast' ), last ? fmtBytes( last.size_bytes ) : '-', null, last ? [ h( 'span', { class: 'tv-data', text: fmtDate( last.created_at ) } ) ] : [ h( 'span', { text: t( 'noneYet' ) } ) ] ),
 			card( t( 'cardCount' ), ov.backups_completed || 0, null, [ h( 'span', { text: t( 'cardCountMeta' ) } ) ] ),
 			card( t( 'cardSpace' ), sizeParts[ 0 ], sizeParts[ 1 ], [ h( 'span', { text: ov.next_maintenance ? t( 'nextClean' ) : t( 'retentionOff' ) } ), ov.next_maintenance ? h( 'span', { class: 'tv-data', text: fmtDate( ov.next_maintenance ) } ) : null ] ),
 			h( 'div', { class: 'tv-card tv-glass' }, [
@@ -590,7 +662,11 @@
 	function spineItem( b, isNow ) {
 		return h( 'li', { class: 'tv-spine__item' + ( isNow ? ' tv-spine__item--now' : '' ) }, [
 			h( 'span', { class: 'tv-spine__node', aria: { hidden: 'true' } } ),
-			h( 'div', { class: 'tv-spine__date', text: fmtDate( b.created_at ) } ),
+			h( 'div', { class: 'tv-spine__main' }, [
+				h( 'div', { class: 'tv-spine__name', text: backupName( b ) } ),
+				h( 'div', { class: 'tv-spine__date', text: fmtDate( b.created_at ) } ),
+				editableBackupName( b ),
+			] ),
 			h( 'div', { class: 'tv-spine__facts' }, [
 				h( 'span', { class: 'tv-data', text: fmtBytes( b.size_bytes ) } ),
 				h( 'span', { class: 'tv-badge tv-badge--dest', text: b.storage } ),
@@ -609,6 +685,51 @@
 				} }, [] ),
 			] ),
 		] );
+	}
+
+	function backupName( backup ) {
+		return backup.display_name || backup.file_name || backup.uuid;
+	}
+
+	function editableBackupName( backup ) {
+		var input = h( 'input', {
+			class: 'tv-input tv-backup-name__input',
+			type: 'text',
+			value: backup.display_name || '',
+			placeholder: backup.file_name || backup.uuid,
+			maxlength: '120',
+			aria: { label: t( 'backupName' ) },
+		} );
+		var btn = h( 'button', {
+			class: 'tv-btn tv-btn--ghost tv-btn--sm',
+			text: t( 'saveName' ),
+			onclick: function () {
+				saveBackupName( backup, input, btn );
+			},
+		} );
+		input.addEventListener( 'keydown', function ( e ) {
+			if ( e.key === 'Enter' ) {
+				e.preventDefault();
+				saveBackupName( backup, input, btn );
+			}
+		} );
+
+		return h( 'div', { class: 'tv-backup-name' }, [ input, btn ] );
+	}
+
+	function saveBackupName( backup, input, btn ) {
+		var displayName = input.value.trim();
+		btn.disabled = true;
+		api( '/backups/' + backup.uuid, 'PATCH', { display_name: displayName } ).then( function ( updated ) {
+			state.backups = state.backups.map( function ( item ) {
+				return item.uuid === updated.uuid ? updated : item;
+			} );
+			toast( 'ok', t( 'tRenamed' ), backupName( updated ) );
+			render();
+		} ).catch( function ( e ) {
+			btn.disabled = false;
+			toast( 'error', t( 'errRename' ), e.message );
+		} );
 	}
 
 	function emptyState() {
@@ -642,12 +763,13 @@
 		} else {
 			table = h( 'div', { style: 'overflow-x:auto' }, [
 				h( 'table', { class: 'tv-table' }, [
-					h( 'thead', {}, [ h( 'tr', {}, [ h( 'th', { text: t( 'thDate' ) } ), h( 'th', { text: t( 'thType' ) } ), h( 'th', { text: t( 'thSize' ), class: 'tv-num' } ), h( 'th', { text: t( 'thDest' ) } ), h( 'th', { text: t( 'thStatus' ) } ) ] ) ] ),
+					h( 'thead', {}, [ h( 'tr', {}, [ h( 'th', { text: t( 'backupName' ) } ), h( 'th', { text: t( 'thDate' ) } ), h( 'th', { text: t( 'thType' ) } ), h( 'th', { text: t( 'thSize' ), class: 'tv-num' } ), h( 'th', { text: t( 'thDest' ) } ), h( 'th', { text: t( 'thStatus' ) } ) ] ) ] ),
 					h( 'tbody', {}, rows.map( function ( b ) {
 						return h( 'tr', {}, [
+							h( 'td', { class: 'tv-table__name' }, [ editableBackupName( b ) ] ),
 							h( 'td', { class: 'tv-data', text: fmtDate( b.created_at ) } ),
 							h( 'td', { text: b.type } ),
-							h( 'td', { class: 'tv-data tv-num', text: b.size_bytes ? fmtBytes( b.size_bytes ) : '—' } ),
+							h( 'td', { class: 'tv-data tv-num', text: b.size_bytes ? fmtBytes( b.size_bytes ) : '-' } ),
 							h( 'td', {}, [ h( 'span', { class: 'tv-badge tv-badge--dest', text: b.storage } ) ] ),
 							h( 'td', {}, [ b.error ? h( 'span', { class: 'tv-badge tv-badge--danger', title: b.error, text: '✕ ' + t( 'stFailed' ) } ) : statusBadge( b.status ) ] ),
 						] );
@@ -701,7 +823,7 @@
 			tableList,
 		] );
 
-		var scopeSel = h( 'select', { class: 'tv-select', style: 'min-width:260px', onchange: function () {
+		var scopeSel = h( 'select', { class: 'tv-select tv-export-scope', onchange: function () {
 			state.exportScope = scopeSel.value;
 			render();
 		} }, [
@@ -728,14 +850,14 @@
 			runExport( tables, includeUploads, anonCb.checked, btn );
 		} );
 
-		return h( 'section', { class: 'tv-panel tv-glass', style: 'max-width:820px' }, [
+		return h( 'section', { class: 'tv-panel tv-glass tv-export-panel' }, [
 			h( 'div', { class: 'tv-panel__head' }, [ h( 'h2', { text: t( 'exportTitle' ) } ) ] ),
 			h( 'p', { style: 'color:var(--tv-text-muted);margin-bottom:20px', text: t( 'exportDesc' ) } ),
-			h( 'label', { class: 'tv-field' }, [ h( 'span', { style: 'display:block;color:var(--tv-text-muted);font-size:13px;margin-bottom:8px', text: t( 'scope' ) } ), scopeSel ] ),
+			h( 'label', { class: 'tv-field' }, [ h( 'span', { class: 'tv-field__label', text: t( 'scope' ) } ), scopeSel ] ),
 			selectiveBox,
 			h( 'label', { class: 'tv-checkbox', style: 'margin-top:20px' + ( state.exportScope === 'all' ? ';display:none' : '' ) }, [ uploadsCb, h( 'span', { text: t( 'includeUploads' ) } ) ] ),
 			h( 'label', { class: 'tv-checkbox' }, [ anonCb, h( 'span', {}, [ t( 'anonymize' ) + ' ', h( 'span', { style: 'color:var(--tv-text-faint)', text: t( 'anonymizeHint' ) } ) ] ) ] ),
-			h( 'div', { style: 'margin-top:16px' }, [ btn ] ),
+			h( 'div', { class: 'tv-export-actions' }, [ btn ] ),
 		] );
 	}
 
@@ -916,7 +1038,7 @@
 			confirmBtn.disabled = input.value.trim() !== phrase;
 		} );
 		var manifest = ( prep.summary && prep.summary.manifest ) || {};
-		var dbInfo = manifest.database ? ' — ' + manifest.database.tables + ' / ' + manifest.database.rows : '';
+		var dbInfo = manifest.database ? ', ' + manifest.database.tables + ' / ' + manifest.database.rows : '';
 
 		var m = h( 'div', { class: 'tv-modal tv-glass tv-glass--active', role: 'dialog', aria: { modal: 'true' } }, [
 			h( 'h2', { class: 'tv-modal__title', text: t( 'restoreTitle' ) } ),

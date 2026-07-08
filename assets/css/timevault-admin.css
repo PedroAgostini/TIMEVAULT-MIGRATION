@@ -1,12 +1,12 @@
 /*
- * Timevault — admin dashboard
+ * Timevault - admin dashboard
  * Amber (#ffa300) + glassmorphism, light theme by default with a dark toggle.
  * All rules scoped under .timevault-app so nothing leaks into wp-admin (§11).
  * Color tokens are theme-dependent; shape/type/motion tokens are shared.
  */
 
 .timevault-app {
-	/* ── Amber (brand — same fills on both themes) ───────────── */
+	/* ── Amber (brand - same fills on both themes) ───────────── */
 	--tv-amber-300: #ffce80;
 	--tv-amber-400: #ffb733;
 	--tv-amber-500: #ffa300;
@@ -39,7 +39,7 @@
 
 	/* ══ LIGHT THEME (default) ═══════════════════════════════════ */
 	--tv-ink-900: #ffffff;
-	--tv-ink-800: #f3f1ec;   /* page background — warm off-white (amber-biased neutral) */
+	--tv-ink-800: #f3f1ec;   /* page background - warm off-white (amber-biased neutral) */
 	--tv-ink-700: #ffffff;   /* solid surface under glass */
 	--tv-ink-600: #ffffff;   /* cards, inputs */
 	--tv-ink-500: #ebe8e1;   /* hover */
@@ -193,16 +193,17 @@
 .tv-header {
 	display: flex;
 	align-items: center;
-	gap: var(--tv-space-4);
-	margin-bottom: var(--tv-space-6);
+	gap: var(--tv-space-5);
+	margin-bottom: var(--tv-space-7);
 }
 
 .tv-header__logo {
-	height: 58px;
+	height: clamp(78px, 7vw, 112px);
 	width: auto;
-	max-width: 320px;
+	max-width: min(440px, 36vw);
 	object-fit: contain;
 	display: block;
+	filter: drop-shadow(0 14px 24px rgba(30, 25, 15, 0.14));
 }
 
 /* Fallback SVG icon (when no logo image): keep it compact and amber. */
@@ -215,7 +216,7 @@
 /* The logo art is dark: it sits fine on the light theme; on dark, invert it
    to white and add an amber glow (design system: "a logo fica branca"). */
 .timevault-app[data-theme="dark"] .tv-header__logo {
-	filter: brightness(0) invert(1) drop-shadow(0 0 14px rgba(255, 163, 0, 0.5));
+	filter: brightness(0) invert(1) drop-shadow(0 0 22px rgba(255, 163, 0, 0.52));
 }
 
 .tv-header__titles p {
@@ -226,54 +227,92 @@
 .tv-controls {
 	display: flex;
 	align-items: center;
-	gap: var(--tv-space-2);
+	gap: var(--tv-space-3);
 }
 
 .tv-iconbtn {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	width: 40px;
-	height: 40px;
+	width: 44px;
+	height: 44px;
 	border-radius: var(--tv-radius-md);
 	border: 1px solid var(--tv-glass-border);
-	background: var(--tv-glass-fill);
+	background:
+		linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.42)),
+		var(--tv-glass-fill);
 	color: var(--tv-text-body);
 	cursor: pointer;
-	transition: all var(--tv-dur-fast) var(--tv-ease);
+	box-shadow: var(--tv-shadow-sm);
+	transition:
+		border-color var(--tv-dur-fast) var(--tv-ease),
+		box-shadow var(--tv-dur-fast) var(--tv-ease),
+		color var(--tv-dur-fast) var(--tv-ease),
+		transform var(--tv-dur-fast) var(--tv-ease);
 }
 
 .tv-iconbtn:hover {
 	border-color: var(--tv-glass-border-amber);
 	color: var(--tv-amber-text);
+	box-shadow: var(--tv-shadow-md), 0 0 0 3px rgba(255, 163, 0, 0.12);
+	transform: translateY(-1px);
 }
 
-.tv-select {
-	min-height: 40px;
-	padding: 8px 40px 8px 14px;
-	border-radius: var(--tv-radius-md);
-	border: 1px solid var(--tv-glass-border);
-	background-color: var(--tv-ink-600);
-	color: var(--tv-text-body);
-	font: 500 13px/1 var(--tv-font-sans);
+.timevault-app[data-theme="dark"] .tv-iconbtn {
+	background:
+		linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.035)),
+		var(--tv-glass-fill);
+}
+
+.timevault-app select.tv-select {
+	min-height: 44px;
+	padding: 10px 46px 10px 16px;
+	border-radius: 14px;
+	border: 1px solid var(--tv-glass-border) !important;
+	background-color: rgba(255, 255, 255, 0.78) !important;
+	color: var(--tv-text-strong) !important;
+	font: 650 14px/1.1 var(--tv-font-sans);
 	cursor: pointer;
+	box-shadow:
+		inset 0 1px 0 var(--tv-glass-highlight),
+		0 10px 24px rgba(30, 25, 15, 0.08);
 	appearance: none;
 	-webkit-appearance: none;
 	-moz-appearance: none;
-	/* Custom chevron (muted gray works on both themes). */
-	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239a9aa2' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+	background-image:
+		linear-gradient(90deg, transparent, transparent),
+		url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%2317171a' stroke-width='2.3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
 	background-repeat: no-repeat;
-	background-position: right 12px center;
-	transition: border-color var(--tv-dur-fast) var(--tv-ease);
+	background-position: 0 0, right 14px center;
+	background-size: 100% 100%, 18px 18px;
+	transition:
+		border-color var(--tv-dur-fast) var(--tv-ease),
+		box-shadow var(--tv-dur-fast) var(--tv-ease),
+		transform var(--tv-dur-fast) var(--tv-ease);
 }
 
-.tv-select:hover {
-	border-color: var(--tv-glass-border-amber);
+.timevault-app[data-theme="dark"] select.tv-select {
+	background-color: rgba(255, 255, 255, 0.075) !important;
+	color: var(--tv-text-strong) !important;
+	border-color: rgba(255, 255, 255, 0.16) !important;
+	background-image:
+		linear-gradient(90deg, transparent, transparent),
+		url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23ffa300' stroke-width='2.3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+	box-shadow:
+		inset 0 1px 0 rgba(255, 255, 255, 0.10),
+		0 12px 28px rgba(0, 0, 0, 0.34);
 }
 
-.tv-select:focus {
-	border-color: var(--tv-amber-500);
+.timevault-app select.tv-select:hover {
+	border-color: var(--tv-glass-border-amber) !important;
+	box-shadow: var(--tv-shadow-md), 0 0 0 3px rgba(255, 163, 0, 0.10);
+	transform: translateY(-1px);
+}
+
+.timevault-app select.tv-select:focus {
+	border-color: var(--tv-amber-500) !important;
 	outline: none;
+	box-shadow: 0 0 0 3px rgba(255, 163, 0, 0.20), var(--tv-shadow-md);
 }
 
 /* Native dropdown list items follow the OS, but keep our surface for the
@@ -281,6 +320,11 @@
 .tv-select option {
 	color: #17171a;
 	background: #ffffff;
+}
+
+.timevault-app[data-theme="dark"] .tv-select option {
+	color: #f7f7f5;
+	background: #17171a;
 }
 
 /* ── Spine controls: sort + pager ────────────────────────────── */
@@ -315,6 +359,9 @@
 .tv-header__actions {
 	margin-left: auto;
 	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	justify-content: flex-end;
 	gap: var(--tv-space-3);
 }
 
@@ -324,12 +371,18 @@
 	display: inline-flex;
 	align-items: center;
 	gap: var(--tv-space-2);
-	min-height: 40px;
-	padding: 10px 18px;
+	min-height: 44px;
+	padding: 11px 20px;
 	border-radius: var(--tv-radius-md);
 	border: 1px solid transparent;
 	cursor: pointer;
-	transition: all var(--tv-dur-fast) var(--tv-ease);
+	box-shadow: var(--tv-shadow-sm);
+	transition:
+		background-color var(--tv-dur-fast) var(--tv-ease),
+		border-color var(--tv-dur-fast) var(--tv-ease),
+		box-shadow var(--tv-dur-fast) var(--tv-ease),
+		color var(--tv-dur-fast) var(--tv-ease),
+		transform var(--tv-dur-fast) var(--tv-ease);
 	text-decoration: none;
 }
 
@@ -346,6 +399,7 @@
 .tv-btn--primary:hover:not(:disabled) {
 	background: var(--tv-amber-400);
 	box-shadow: var(--tv-glow-amber);
+	transform: translateY(-1px);
 }
 
 .tv-btn--primary:active {
@@ -353,7 +407,9 @@
 }
 
 .tv-btn--ghost {
-	background: var(--tv-glass-fill);
+	background:
+		linear-gradient(180deg, rgba(255, 255, 255, 0.70), rgba(255, 255, 255, 0.36)),
+		var(--tv-glass-fill);
 	border-color: var(--tv-glass-border);
 	color: var(--tv-text-strong);
 	backdrop-filter: blur(8px);
@@ -363,6 +419,14 @@
 .tv-btn--ghost:hover:not(:disabled) {
 	border-color: var(--tv-glass-border-amber);
 	color: var(--tv-amber-text);
+	box-shadow: var(--tv-shadow-md), 0 0 0 3px rgba(255, 163, 0, 0.10);
+	transform: translateY(-1px);
+}
+
+.timevault-app[data-theme="dark"] .tv-btn--ghost {
+	background:
+		linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.035)),
+		var(--tv-glass-fill);
 }
 
 .tv-btn--danger {
@@ -421,11 +485,9 @@
 /* ── Checklist (export) ──────────────────────────────────────── */
 .tv-checklist {
 	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-	gap: var(--tv-space-1) var(--tv-space-4);
-	max-height: 320px;
-	overflow-y: auto;
-	padding: var(--tv-space-3);
+	grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+	gap: var(--tv-space-2);
+	padding: var(--tv-space-4);
 	border-radius: var(--tv-radius-md);
 	background: var(--tv-ink-700);
 	border: 1px solid var(--tv-glass-border);
@@ -433,15 +495,90 @@
 
 .tv-checkitem {
 	display: flex;
-	align-items: center;
-	gap: var(--tv-space-2);
-	padding: 5px 4px;
+	align-items: flex-start;
+	gap: var(--tv-space-3);
+	min-width: 0;
+	padding: 10px 12px;
+	border: 1px solid var(--tv-glass-border);
+	border-radius: var(--tv-radius-sm);
+	background: rgba(255, 255, 255, 0.36);
 	color: var(--tv-text-body);
 	cursor: pointer;
+	box-shadow: var(--tv-shadow-sm);
+	transition:
+		border-color var(--tv-dur-fast) var(--tv-ease),
+		background-color var(--tv-dur-fast) var(--tv-ease),
+		box-shadow var(--tv-dur-fast) var(--tv-ease);
 }
 
 .tv-checkitem:hover {
 	color: var(--tv-text-strong);
+	border-color: var(--tv-glass-border-amber);
+	box-shadow: var(--tv-shadow-md);
+}
+
+.timevault-app[data-theme="dark"] .tv-checkitem {
+	background: rgba(255, 255, 255, 0.045);
+}
+
+.tv-checkitem .tv-data {
+	min-width: 0;
+	white-space: normal;
+	overflow-wrap: anywhere;
+	word-break: break-word;
+	line-height: 1.45;
+}
+
+.tv-checkitem input[type="checkbox"],
+.tv-checkbox input[type="checkbox"] {
+	flex: 0 0 auto;
+	width: 20px;
+	height: 20px;
+	margin: 0;
+	border-radius: 6px;
+	border: 1px solid var(--tv-glass-border);
+	background:
+		linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.36)),
+		var(--tv-ink-600);
+	box-shadow:
+		inset 0 1px 0 var(--tv-glass-highlight),
+		var(--tv-shadow-sm);
+	cursor: pointer;
+	appearance: none;
+	-webkit-appearance: none;
+	transition:
+		background-color var(--tv-dur-fast) var(--tv-ease),
+		border-color var(--tv-dur-fast) var(--tv-ease),
+		box-shadow var(--tv-dur-fast) var(--tv-ease);
+}
+
+.timevault-app[data-theme="dark"] .tv-checkitem input[type="checkbox"],
+.timevault-app[data-theme="dark"] .tv-checkbox input[type="checkbox"] {
+	background:
+		linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.035)),
+		var(--tv-ink-600);
+}
+
+.tv-checkitem input[type="checkbox"]:hover,
+.tv-checkbox input[type="checkbox"]:hover {
+	border-color: var(--tv-glass-border-amber);
+	box-shadow: 0 0 0 3px rgba(255, 163, 0, 0.10), var(--tv-shadow-sm);
+}
+
+.tv-checkitem input[type="checkbox"]:checked,
+.tv-checkbox input[type="checkbox"]:checked {
+	border-color: var(--tv-amber-500);
+	background-color: var(--tv-amber-500);
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%230a0a0b' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6L9 17l-5-5'/%3E%3C/svg%3E");
+	background-repeat: no-repeat;
+	background-position: center;
+	box-shadow: 0 0 0 3px rgba(255, 163, 0, 0.16), var(--tv-shadow-sm);
+}
+
+.tv-checkitem input[type="checkbox"]:focus-visible,
+.tv-checkbox input[type="checkbox"]:focus-visible {
+	outline: 2px solid var(--tv-amber-500);
+	outline-offset: 2px;
 }
 
 /* ── File input ──────────────────────────────────────────────── */
@@ -474,17 +611,54 @@
 }
 
 /* ── Schedule panel ──────────────────────────────────────────── */
+.tv-sched-panel {
+	margin-bottom: var(--tv-space-6);
+	padding: 34px 38px;
+	overflow: hidden;
+	background:
+		radial-gradient(420px 160px at 100% 0%, rgba(255, 163, 0, 0.10), transparent 70%),
+		linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.58)),
+		var(--tv-glass-fill);
+}
+
+.timevault-app[data-theme="dark"] .tv-sched-panel {
+	background:
+		radial-gradient(420px 160px at 100% 0%, rgba(255, 163, 0, 0.16), transparent 70%),
+		linear-gradient(180deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.045)),
+		var(--tv-glass-fill);
+}
+
 .tv-sched {
 	display: flex;
 	flex-wrap: wrap;
-	align-items: flex-end;
+	align-items: center;
 	gap: var(--tv-space-5);
+}
+
+.tv-sched__copy {
+	flex: 1;
+	min-width: 280px;
+	position: relative;
+	padding-left: 14px;
+}
+
+.tv-sched__copy::before {
+	content: "";
+	position: absolute;
+	left: 0;
+	top: 2px;
+	bottom: 3px;
+	width: 3px;
+	border-radius: var(--tv-radius-pill);
+	background: linear-gradient(var(--tv-amber-400), var(--tv-amber-600));
+	box-shadow: 0 0 18px rgba(255, 163, 0, 0.22);
 }
 
 .tv-sched__field {
 	display: flex;
 	flex-direction: column;
 	gap: var(--tv-space-2);
+	min-width: 118px;
 }
 
 .tv-sched__lbl {
@@ -495,15 +669,28 @@
 }
 
 .tv-sched__note {
-	margin-top: var(--tv-space-4);
-	padding-top: var(--tv-space-4);
-	border-top: 1px solid var(--tv-glass-border);
+	margin-top: 18px;
+	padding: 0 0 0 14px;
+	border-top: 0;
 	color: var(--tv-text-muted);
 	font-size: 13px;
 }
 
+.tv-sched__keep {
+	display: flex;
+	align-items: center;
+	gap: var(--tv-space-2);
+}
+
+.tv-sched__unit {
+	max-width: 110px;
+	color: var(--tv-text-muted);
+	font-size: 13px;
+	line-height: 1.35;
+}
+
 .tv-input--num {
-	width: 80px;
+	width: 92px;
 	text-align: center;
 }
 
@@ -635,6 +822,15 @@
 	font-weight: 600;
 }
 
+.tv-spine__name {
+	margin-bottom: 2px;
+	color: var(--tv-text-strong);
+	font-size: 15px;
+	font-weight: 700;
+	line-height: 1.35;
+	overflow-wrap: anywhere;
+}
+
 .tv-spine__facts {
 	margin-top: var(--tv-space-1);
 	display: flex;
@@ -651,6 +847,7 @@
 .tv-spine__actions {
 	margin-top: var(--tv-space-3);
 	display: flex;
+	flex-wrap: wrap;
 	gap: var(--tv-space-2);
 }
 
@@ -807,6 +1004,48 @@
 	text-align: right;
 }
 
+.tv-table__name {
+	min-width: 280px;
+}
+
+.tv-backup-name {
+	display: flex;
+	align-items: center;
+	gap: var(--tv-space-2);
+	min-width: 0;
+	max-width: 520px;
+	margin-top: var(--tv-space-2);
+}
+
+.tv-table__name .tv-backup-name {
+	margin-top: 0;
+}
+
+.timevault-app input.tv-backup-name__input {
+	min-width: 180px;
+	min-height: 36px;
+	padding: 8px 12px;
+	font-size: 13px;
+	flex: 1 1 240px;
+}
+
+.tv-backup-name .tv-btn {
+	flex: 0 0 auto;
+	white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+	.tv-backup-name {
+		align-items: stretch;
+		flex-direction: column;
+	}
+
+	.timevault-app input.tv-backup-name__input,
+	.tv-backup-name .tv-btn {
+		width: 100%;
+	}
+}
+
 /* ── Empty states ────────────────────────────────────────────── */
 .tv-empty {
 	text-align: center;
@@ -895,6 +1134,13 @@
 	margin-bottom: var(--tv-space-2);
 }
 
+.tv-field__label {
+	display: block;
+	color: var(--tv-text-muted);
+	font-size: 13px;
+	margin-bottom: var(--tv-space-2);
+}
+
 .tv-field code {
 	color: var(--tv-amber-text);
 	font-family: var(--tv-font-mono);
@@ -903,30 +1149,73 @@
 	border-radius: 4px;
 }
 
-.tv-input {
+.timevault-app input.tv-input {
 	width: 100%;
-	min-height: 40px;
-	padding: 9px 12px;
+	min-height: 44px;
+	padding: 10px 14px;
 	border-radius: var(--tv-radius-md);
-	border: 1px solid var(--tv-glass-border);
-	background: var(--tv-ink-600);
-	color: var(--tv-text-strong);
-	font: 400 14px/1.4 var(--tv-font-sans);
+	border: 1px solid var(--tv-glass-border) !important;
+	background:
+		linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.36)),
+		var(--tv-ink-600) !important;
+	color: var(--tv-text-strong) !important;
+	font: 650 14px/1.4 var(--tv-font-sans);
+	box-shadow:
+		inset 0 1px 0 var(--tv-glass-highlight),
+		var(--tv-shadow-sm);
+	transition:
+		border-color var(--tv-dur-fast) var(--tv-ease),
+		box-shadow var(--tv-dur-fast) var(--tv-ease);
 }
 
-.tv-input:focus {
-	border-color: var(--tv-amber-500);
+.timevault-app[data-theme="dark"] input.tv-input {
+	background:
+		linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.035)),
+		var(--tv-ink-600) !important;
+	color: var(--tv-text-strong) !important;
+	-webkit-text-fill-color: var(--tv-text-strong);
+	border-color: rgba(255, 255, 255, 0.18) !important;
+}
+
+.timevault-app input.tv-input.tv-input--num {
+	width: 92px;
+}
+
+.timevault-app input.tv-input:focus {
+	border-color: var(--tv-amber-500) !important;
 	outline: none;
+	box-shadow: 0 0 0 3px rgba(255, 163, 0, 0.20), var(--tv-shadow-md);
 }
 
 .tv-checkbox {
 	display: flex;
 	align-items: flex-start;
-	gap: var(--tv-space-2);
+	gap: var(--tv-space-3);
 	color: var(--tv-text-body);
 	font-size: 13px;
 	margin-bottom: var(--tv-space-4);
 	cursor: pointer;
+}
+
+.tv-checkbox span {
+	line-height: 1.45;
+}
+
+.tv-export-panel {
+	width: min(100%, 1240px);
+	max-width: none;
+}
+
+.tv-export-scope {
+	min-width: min(100%, 300px);
+}
+
+.tv-export-panel .tv-checkbox {
+	margin-top: 18px;
+}
+
+.tv-export-actions {
+	margin-top: var(--tv-space-5);
 }
 
 .tv-modal__actions {
@@ -1028,6 +1317,72 @@
 .tv-notice code {
 	font-family: var(--tv-font-mono);
 	color: var(--tv-amber-text);
+}
+
+@media (max-width: 1180px) {
+	.tv-header {
+		align-items: flex-start;
+		flex-wrap: wrap;
+	}
+
+	.tv-header__logo {
+		height: clamp(72px, 10vw, 96px);
+		max-width: min(420px, 70vw);
+	}
+
+	.tv-header__actions {
+		width: 100%;
+		margin-left: 0;
+		justify-content: flex-start;
+	}
+}
+
+@media (max-width: 782px) {
+	.timevault-app {
+		margin-left: -10px;
+		padding: var(--tv-space-5);
+	}
+
+	.tv-header {
+		gap: var(--tv-space-4);
+		margin-bottom: var(--tv-space-6);
+	}
+
+	.tv-header__logo {
+		height: 72px;
+		max-width: 100%;
+	}
+
+	.tv-header__actions,
+	.tv-controls,
+	.tv-sched,
+	.tv-sched__keep {
+		align-items: stretch;
+	}
+
+	.tv-header__actions,
+	.tv-sched {
+		flex-direction: column;
+	}
+
+	.tv-controls {
+		flex-wrap: wrap;
+	}
+
+	.tv-select,
+	.tv-btn,
+	.tv-input,
+	.tv-sched__field,
+	.tv-sched__copy,
+	.tv-sched__keep,
+	.tv-sched__unit {
+		width: 100%;
+		max-width: none;
+	}
+
+	.tv-iconbtn {
+		flex: 0 0 44px;
+	}
 }
 
 /* ── Reduced motion ──────────────────────────────────────────── */

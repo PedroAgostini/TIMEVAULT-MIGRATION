@@ -18,18 +18,18 @@ defined( 'ABSPATH' ) || exit;
  * restore, then extracts it entry-by-entry with full validation.
  *
  * Order of checks (fail closed at the first problem):
- * 1. SHA-256 checksum of the on-disk artifact matches the expected value —
+ * 1. SHA-256 checksum of the on-disk artifact matches the expected value -
  *    BEFORE anything else touches the bytes.
  * 2. Decrypt (if encrypted) to a staging file; authenticated decryption
  *    already rejects tampering/truncation.
  * 3. Open as ZIP; validate EVERY central-directory entry name (PathGuard)
  *    and reject compression bombs above a configurable ratio/size.
- * 4. Read manifest.json as JSON only — never unserialize().
+ * 4. Read manifest.json as JSON only - never unserialize().
  */
 final class ArchiveInspector {
 
 	/**
-	 * Hard ceiling on total uncompressed size (10 GiB) — compression-bomb guard.
+	 * Hard ceiling on total uncompressed size (10 GiB) - compression-bomb guard.
 	 */
 	private const MAX_TOTAL_UNCOMPRESSED = 10737418240;
 
@@ -256,7 +256,7 @@ final class ArchiveInspector {
 	}
 
 	/**
-	 * Reads and decodes manifest.json (JSON only — never unserialize()).
+	 * Reads and decodes manifest.json (JSON only - never unserialize()).
 	 *
 	 * @param \ZipArchive $zip Open archive.
 	 * @return array<string, mixed>|\WP_Error

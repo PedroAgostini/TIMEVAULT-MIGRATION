@@ -17,7 +17,7 @@ defined( 'ABSPATH' ) || exit;
  * Rules every adapter must follow:
  * - Credentials stored encrypted, never in plain text in the database (P3).
  * - Minimum-scope credentials (dedicated bucket/folder, never account-wide tokens).
- * - No external destination enabled by default — always explicit opt-in.
+ * - No external destination enabled by default - always explicit opt-in.
  * - region() feeds the LGPD Art. 33 record (international data transfer).
  */
 interface StorageAdapterInterface {

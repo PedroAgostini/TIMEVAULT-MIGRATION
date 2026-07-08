@@ -39,7 +39,7 @@ final class LocalAdapter implements StorageAdapterInterface {
 	}
 
 	/**
-	 * Local storage never leaves the site's server — no international
+	 * Local storage never leaves the site's server - no international
 	 * transfer to record (LGPD Art. 33).
 	 */
 	public function region(): ?string {
@@ -161,7 +161,7 @@ final class LocalAdapter implements StorageAdapterInterface {
 	}
 
 	/**
-	 * Absolute path of a stored backup — local-only shortcut used by the
+	 * Absolute path of a stored backup - local-only shortcut used by the
 	 * download endpoint to stream without duplicating large files.
 	 *
 	 * @param string $remote_id File name returned by store().

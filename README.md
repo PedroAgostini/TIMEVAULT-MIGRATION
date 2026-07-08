@@ -34,26 +34,44 @@ mysql -u root -e "CREATE DATABASE IF NOT EXISTS timevault_tests"
 WP_CORE_DIR=/caminho/para/wordpress/ vendor/bin/phpunit
 ```
 
-Cobertura (57 testes) com foco na superfície mais crítica (import/restore): PathGuard
+Cobertura (67 testes) com foco na superfície mais crítica (import/restore): PathGuard
 (zip-slip/traversal), SqlImporter (tokenizer, construções proibidas, tabelas próprias, dump
 corrompido), ArchiveInspector (checksum inválido, ZIP malicioso, manifest), EncryptionService
 (round-trip, adulteração, truncamento), LocalAdapter + guard de SDK ausente, Anonymizer
-(determinismo), BackupManager (`run_now` + integridade) e ImportManager (validação + checksum).
+(determinismo), BackupManager (`run_now` + integridade), ImportManager (validação + checksum) e
+instalação automática da chave no `wp-config.php`.
 
 **Deploy:** a pasta do plugin no servidor deve se chamar `timevault` (slug oficial).
 
-## Configuração obrigatória (wp-config.php)
+## Configuração de criptografia (wp-config.php)
+
+Na ativação, o plugin tenta gerar uma chave forte automaticamente e gravar no `wp-config.php`,
+antes do carregamento do `wp-settings.php`:
+
+```php
+define( 'TIMEVAULT_ENCRYPTION_KEY', '<chave gerada automaticamente>' );
+```
+
+Se o `wp-config.php` não estiver gravável, a ativação continua, mas a chave precisa ser adicionada
+manualmente:
 
 ```php
 // Chave de criptografia dos backups (base64 de 32 bytes aleatórios).
 // Gere com: php -r "echo base64_encode(random_bytes(32)), PHP_EOL;"
 define( 'TIMEVAULT_ENCRYPTION_KEY', '<chave>' );
+```
 
+Configuração opcional recomendada:
+
+```php
 // Opcional, recomendado: diretório de backups FORA do webroot.
 define( 'TIMEVAULT_BACKUP_DIR', '/caminho/fora/do/webroot/timevault' );
 ```
 
-A chave **nunca** é armazenada no banco. Sem `TIMEVAULT_BACKUP_DIR`, o plugin usa `wp-content/timevault-<sufixo aleatório>/` protegido por `.htaccess` (Apache/LiteSpeed), `web.config` (IIS) e `index.php` vazio.
+A chave **nunca** é armazenada no banco. O banco guarda apenas o status da tentativa automática
+quando a escrita no `wp-config.php` falha. Sem `TIMEVAULT_BACKUP_DIR`, o plugin usa
+`wp-content/timevault-<sufixo aleatório>/` protegido por `.htaccess` (Apache/LiteSpeed),
+`web.config` (IIS) e `index.php` vazio.
 
 **Nginx** não lê `.htaccess` — adicione ao server block:
 

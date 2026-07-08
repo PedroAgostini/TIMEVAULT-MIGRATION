@@ -32,7 +32,7 @@ final class Capabilities {
 	}
 
 	/**
-	 * Removes the capability from every role (used by uninstall only —
+	 * Removes the capability from every role (used by uninstall only -
 	 * deactivation intentionally keeps it).
 	 */
 	public static function revoke(): void {

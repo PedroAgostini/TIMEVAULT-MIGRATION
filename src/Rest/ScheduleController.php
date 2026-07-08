@@ -14,7 +14,7 @@ use Timevault\Plugin;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * GET/POST /timevault/v1/schedule — read and update the automatic backup
+ * GET/POST /timevault/v1/schedule - read and update the automatic backup
  * schedule (frequency + how many to keep). Capability-gated.
  */
 final class ScheduleController extends AbstractController {

@@ -1,6 +1,6 @@
 <?php
 /**
- * SqlImporter tests — safe SQL restore.
+ * SqlImporter tests - safe SQL restore.
  *
  * @package Timevault
  */

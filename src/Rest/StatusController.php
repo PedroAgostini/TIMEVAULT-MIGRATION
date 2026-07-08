@@ -1,6 +1,6 @@
 <?php
 /**
- * Status endpoint — health snapshot for the dashboard.
+ * Status endpoint - health snapshot for the dashboard.
  *
  * @package Timevault
  */
@@ -10,6 +10,7 @@ declare( strict_types=1 );
 namespace Timevault\Rest;
 
 use Timevault\Plugin;
+use Timevault\Support\EncryptionKeyInstaller;
 use Timevault\Support\Paths;
 
 defined( 'ABSPATH' ) || exit;
@@ -17,7 +18,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * GET /wp-json/timevault/v1/status
  *
- * Returns environment health only — never paths, credentials or other
+ * Returns environment health only - never paths, credentials or other
  * information useful to an attacker.
  */
 final class StatusController extends AbstractController {
@@ -63,6 +64,7 @@ final class StatusController extends AbstractController {
 				'version'               => TIMEVAULT_VERSION,
 				'schema_version'        => (string) get_option( 'timevault_schema_version', '' ),
 				'encryption_configured' => $this->plugin->encryption()->is_configured(),
+				'key_install_status'    => get_option( EncryptionKeyInstaller::STATUS_OPTION, null ),
 				'queue_available'       => $this->plugin->queue()->is_available(),
 				'backup_dir_protected'  => Paths::is_hardened(),
 			)
@@ -113,6 +115,7 @@ final class StatusController extends AbstractController {
 			array(
 				'health'            => array(
 					'encryption_configured' => $this->plugin->encryption()->is_configured(),
+					'key_install_status'    => get_option( EncryptionKeyInstaller::STATUS_OPTION, null ),
 					'queue_available'       => $this->plugin->queue()->is_available(),
 					'backup_dir_protected'  => Paths::is_hardened(),
 				),

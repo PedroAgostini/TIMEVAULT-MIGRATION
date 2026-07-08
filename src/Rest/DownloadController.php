@@ -19,9 +19,9 @@ defined( 'ABSPATH' ) || exit;
  * Backups are NEVER exposed as direct public links. Downloading takes two
  * steps:
  *
- *   1. POST /timevault/v1/backups/{uuid}/download-token — capability-gated;
+ *   1. POST /timevault/v1/backups/{uuid}/download-token - capability-gated;
  *      issues an HMAC-signed token valid for 5 minutes, bound to one backup.
- *   2. GET  /timevault/v1/download?token=... — authenticated BY the token
+ *   2. GET  /timevault/v1/download?token=... - authenticated BY the token
  *      itself (constant-time signature check + expiry + backup binding).
  *
  * The permission callback on step 2 is a real validator, not __return_true:
@@ -115,7 +115,7 @@ final class DownloadController extends AbstractController {
 	}
 
 	/**
-	 * GET /download — streams the backup and exits.
+	 * GET /download - streams the backup and exits.
 	 *
 	 * @param \WP_REST_Request $request Request.
 	 * @return \WP_Error Only on failure (success streams and exits).

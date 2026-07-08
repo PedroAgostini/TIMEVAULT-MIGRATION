@@ -17,11 +17,11 @@ defined( 'ABSPATH' ) || exit;
  * Security decisions:
  * - Symlinks are never followed or added: they can point outside the tree
  *   (our own zip-slip, in reverse) and cause traversal or loops.
- * - wp-config.php never enters a package, anywhere in the tree — secrets are
+ * - wp-config.php never enters a package, anywhere in the tree - secrets are
  *   excluded rather than shipped (the manifest records the exclusion).
  * - Excluded directories (the backup directory itself, caches) are pruned at
  *   iteration level, so backup archives are never re-packaged recursively.
- * - The manifest is JSON — never PHP serialization.
+ * - The manifest is JSON - never PHP serialization.
  */
 final class FilePackager {
 
@@ -126,7 +126,7 @@ final class FilePackager {
 			$directory,
 			static function ( \SplFileInfo $file ) use ( $excludes ): bool {
 				if ( $file->isLink() ) {
-					return false; // Symlinks can escape the tree — never follow, never add.
+					return false; // Symlinks can escape the tree - never follow, never add.
 				}
 
 				if ( 'wp-config.php' === $file->getBasename() ) {

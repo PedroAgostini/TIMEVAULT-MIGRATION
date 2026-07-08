@@ -15,7 +15,7 @@ use Timevault\Restore\RateLimiter;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * POST /timevault/v1/import — accepts an uploaded backup package (multipart),
+ * POST /timevault/v1/import - accepts an uploaded backup package (multipart),
  * validates it as hostile input and registers it as a completed backup so it
  * can be restored through the normal double-confirmation flow (migration from
  * another site). The upload is NEVER auto-restored.

@@ -11,6 +11,7 @@ namespace Timevault\Activation;
 
 use Timevault\Core\AuditLog;
 use Timevault\Support\Capabilities;
+use Timevault\Support\EncryptionKeyInstaller;
 use Timevault\Support\Paths;
 
 defined( 'ABSPATH' ) || exit;
@@ -61,11 +62,19 @@ final class Activator {
 	private static function activate_single_site(): void {
 		self::create_tables();
 		Capabilities::grant();
+		$key_setup = EncryptionKeyInstaller::ensure_configured();
 		Paths::ensure_backup_dir();
 
 		update_option( self::SCHEMA_OPTION, self::SCHEMA_VERSION, false );
 
-		( new AuditLog() )->record( 'plugin_activated', array( 'version' => TIMEVAULT_VERSION ) );
+		( new AuditLog() )->record(
+			'plugin_activated',
+			array(
+				'version'          => TIMEVAULT_VERSION,
+				'encryption_setup' => $key_setup['status'],
+				'setup_code'       => $key_setup['code'] ?? '',
+			)
+		);
 	}
 
 	/**
@@ -85,7 +94,7 @@ final class Activator {
 		$restores_table  = $wpdb->prefix . 'timevault_restores';
 
 		/*
-		 * Audit log — append-only by application design: the AuditLog service
+		 * Audit log - append-only by application design: the AuditLog service
 		 * exposes no update/delete API, and no plugin code may issue
 		 * UPDATE/DELETE against this table (LGPD accountability, Art. 6, VI).
 		 * `ip_hash` stores a salted SHA-256 of the IP, never the raw address
@@ -111,7 +120,7 @@ final class Activator {
 		);
 
 		/*
-		 * Backup registry — metadata only, never file contents. The SHA-256
+		 * Backup registry - metadata only, never file contents. The SHA-256
 		 * checksum recorded here is validated before any restore.
 		 */
 		dbDelta(
@@ -138,7 +147,7 @@ final class Activator {
 		);
 
 		/*
-		 * Restore registry — tracks each restore attempt (the most sensitive
+		 * Restore registry - tracks each restore attempt (the most sensitive
 		 * operation): which backup, the automatic safety backup taken before
 		 * overwriting, current pipeline step, and per-step results in JSON.
 		 */
