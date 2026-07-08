@@ -206,8 +206,8 @@
 }
 
 .tv-header__logoFrame {
-	width: 236px;
-	height: 84px;
+	width: 272px;
+	height: 108px;
 	overflow: hidden;
 	display: block;
 	position: relative;
@@ -218,10 +218,8 @@
 	left: 50%;
 	top: 50%;
 	width: 300px;
-	height: 174px;
+	height: auto;
 	max-width: none;
-	object-fit: cover;
-	object-position: center;
 	display: block;
 	transform: translate(-50%, -50%);
 	filter: drop-shadow(0 14px 24px rgba(30, 25, 15, 0.14));
@@ -1376,8 +1374,12 @@
 	}
 
 	.tv-header__logoFrame {
-		width: 220px;
-		height: 78px;
+		width: 248px;
+		height: 98px;
+	}
+
+	.tv-header__logo {
+		width: 274px;
 	}
 
 	.tv-header__actions,

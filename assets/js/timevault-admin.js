@@ -15,7 +15,6 @@
 	/* ── i18n ────────────────────────────────────────────────── */
 	var STR = {
 		'pt-BR': {
-			subtitle: 'Backups, exportações e migrações seguras para WordPress, com arquivos protegidos e restauração em etapas.',
 			backupDb: 'Só banco de dados', backupFull: 'Criar backup completo',
 			tabBackups: 'Backups', tabExport: 'Exportar', tabImport: 'Importar',
 			theme: 'Alternar tema', lang: 'Idioma',
@@ -66,7 +65,6 @@
 			tSchedSaved: 'Agendamento salvo', errSched: 'Não foi possível salvar o agendamento',
 		},
 		en: {
-			subtitle: 'Secure WordPress backups, exports, and migrations with protected archives and step-by-step restore.',
 			backupDb: 'Database only', backupFull: 'Create full backup',
 			tabBackups: 'Backups', tabExport: 'Export', tabImport: 'Import',
 			theme: 'Toggle theme', lang: 'Language',
@@ -116,7 +114,6 @@
 			tSchedSaved: 'Schedule saved', errSched: 'Could not save the schedule',
 		},
 		es: {
-			subtitle: 'Copias, exportaciones y migraciones seguras para WordPress, con archivos protegidos y restauración por etapas.',
 			backupDb: 'Solo base de datos', backupFull: 'Crear copia completa',
 			tabBackups: 'Copias', tabExport: 'Exportar', tabImport: 'Importar',
 			theme: 'Cambiar tema', lang: 'Idioma',
