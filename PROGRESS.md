@@ -6,7 +6,7 @@
 > **Ao concluir qualquer fase ou decisão relevante, atualize este arquivo.**
 
 **Última atualização:** 2026-07-08
-**Fase atual:** ✅ P0 + P1 + P3 + P2 + P5 + P7 concluídos e **VALIDADOS EM RUNTIME** → **próximo passo: P4 (security-review) ou P6 (UI/UX)**
+**Fase atual:** ✅ P0 + P1 + P3 + P2 + P5 + P7 + P4 concluídos e **VALIDADOS EM RUNTIME** → **próximo passo: P6 (UI/UX) — última fase**
 **Versão atual do plugin:** 0.5.0 · **Schema DB:** v2
 **Git:** repositório em https://github.com/PedroAgostini/TIMEVAULT-MIGRATION.git (branch `main`)
 
@@ -175,8 +175,8 @@ quebraria o isolamento transacional do teste) é coberto pelo teste de runtime n
 | 4 | **P2** | Import/Restore Engine (camada mais crítica) | ✅ Concluído (2026-07-07) |
 | 5 | **P5** | PrivacyService / LGPD | ✅ Concluído (2026-07-07) |
 | 6 | **P7** | Testes PHPUnit (57 testes, 100% verdes) | ✅ Concluído (2026-07-08) |
-| 7 | **P4** | Auditoria de segurança (`/security-review`) antes de release | ⬜ Próximo |
-| 8 | **P6** | UI/UX | ⬜ Desbloqueado — usuário forneceu [TIMEVAULT-DESIGN-SYSTEM.md](TIMEVAULT-DESIGN-SYSTEM.md) |
+| 7 | **P4** | Auditoria de segurança — ver [SECURITY-REVIEW.md](SECURITY-REVIEW.md) | ✅ Concluído (2026-07-08) |
+| 8 | **P6** | UI/UX | ⬜ Próximo — design em [TIMEVAULT-DESIGN-SYSTEM.md](TIMEVAULT-DESIGN-SYSTEM.md) + logo em assets |
 
 ---
 
