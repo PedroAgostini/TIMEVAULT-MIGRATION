@@ -261,6 +261,91 @@
 	border-radius: 3px;
 }
 
+/* ── Tabs ────────────────────────────────────────────────────── */
+.tv-tabs {
+	display: flex;
+	gap: var(--tv-space-1);
+	margin-bottom: var(--tv-space-6);
+	border-bottom: 1px solid var(--tv-glass-border);
+}
+
+.tv-tab {
+	font: 600 14px/1 var(--tv-font-sans);
+	min-height: 40px;
+	padding: 12px 18px;
+	background: transparent;
+	border: none;
+	border-bottom: 2px solid transparent;
+	color: var(--tv-text-muted);
+	cursor: pointer;
+	transition: all var(--tv-dur-fast) var(--tv-ease);
+	margin-bottom: -1px;
+}
+
+.tv-tab:hover {
+	color: var(--tv-text-body);
+}
+
+.tv-tab[aria-selected="true"] {
+	color: var(--tv-amber-500);
+	border-bottom-color: var(--tv-amber-500);
+}
+
+/* ── Checklist (export) ──────────────────────────────────────── */
+.tv-checklist {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+	gap: var(--tv-space-1) var(--tv-space-4);
+	max-height: 320px;
+	overflow-y: auto;
+	padding: var(--tv-space-3);
+	border-radius: var(--tv-radius-md);
+	background: var(--tv-ink-700);
+	border: 1px solid var(--tv-glass-border);
+}
+
+.tv-checkitem {
+	display: flex;
+	align-items: center;
+	gap: var(--tv-space-2);
+	padding: 5px 4px;
+	color: var(--tv-text-body);
+	cursor: pointer;
+}
+
+.tv-checkitem:hover {
+	color: var(--tv-text-strong);
+}
+
+/* ── File input ──────────────────────────────────────────────── */
+.tv-file {
+	display: block;
+	width: 100%;
+	color: var(--tv-text-body);
+	font: 400 13px/1.5 var(--tv-font-sans);
+	padding: var(--tv-space-4);
+	border-radius: var(--tv-radius-md);
+	border: 1px dashed var(--tv-glass-border);
+	background: var(--tv-ink-700);
+	cursor: pointer;
+}
+
+.tv-file::file-selector-button {
+	font: 600 13px/1 var(--tv-font-sans);
+	margin-right: var(--tv-space-3);
+	padding: 8px 14px;
+	border-radius: var(--tv-radius-sm);
+	border: 1px solid var(--tv-glass-border);
+	background: var(--tv-glass-fill);
+	color: var(--tv-text-strong);
+	cursor: pointer;
+}
+
+.tv-file::file-selector-button:hover {
+	border-color: var(--tv-glass-border-amber);
+	color: var(--tv-amber-300);
+}
+
 /* ── Status cards ────────────────────────────────────────────── */
 .tv-cards {
 	display: grid;

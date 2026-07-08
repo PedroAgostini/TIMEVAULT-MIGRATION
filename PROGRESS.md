@@ -67,6 +67,23 @@ Pipeline testado ponta a ponta num WordPress real:
 
 ---
 
+## Ajuste pós-P6 (2026-07-08) — abas Exportar e Importar
+
+O usuário apontou (com razão) que faltavam as abas de **Exportar** e **Importar** no dashboard.
+- **Exportar**: o backend (`/exports`) já existia; faltava só a UI. Adicionada aba com seleção de
+  tabelas (novo `GET /exports/tables`), incluir uploads e anonimizar.
+- **Importar (migração)**: era lacuna também no backend. Adicionado:
+  - `ImportManager::import_uploaded_package()` — armazena o upload no diretório protegido, valida
+    como entrada hostil (checksum, decifra com a chave DESTE site, valida entradas, manifest JSON)
+    e registra como backup `completed` marcado `imported`; **nunca auto-restaura**. Rejeita arquivo
+    inválido sem deixar lixo no registro/disco.
+  - `ImportController` — `POST /import` (multipart `package`), com `is_uploaded_file` real na borda,
+    rate limiting e validação de extensão (.zip/.enc).
+  - Aba de upload no dashboard (com barra de progresso via XHR e aviso sobre a chave de criptografia
+    precisar ser a mesma do site de origem).
+- Testes: +2 (import registra / rejeita lixo) → **59 testes verdes**. phpcs limpo. Endpoints
+  validados em runtime (import registra, checksum confere, aceito pelo restore; `/exports/tables` 200).
+
 ## O que o P6 entregou (2026-07-08) — UI/UX (dashboard admin)
 
 Dashboard admin completo seguindo o `TIMEVAULT-DESIGN-SYSTEM.md` (preto + âmbar `#ffa300` +

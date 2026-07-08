@@ -65,4 +65,42 @@ final class ImportManagerTest extends WP_UnitTestCase {
 		$result = Plugin::instance()->imports()->schedule_restore( '00000000-0000-0000-0000-000000000000' );
 		$this->assertWPError( $result );
 	}
+
+	public function test_import_uploaded_package_registers_backup(): void {
+		// A real Timevault package to "upload": make one, then copy it aside.
+		$src_uuid = $this->make_backup();
+		$src      = Plugin::instance()->backup_repository()->get( $src_uuid );
+		$file     = Paths::backup_dir() . '/' . $src['file_name'];
+
+		$upload = sys_get_temp_dir() . '/tv-upload-' . wp_generate_password( 8, false ) . '.zip.enc';
+		copy( $file, $upload );
+
+		$new_uuid = Plugin::instance()->imports()->import_uploaded_package( $upload, 'timevault-db-x.zip.enc' );
+		$this->assertIsString( $new_uuid, is_wp_error( $new_uuid ) ? $new_uuid->get_error_message() : '' );
+
+		$row = Plugin::instance()->backup_repository()->get( $new_uuid );
+		$this->assertSame( 'completed', $row['status'] );
+		$this->assertSame( 1, (int) $row['is_encrypted'] );
+		$this->assertTrue( ! empty( $row['meta']['imported'] ) );
+		// The imported package is valid for the restore flow.
+		$this->assertIsArray( Plugin::instance()->imports()->validate_package( $new_uuid ) );
+
+		unlink( $upload );
+		wp_delete_file( Paths::backup_dir() . '/' . $row['file_name'] );
+	}
+
+	public function test_import_rejects_garbage_and_registers_nothing(): void {
+		$before = count( Plugin::instance()->backup_repository()->list_backups( 100 ) );
+
+		$bad = sys_get_temp_dir() . '/tv-bad-' . wp_generate_password( 8, false ) . '.zip';
+		file_put_contents( $bad, 'not a zip at all' ); // phpcs:ignore WordPress.WP.AlternativeFunctions
+
+		$result = Plugin::instance()->imports()->import_uploaded_package( $bad, 'bad.zip' );
+		$this->assertWPError( $result );
+
+		$after = count( Plugin::instance()->backup_repository()->list_backups( 100 ) );
+		$this->assertSame( $before, $after, 'An invalid upload must not leave a registry row behind.' );
+
+		unlink( $bad );
+	}
 }

@@ -95,6 +95,16 @@ final class BackupsController extends AbstractController {
 
 		register_rest_route(
 			self::ROUTE_NAMESPACE,
+			'/exports/tables',
+			array(
+				'methods'             => \WP_REST_Server::READABLE,
+				'callback'            => array( $this, 'list_tables' ),
+				'permission_callback' => array( $this, 'permission_check' ),
+			)
+		);
+
+		register_rest_route(
+			self::ROUTE_NAMESPACE,
 			'/exports',
 			array(
 				'methods'             => \WP_REST_Server::CREATABLE,
@@ -171,6 +181,17 @@ final class BackupsController extends AbstractController {
 		}
 
 		return rest_ensure_response( $this->prepare_row( $row ) );
+	}
+
+	/**
+	 * GET /exports/tables — tables available for selective export.
+	 */
+	public function list_tables(): \WP_REST_Response {
+		return rest_ensure_response(
+			array(
+				'tables' => $this->plugin->exports()->available_tables(),
+			)
+		);
 	}
 
 	/**

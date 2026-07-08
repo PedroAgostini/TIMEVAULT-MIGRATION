@@ -82,7 +82,9 @@ Todos os endpoints exigem a capability `manage_timevault` (+ nonce `X-WP-Nonce` 
 | `/backups` | GET | Histórico paginado (`per_page`, `page`) |
 | `/backups` | POST | Agenda backup (`type`: `full`\|`db`; `files_scope`: `wp-content`\|`full`) → 202 + uuid |
 | `/backups/{uuid}` | GET | Status de um backup (polling de progresso) |
-| `/exports` | POST | Agenda export seletivo (`tables[]`, `include_uploads`) → 202 + uuid |
+| `/exports` | POST | Agenda export seletivo (`tables[]`, `include_uploads`, `anonymize`) → 202 + uuid |
+| `/exports/tables` | GET | Tabelas disponíveis para export seletivo |
+| `/import` | POST | Importa um pacote enviado (multipart `package`) — valida e registra p/ restaurar |
 | `/backups/{uuid}/download-token` | POST | Emite token HMAC de 5 min para download |
 | `/download?token=` | GET | Baixa o backup (auth pelo token assinado; checksum verificado antes) |
 | `/destinations` | GET | Destinos configurados (credenciais nunca retornadas) |

@@ -120,6 +120,108 @@ final class ImportManager {
 	}
 
 	/**
+	 * Imports an uploaded backup package (migration from another site): stores
+	 * it in the hardened directory, validates it as hostile input (checksum,
+	 * decrypt with THIS site's key, entry validation, JSON manifest) and
+	 * registers it as a completed backup that can then be restored through the
+	 * normal double-confirmation flow. Never auto-restores.
+	 *
+	 * @param string $tmp_path      Absolute path of the uploaded temp file.
+	 * @param string $original_name Client-supplied file name (used only to detect encryption).
+	 * @return string|\WP_Error New backup UUID.
+	 * @throws \RuntimeException On validation failure — caught internally and returned as a WP_Error.
+	 */
+	public function import_uploaded_package( string $tmp_path, string $original_name ): string|\WP_Error {
+		if ( ! is_readable( $tmp_path ) || ! is_file( $tmp_path ) ) {
+			return new \WP_Error( 'timevault_import_bad_upload', __( 'Uploaded file is not readable.', 'timevault' ) );
+		}
+
+		$adapter = $this->adapters['local'] ?? null;
+
+		if ( null === $adapter ) {
+			return new \WP_Error( 'timevault_unknown_storage', __( 'Local storage is not available.', 'timevault' ) );
+		}
+
+		$encrypted = str_ends_with( strtolower( $original_name ), '.enc' );
+		$name      = sprintf( 'timevault-imported-%s-%s.zip%s', gmdate( 'Ymd-His' ), substr( wp_generate_uuid4(), 0, 8 ), $encrypted ? '.enc' : '' );
+
+		// Store into the hardened directory under a controlled, safe name.
+		$stored = $adapter->store( $tmp_path, $name );
+
+		if ( is_wp_error( $stored ) ) {
+			return $stored;
+		}
+
+		$artifact = Paths::backup_dir() . '/' . $name;
+		$workdir  = Paths::ensure_working_dir( 'import-' . substr( $name, 0, 24 ) );
+
+		try {
+			$checksum = hash_file( 'sha256', $artifact );
+
+			if ( false === $checksum ) {
+				throw new \RuntimeException( 'Could not read the uploaded package.' );
+			}
+
+			// Decrypt (this site's key) + validate every entry + read manifest.
+			$zip = $this->inspector->to_plaintext_zip( $artifact, $encrypted, $workdir . '/package.zip' );
+			$this->unwrap( $zip );
+
+			$inspection = $this->inspector->inspect( (string) $zip );
+			$this->unwrap( $inspection );
+
+			$manifest = (array) $inspection['manifest'];
+			$type     = isset( $manifest['type'] ) ? (string) $manifest['type'] : 'full';
+
+			$uuid = $this->backups->create( $type, 'local', array( 'imported' => true ) );
+
+			if ( is_wp_error( $uuid ) ) {
+				throw new \RuntimeException( $uuid->get_error_message() );
+			}
+
+			$this->backups->update(
+				$uuid,
+				array(
+					'status'          => 'completed',
+					'file_name'       => $name,
+					'size_bytes'      => (int) filesize( $artifact ),
+					'checksum_sha256' => $checksum,
+					'is_encrypted'    => $encrypted ? 1 : 0,
+					'completed_at'    => current_time( 'mysql', true ),
+				)
+			);
+			$this->backups->merge_meta(
+				$uuid,
+				array(
+					'remote_id' => $name,
+					'imported'  => true,
+					'manifest'  => $manifest,
+				)
+			);
+
+			$this->audit->record(
+				'backup_imported',
+				array(
+					'file_name'   => $name,
+					'type'        => $type,
+					'encrypted'   => $encrypted,
+					'source_site' => isset( $manifest['site']['home_url'] ) ? (string) $manifest['site']['home_url'] : '',
+				),
+				'backup',
+				$uuid
+			);
+
+			return $uuid;
+		} catch ( \Throwable $e ) {
+			// Reject: never keep an unvalidated artifact in the registry/dir.
+			$adapter->delete( $name );
+
+			return new \WP_Error( 'timevault_import_invalid', esc_html( $e->getMessage() ) );
+		} finally {
+			Paths::delete_tree( $workdir );
+		}
+	}
+
+	/**
 	 * Schedules a restore. MUST only be called after the REST layer has
 	 * enforced double confirmation and rate limiting.
 	 *

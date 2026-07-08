@@ -128,6 +128,7 @@ final class Plugin {
 		( new Rest\DownloadController( $this ) )->register();
 		( new Rest\RestoreController( $this ) )->register();
 		( new Rest\PrivacyController( $this ) )->register();
+		( new Rest\ImportController( $this ) )->register();
 
 		// Action Scheduler executes pipeline steps through these hooks.
 		add_action( Core\BackupManager::STEP_HOOK, array( $this->backups(), 'handle_step' ), 10, 2 );

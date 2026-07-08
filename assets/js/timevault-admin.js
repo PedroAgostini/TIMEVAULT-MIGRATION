@@ -19,6 +19,9 @@
 		filterType: 'all',
 		loading: true,
 		polling: null,
+		tab: 'backups',
+		tables: null,
+		exportSel: {},
 	};
 
 	/* ── DOM helper ──────────────────────────────────────────── */
@@ -187,22 +190,192 @@
 	function render() {
 		app.innerHTML = '';
 		app.appendChild( header() );
+		app.appendChild( tabbar() );
 
+		if ( state.tab === 'export' ) {
+			app.appendChild( exportTab() );
+		} else if ( state.tab === 'import' ) {
+			app.appendChild( importTab() );
+		} else {
+			app.appendChild( backupsTab() );
+		}
+	}
+
+	function tabbar() {
+		var tabs = [ [ 'backups', 'Backups' ], [ 'export', 'Exportar' ], [ 'import', 'Importar' ] ];
+		return h( 'nav', { class: 'tv-tabs', role: 'tablist', 'aria-label': 'Seções' }, tabs.map( function ( t ) {
+			return h( 'button', {
+				class: 'tv-tab',
+				role: 'tab',
+				aria: { selected: String( state.tab === t[ 0 ] ) },
+				text: t[ 1 ],
+				onclick: function () {
+					state.tab = t[ 0 ];
+					render();
+				},
+			}, [] );
+		} ) );
+	}
+
+	function backupsTab() {
+		var wrap = h( 'div', {}, [] );
 		var ov = state.overview || {};
 		var health = ov.health || {};
 		if ( ! health.encryption_configured ) {
-			app.appendChild( h( 'div', { class: 'tv-notice' }, [
+			wrap.appendChild( h( 'div', { class: 'tv-notice' }, [
 				'A chave de criptografia não está configurada. Defina a constante ',
 				h( 'code', { text: cfg.encryptConst || 'TIMEVAULT_ENCRYPTION_KEY' } ),
 				' no wp-config.php antes de criar backups — a chave nunca fica no banco.',
 			] ) );
 		}
+		wrap.appendChild( cards() );
+		wrap.appendChild( activeJobsBanner() );
+		wrap.appendChild( h( 'div', { class: 'tv-columns' }, [ spinePanel(), historyPanel() ] ) );
+		return wrap;
+	}
 
-		app.appendChild( cards() );
-		app.appendChild( activeJobsBanner() );
+	/* ── Export tab ──────────────────────────────────────────── */
+	function exportTab() {
+		if ( state.tables === null ) {
+			api( '/exports/tables' ).then( function ( r ) {
+				state.tables = r.tables || [];
+				if ( state.tab === 'export' ) {
+					render();
+				}
+			} ).catch( function () {
+				state.tables = [];
+			} );
+			return h( 'div', { class: 'tv-panel tv-glass' }, [ h( 'div', { class: 'tv-boot' }, [ h( 'div', { class: 'tv-boot__spinner' } ), h( 'p', { text: 'Carregando tabelas…' } ) ] ) ] );
+		}
 
-		var cols = h( 'div', { class: 'tv-columns' }, [ spinePanel(), historyPanel() ] );
-		app.appendChild( cols );
+		var uploadsCb = h( 'input', { type: 'checkbox' } );
+		var anonCb = h( 'input', { type: 'checkbox' } );
+
+		var tableList = h( 'div', { class: 'tv-checklist' }, state.tables.map( function ( t ) {
+			var cb = h( 'input', { type: 'checkbox', checked: state.exportSel[ t ] ? 'checked' : null, onchange: function () {
+				state.exportSel[ t ] = cb.checked;
+			} } );
+			return h( 'label', { class: 'tv-checkitem' }, [ cb, h( 'span', { class: 'tv-data', text: t } ) ] );
+		} ) );
+
+		function submit() {
+			var tables = state.tables.filter( function ( t ) {
+				return state.exportSel[ t ];
+			} );
+			if ( ! tables.length && ! uploadsCb.checked ) {
+				toast( 'error', 'Selecione algo para exportar', 'Escolha ao menos uma tabela ou inclua os uploads.' );
+				return;
+			}
+			api( '/exports', 'POST', { tables: tables, include_uploads: uploadsCb.checked, anonymize: anonCb.checked } ).then( function () {
+				toast( 'ok', 'Exportação agendada', 'O pacote entrará na fila e aparecerá em Backups.' );
+				state.tab = 'backups';
+				load();
+			} ).catch( function ( e ) {
+				toast( 'error', 'Não foi possível exportar', e.message );
+			} );
+		}
+
+		function toggleAll( on ) {
+			state.tables.forEach( function ( t ) {
+				state.exportSel[ t ] = on;
+			} );
+			render();
+		}
+
+		return h( 'section', { class: 'tv-panel tv-glass', style: 'max-width:820px' }, [
+			h( 'div', { class: 'tv-panel__head' }, [ h( 'h2', { text: 'Exportação seletiva' } ) ] ),
+			h( 'p', { style: 'color:var(--tv-text-muted);margin-bottom:20px', text: 'Escolha tabelas e/ou os uploads para gerar um pacote portátil — útil para migrar conteúdo ou levar uma cópia para staging.' } ),
+			h( 'div', { class: 'tv-eyebrow', style: 'margin-bottom:8px', text: 'Tabelas' } ),
+			h( 'div', { style: 'display:flex;gap:8px;margin-bottom:10px' }, [
+				h( 'button', { class: 'tv-btn tv-btn--ghost tv-btn--sm', text: 'Selecionar todas', onclick: function () {
+					toggleAll( true );
+				} }, [] ),
+				h( 'button', { class: 'tv-btn tv-btn--ghost tv-btn--sm', text: 'Limpar', onclick: function () {
+					toggleAll( false );
+				} }, [] ),
+			] ),
+			tableList,
+			h( 'label', { class: 'tv-checkbox', style: 'margin-top:20px' }, [ uploadsCb, h( 'span', { text: 'Incluir a pasta de uploads (mídia).' } ) ] ),
+			h( 'label', { class: 'tv-checkbox' }, [ anonCb, h( 'span', {}, [ 'Anonimizar dados pessoais ', h( 'span', { style: 'color:var(--tv-text-faint)', text: '(staging/dev — mascara e-mail, nome, telefone; determinístico)' } ) ] ) ] ),
+			h( 'div', { style: 'margin-top:16px' }, [ h( 'button', { class: 'tv-btn tv-btn--primary', text: 'Gerar exportação', onclick: submit }, [] ) ] ),
+		] );
+	}
+
+	/* ── Import tab ──────────────────────────────────────────── */
+	function importTab() {
+		var fileInput = h( 'input', { type: 'file', accept: '.zip,.enc', class: 'tv-file', id: 'tv-import-file' } );
+		var progress = h( 'div', { class: 'tv-progress', style: 'display:none' }, [ h( 'div', { class: 'tv-progress__fill', style: 'width:0%' } ) ] );
+		var btn;
+
+		function submit() {
+			var file = fileInput.files && fileInput.files[ 0 ];
+			if ( ! file ) {
+				toast( 'error', 'Escolha um arquivo', 'Selecione um pacote .zip ou .zip.enc para importar.' );
+				return;
+			}
+			btn.disabled = true;
+			progress.style.display = 'block';
+			var fill = progress.firstChild;
+			uploadPackage( file, function ( pct ) {
+				fill.style.width = pct + '%';
+			} ).then( function () {
+				toast( 'ok', 'Pacote importado', 'Ele aparece em Backups e já pode ser restaurado.' );
+				state.tab = 'backups';
+				load();
+			} ).catch( function ( e ) {
+				btn.disabled = false;
+				progress.style.display = 'none';
+				toast( 'error', 'Não foi possível importar', e.message );
+			} );
+		}
+
+		btn = h( 'button', { class: 'tv-btn tv-btn--primary', text: 'Importar pacote', onclick: submit }, [] );
+
+		return h( 'section', { class: 'tv-panel tv-glass', style: 'max-width:680px' }, [
+			h( 'div', { class: 'tv-panel__head' }, [ h( 'h2', { text: 'Importar backup (migração)' } ) ] ),
+			h( 'p', { style: 'color:var(--tv-text-muted);margin-bottom:16px', text: 'Envie um pacote gerado pelo Timevault em outro site. Ele é validado (checksum, estrutura, decifragem) e adicionado à lista de backups — a restauração é sempre um passo separado, com dupla confirmação.' } ),
+			h( 'div', { class: 'tv-notice', style: 'margin-bottom:20px' }, [
+				h( 'strong', { style: 'color:var(--tv-amber-300)', text: 'Atenção: ' } ),
+				'pacotes cifrados só podem ser lidos com a MESMA ',
+				h( 'code', { text: cfg.encryptConst || 'TIMEVAULT_ENCRYPTION_KEY' } ),
+				' definida no site de origem. Chaves diferentes = pacote ilegível.',
+			] ),
+			h( 'label', { class: 'tv-field' }, [ h( 'span', { style: 'display:block;color:var(--tv-text-muted);font-size:13px;margin-bottom:8px', text: 'Pacote (.zip ou .zip.enc)' } ), fileInput ] ),
+			progress,
+			h( 'div', { style: 'margin-top:16px' }, [ btn ] ),
+		] );
+	}
+
+	function uploadPackage( file, onProgress ) {
+		return new Promise( function ( resolve, reject ) {
+			var fd = new FormData();
+			fd.append( 'package', file );
+			var xhr = new XMLHttpRequest();
+			xhr.open( 'POST', cfg.root + '/import' );
+			xhr.setRequestHeader( 'X-WP-Nonce', cfg.nonce );
+			xhr.upload.onprogress = function ( e ) {
+				if ( e.lengthComputable && onProgress ) {
+					onProgress( Math.round( ( e.loaded / e.total ) * 100 ) );
+				}
+			};
+			xhr.onload = function () {
+				var data;
+				try {
+					data = JSON.parse( xhr.responseText );
+				} catch ( err ) {
+					data = {};
+				}
+				if ( xhr.status >= 200 && xhr.status < 300 ) {
+					resolve( data );
+				} else {
+					reject( new Error( ( data && data.message ) || 'HTTP ' + xhr.status ) );
+				}
+			};
+			xhr.onerror = function () {
+				reject( new Error( 'Falha de rede no envio.' ) );
+			};
+			xhr.send( fd );
+		} );
 	}
 
 	function header() {
