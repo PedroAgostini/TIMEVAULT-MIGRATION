@@ -73,7 +73,10 @@ final class SqlImporter {
 			return new \WP_Error( 'timevault_restore_sql_open', __( 'Could not open the SQL dump.', 'timevault' ) );
 		}
 
-		$rewrite = ( null !== $from_prefix && null !== $to_prefix && $from_prefix !== $to_prefix );
+		// Only rewrite when the source prefix is known and non-empty; an empty
+		// from-prefix would otherwise prepend the destination prefix to EVERY
+		// table name (e.g. `wp_x` -> `wp_wp_x`).
+		$rewrite = ( null !== $from_prefix && '' !== $from_prefix && null !== $to_prefix && $from_prefix !== $to_prefix );
 
 		$executed = 0;
 		$skipped  = 0;

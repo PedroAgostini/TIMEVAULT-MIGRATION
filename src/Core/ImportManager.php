@@ -407,10 +407,18 @@ final class ImportManager {
 
 		$this->unwrap( $this->inspector->verify_checksum( (string) $artifact, (string) $backup['checksum_sha256'] ) );
 
-		$zip = $this->inspector->to_plaintext_zip( (string) $artifact, (bool) $backup['is_encrypted'], $workdir . '/package.zip' );
+		$package = $workdir . '/package.zip';
+		$zip     = $this->inspector->to_plaintext_zip( (string) $artifact, (bool) $backup['is_encrypted'], $package );
 		$this->unwrap( $zip );
 
-		$inspection = $this->inspector->inspect( (string) $zip );
+		// to_plaintext_zip returns the artifact as-is for a non-encrypted
+		// package (e.g. an imported .wpress). Copy it to the canonical
+		// package.zip so step_extract (a separate job) always finds it.
+		if ( (string) $zip !== $package && ! copy( (string) $zip, $package ) ) {
+			throw new \RuntimeException( 'Could not stage the package for extraction.' );
+		}
+
+		$inspection = $this->inspector->inspect( $package );
 		$this->unwrap( $inspection );
 
 		$this->restores->merge_meta(

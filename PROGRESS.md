@@ -7,8 +7,30 @@
 
 **Última atualização:** 2026-07-08
 **Fase atual:** ✅ **TODAS as fases (P0–P7) concluídas e VALIDADAS.** Roteiro do brief completo.
-**Versão atual do plugin:** 0.7.8 · **Schema DB:** v2
+**Versão atual do plugin:** 0.7.9 · **Schema DB:** v2
 **Git:** repositório em https://github.com/PedroAgostini/TIMEVAULT-MIGRATION.git (branch `main`)
+
+## Importar = aplicar (migração em 1 passo) + 2 bugs de restore (2026-07-08, v0.7.9)
+
+Pedido: "importar completamente tudo" = importar deve **substituir o site** (como o All-in-One),
+não só registrar o pacote. Implementado:
+- **`POST /import` aceita `apply`**: quando marcado, após registrar o pacote o controller chama
+  `schedule_restore($uuid, ['restore_files' => true])` — o pipeline de restore aplica DB + arquivos,
+  com **backup de segurança automático antes**. Retorna `restore_uuid`.
+- **UI (aba Importar)**: checkbox "Substituir este site agora" (marcado por padrão) com aviso
+  destrutivo; após o upload, faz polling do restore e mostra progresso; toast "Migração concluída".
+  i18n pt/en/es.
+- **Bug 1 (restore de pacote plaintext):** `step_extract` usava `package.zip` fixo, que só era
+  criado para pacotes cifrados. Pacotes importados (.wpress) são plaintext → `package.zip` não
+  existia → "not a valid ZIP archive". Fix: `step_validate` garante o `package.zip` canônico
+  (copia o artefato quando não-cifrado).
+- **Bug 2 (rewrite de prefixo):** com prefixo de origem vazio (não inferido), o rewrite prependia
+  o prefixo de destino a TODA tabela (`wp_x` → `wp_wp_x`). Fix: só reescreve com from-prefix
+  não-vazio.
+- **Validado em runtime:** importar `.wpress` com `apply` → restore `completed`, backup de
+  segurança criado, **DB aplicado** (tabela marcador presente) e **arquivos aplicados** (uploads +
+  themes). 69 testes verdes; phpcs limpo. (O restore destrutivo completo é coberto pelo teste de
+  runtime; a suíte PHPUnit não roda DDL destrutivo para preservar o banco de testes.)
 
 ## Fix: import .wpress agora traz TUDO (2026-07-08, v0.7.8)
 

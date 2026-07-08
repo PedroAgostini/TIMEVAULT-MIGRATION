@@ -93,10 +93,31 @@ final class ImportController extends AbstractController {
 			return $uuid;
 		}
 
+		// Optionally apply the migration right away (import = replace the site).
+		// The restore pipeline takes a full safety backup before overwriting,
+		// so the current state is always recoverable.
+		$restore_uuid = null;
+
+		if ( filter_var( $request->get_param( 'apply' ), FILTER_VALIDATE_BOOLEAN ) ) {
+			$restore = $this->plugin->imports()->schedule_restore( (string) $uuid, array( 'restore_files' => true ) );
+
+			if ( is_wp_error( $restore ) ) {
+				// The package is registered; only the apply step failed.
+				$restore->add_data( array( 'backup_uuid' => $uuid ) );
+				return $restore;
+			}
+
+			$restore_uuid = $restore;
+		}
+
 		$response = rest_ensure_response(
 			array(
-				'backup_uuid' => $uuid,
-				'message'     => __( 'Package imported. You can now restore it from the backup list.', 'timevault' ),
+				'backup_uuid'  => $uuid,
+				'restore_uuid' => $restore_uuid,
+				'applied'      => null !== $restore_uuid,
+				'message'      => null !== $restore_uuid
+					? __( 'Package imported. Applying it now (a safety backup is taken first).', 'timevault' )
+					: __( 'Package imported. You can now restore it from the backup list.', 'timevault' ),
 			)
 		);
 		$response->set_status( 201 );
