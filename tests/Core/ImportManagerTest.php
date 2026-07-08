@@ -103,4 +103,75 @@ final class ImportManagerTest extends WP_UnitTestCase {
 
 		unlink( $bad );
 	}
+
+	public function test_import_accepts_wpvivid_like_zip(): void {
+		$upload = sys_get_temp_dir() . '/tv-wpvivid-' . wp_generate_password( 8, false ) . '.zip';
+		$zip    = new \ZipArchive();
+		$this->assertTrue( true === $zip->open( $upload, \ZipArchive::CREATE | \ZipArchive::OVERWRITE ) );
+		$zip->addFromString( 'wpvivid_database.sql', "CREATE TABLE `wp_options` (`option_id` bigint);\n" );
+		$zip->addFromString( 'wp-content/uploads/2026/hello.txt', 'hello' );
+		$zip->addFromString( 'wp-content/plugins/sample/plugin.php', '<?php // plugin' );
+		$zip->close();
+
+		$uuid = Plugin::instance()->imports()->import_uploaded_package( $upload, 'wpvivid-backup.zip' );
+		$this->assertIsString( $uuid, is_wp_error( $uuid ) ? $uuid->get_error_message() : '' );
+
+		$row = Plugin::instance()->backup_repository()->get( $uuid );
+		$this->assertSame( 'completed', $row['status'] );
+		$this->assertSame( 'full', $row['type'] );
+		$this->assertTrue( ! empty( $row['meta']['external'] ) );
+		$this->assertSame( 'wpvivid', $row['meta']['manifest']['external']['source_format'] );
+		$this->assertIsArray( Plugin::instance()->imports()->validate_package( $uuid ) );
+
+		unlink( $upload );
+		wp_delete_file( Paths::backup_dir() . '/' . $row['file_name'] );
+	}
+
+	public function test_import_accepts_basic_wpress_archive(): void {
+		$upload = sys_get_temp_dir() . '/tv-ai1wm-' . wp_generate_password( 8, false ) . '.wpress';
+		$this->write_wpress(
+			$upload,
+			array(
+				'database.sql'              => "CREATE TABLE `wp_options` (`option_id` bigint);\n",
+				'uploads/2026/photo.txt'    => 'image',
+				'themes/example/style.css'  => 'body{}',
+				'wp-config.php'             => 'secret',
+			)
+		);
+
+		$uuid = Plugin::instance()->imports()->import_uploaded_package( $upload, 'site.wpress' );
+		$this->assertIsString( $uuid, is_wp_error( $uuid ) ? $uuid->get_error_message() : '' );
+
+		$row = Plugin::instance()->backup_repository()->get( $uuid );
+		$this->assertSame( 'completed', $row['status'] );
+		$this->assertSame( 'all-in-one-wp-migration', $row['meta']['manifest']['external']['source_format'] );
+		$this->assertIsArray( Plugin::instance()->imports()->validate_package( $uuid ) );
+
+		unlink( $upload );
+		wp_delete_file( Paths::backup_dir() . '/' . $row['file_name'] );
+	}
+
+	/**
+	 * Writes a minimal WPRESS v1-style archive for import tests.
+	 *
+	 * @param string               $path    Target path.
+	 * @param array<string,string> $entries Entry => content.
+	 */
+	private function write_wpress( string $path, array $entries ): void {
+		$handle = fopen( $path, 'wb' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen
+		$this->assertIsResource( $handle );
+
+		foreach ( $entries as $name => $content ) {
+			$header = str_repeat( "\0", 512 );
+			$header = substr_replace( $header, substr( $name, 0, 100 ), 0, min( strlen( $name ), 100 ) );
+			$size   = (string) strlen( $content );
+			$header = substr_replace( $header, $size, 124, strlen( $size ) );
+
+			fwrite( $handle, $header ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
+			fwrite( $handle, $content ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
+		}
+
+		fwrite( $handle, str_repeat( "\0", 512 ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
+		fclose( $handle ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
+	}
 }

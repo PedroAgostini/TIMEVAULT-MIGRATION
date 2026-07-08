@@ -27,7 +27,7 @@ final class ImportController extends AbstractController {
 	/**
 	 * Accepted upload extensions.
 	 */
-	private const ALLOWED_EXT = array( 'zip', 'enc' );
+	private const ALLOWED_EXT = array( 'zip', 'enc', 'wpress' );
 
 	/**
 	 * Constructor.
@@ -84,7 +84,7 @@ final class ImportController extends AbstractController {
 		$ext = strtolower( (string) pathinfo( (string) $file['name'], PATHINFO_EXTENSION ) );
 
 		if ( ! in_array( $ext, self::ALLOWED_EXT, true ) ) {
-			return new \WP_Error( 'timevault_import_bad_type', __( 'Only Timevault backup packages (.zip or .zip.enc) can be imported.', 'timevault' ), array( 'status' => 400 ) );
+			return new \WP_Error( 'timevault_import_bad_type', __( 'Only Timevault, All-in-One WP Migration, or WPvivid packages (.zip, .zip.enc, .wpress) can be imported.', 'timevault' ), array( 'status' => 400 ) );
 		}
 
 		$uuid = $this->plugin->imports()->import_uploaded_package( (string) $file['tmp_name'], (string) $file['name'] );

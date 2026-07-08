@@ -1,0 +1,532 @@
+<?php
+/**
+ * Converts third-party backup packages into the internal Timevault package.
+ *
+ * @package Timevault
+ */
+
+declare( strict_types=1 );
+
+namespace Timevault\Core;
+
+use Timevault\Restore\PathGuard;
+use Timevault\Support\Paths;
+
+defined( 'ABSPATH' ) || exit;
+
+/**
+ * Normalizes known third-party backup shapes into:
+ * - database.sql
+ * - uploads/*
+ * - files/*
+ * - manifest.json
+ *
+ * The original archive is never restored directly. Everything is first copied
+ * into a guarded staging tree and then re-packed with Timevault's own packager.
+ */
+final class ExternalPackageNormalizer {
+
+	/**
+	 * Maximum bytes copied from a single external entry (10 GiB).
+	 */
+	private const MAX_ENTRY_BYTES = 10737418240;
+
+	/**
+	 * Converts a supported external package into a Timevault plaintext ZIP.
+	 *
+	 * @param string $source_path   Uploaded file path.
+	 * @param string $original_name Client supplied file name.
+	 * @param string $workdir       Import working directory.
+	 * @return array{path: string, source_format: string, db_prefix: string, files: int}|\WP_Error
+	 */
+	public function normalize( string $source_path, string $original_name, string $workdir ): array|\WP_Error {
+		$staging = $workdir . '/external-staging';
+		$target  = $workdir . '/normalized-package.zip';
+		$ext     = strtolower( (string) pathinfo( $original_name, PATHINFO_EXTENSION ) );
+
+		wp_mkdir_p( $staging );
+
+		$result = 'wpress' === $ext
+			? $this->extract_wpress( $source_path, $staging )
+			: $this->extract_zip( $source_path, $staging );
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		$sql_path = $staging . '/database.sql';
+		$trees    = array();
+
+		if ( is_dir( $staging . '/files' ) ) {
+			$trees['files'] = array( 'root' => $staging . '/files' );
+		}
+
+		if ( is_dir( $staging . '/uploads' ) ) {
+			$trees['uploads'] = array( 'root' => $staging . '/uploads' );
+		}
+
+		$named_files = is_file( $sql_path ) ? array( 'database.sql' => $sql_path ) : array();
+
+		if ( array() === $named_files && array() === $trees ) {
+			return new \WP_Error(
+				'timevault_import_external_empty',
+				__( 'The external backup did not contain a recognizable database dump or wp-content files.', 'timevault' )
+			);
+		}
+
+		$db_prefix = is_file( $sql_path ) ? $this->infer_db_prefix( $sql_path ) : '';
+		$manifest  = array(
+			'format'   => 1,
+			'type'     => array() === $trees ? 'db' : 'full',
+			'created'  => gmdate( 'c' ),
+			'site'     => array(
+				'home_url'  => '',
+				'db_prefix' => $db_prefix,
+			),
+			'database' => array(
+				'present' => is_file( $sql_path ),
+			),
+			'security' => array(
+				'wp_config_excluded' => true,
+				'serialization'      => 'json',
+			),
+			'external' => array(
+				'source_format' => (string) $result['source_format'],
+				'original_name' => sanitize_file_name( $original_name ),
+			),
+		);
+
+		$stats = ( new FilePackager() )->package( $target, $named_files, $trees, $manifest );
+
+		if ( is_wp_error( $stats ) ) {
+			return $stats;
+		}
+
+		return array(
+			'path'          => $target,
+			'source_format' => (string) $result['source_format'],
+			'db_prefix'     => $db_prefix,
+			'files'         => (int) $stats['count'],
+		);
+	}
+
+	/**
+	 * Extracts a ZIP-based external package into a normalized staging tree.
+	 *
+	 * @param string $source_path Package path.
+	 * @param string $staging     Staging directory.
+	 * @return array{source_format: string}|\WP_Error
+	 */
+	private function extract_zip( string $source_path, string $staging ): array|\WP_Error {
+		$zip = new \ZipArchive();
+
+		if ( true !== $zip->open( $source_path ) ) {
+			return new \WP_Error(
+				'timevault_import_external_badzip',
+				__( 'The external package is not a readable ZIP archive.', 'timevault' )
+			);
+		}
+
+		$count          = $zip->numFiles; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- Native property.
+		$source_format  = 'external_zip';
+		$sql_written    = false;
+		$mapped_entries = 0;
+
+		for ( $i = 0; $i < $count; $i++ ) {
+			$stat = $zip->statIndex( $i );
+
+			if ( false === $stat ) {
+				$zip->close();
+				return new \WP_Error( 'timevault_import_external_entry', __( 'Unreadable entry in the external package.', 'timevault' ) );
+			}
+
+			$name = $this->clean_entry_name( (string) $stat['name'] );
+
+			if ( null === $name || str_ends_with( $name, '/' ) ) {
+				continue;
+			}
+
+			$mapped = $this->map_external_entry( $name, ! $sql_written );
+
+			if ( null === $mapped ) {
+				continue;
+			}
+
+			if ( 'database.sql' === $mapped ) {
+				$sql_written = true;
+			}
+
+			$target = $this->safe_staging_target( $staging, $mapped );
+
+			if ( is_wp_error( $target ) ) {
+				$zip->close();
+				return $target;
+			}
+
+			$copied = $this->copy_zip_entry( $zip, $i, $target, (int) $stat['size'] );
+
+			if ( is_wp_error( $copied ) ) {
+				$zip->close();
+				return $copied;
+			}
+
+			++$mapped_entries;
+
+			if ( str_contains( $name, 'wpvivid' ) ) {
+				$source_format = 'wpvivid';
+			}
+		}
+
+		$zip->close();
+
+		if ( 0 === $mapped_entries ) {
+			return new \WP_Error(
+				'timevault_import_external_unknown',
+				__( 'This ZIP does not look like a supported WordPress backup package.', 'timevault' )
+			);
+		}
+
+		return array( 'source_format' => $source_format );
+	}
+
+	/**
+	 * Extracts a basic WPRESS archive into a normalized staging tree.
+	 *
+	 * WPRESS v1 is a sequence of 512-byte tar-like headers followed by raw file
+	 * bytes. It is not a ZIP file.
+	 *
+	 * @param string $source_path Package path.
+	 * @param string $staging     Staging directory.
+	 * @return array{source_format: string}|\WP_Error
+	 */
+	private function extract_wpress( string $source_path, string $staging ): array|\WP_Error {
+		// phpcs:disable WordPress.WP.AlternativeFunctions -- WPRESS parsing needs stream seeks and fixed-size binary reads.
+		$handle = fopen( $source_path, 'rb' );
+
+		if ( false === $handle ) {
+			return new \WP_Error( 'timevault_import_wpress_open', __( 'Could not open the WPRESS archive.', 'timevault' ) );
+		}
+
+		$sql_written    = false;
+		$mapped_entries = 0;
+
+		try {
+			while ( ! feof( $handle ) ) {
+				$header = fread( $handle, 512 );
+
+				if ( false === $header || '' === $header ) {
+					break;
+				}
+
+				if ( 512 !== strlen( $header ) ) {
+					return new \WP_Error( 'timevault_import_wpress_header', __( 'The WPRESS archive has a truncated file header.', 'timevault' ) );
+				}
+
+				if ( trim( $header, "\0" ) === '' ) {
+					break;
+				}
+
+				$name   = $this->clean_entry_name( $this->read_wpress_name( $header ) );
+				$size   = $this->read_wpress_size( $header );
+				$mapped = null === $name ? null : $this->map_external_entry( $name, ! $sql_written );
+
+				if ( is_wp_error( $size ) ) {
+					return $size;
+				}
+
+				if ( null === $mapped || str_ends_with( (string) $name, '/' ) ) {
+					if ( 0 !== fseek( $handle, (int) $size, SEEK_CUR ) ) {
+						return new \WP_Error( 'timevault_import_wpress_seek', __( 'Could not read through the WPRESS archive.', 'timevault' ) );
+					}
+					continue;
+				}
+
+				if ( 'database.sql' === $mapped ) {
+					$sql_written = true;
+				}
+
+				$target = $this->safe_staging_target( $staging, $mapped );
+
+				if ( is_wp_error( $target ) ) {
+					return $target;
+				}
+
+				$copied = $this->copy_stream_bytes( $handle, $target, (int) $size );
+
+				if ( is_wp_error( $copied ) ) {
+					return $copied;
+				}
+
+				++$mapped_entries;
+			}
+		} finally {
+			fclose( $handle );
+		}
+		// phpcs:enable
+
+		if ( 0 === $mapped_entries ) {
+			return new \WP_Error(
+				'timevault_import_wpress_unknown',
+				__( 'The WPRESS archive did not contain recognizable WordPress content.', 'timevault' )
+			);
+		}
+
+		return array( 'source_format' => 'all-in-one-wp-migration' );
+	}
+
+	/**
+	 * Maps a third-party entry to a Timevault-safe relative entry.
+	 *
+	 * @param string $name            Clean external entry name.
+	 * @param bool   $allow_database  Whether a database dump has not yet been selected.
+	 * @return string|null
+	 */
+	private function map_external_entry( string $name, bool $allow_database ): ?string {
+		$lower    = strtolower( $name );
+		$basename = basename( $lower );
+
+		if ( 'wp-config.php' === $basename ) {
+			return null;
+		}
+
+		if ( $allow_database && str_ends_with( $lower, '.sql' ) ) {
+			if (
+				in_array( $basename, array( 'database.sql', 'db.sql' ), true )
+				|| str_contains( $lower, 'database' )
+				|| str_contains( $lower, 'db_backup' )
+				|| str_contains( $lower, 'wpvivid' )
+			) {
+				return 'database.sql';
+			}
+		}
+
+		$wp_content_pos = strpos( $lower, 'wp-content/' );
+
+		if ( false !== $wp_content_pos ) {
+			$inside = substr( $name, $wp_content_pos + strlen( 'wp-content/' ) );
+
+			return $this->map_wp_content_entry( $inside );
+		}
+
+		return $this->map_wp_content_entry( $name );
+	}
+
+	/**
+	 * Maps a path relative to wp-content.
+	 *
+	 * @param string $inside Relative path.
+	 * @return string|null
+	 */
+	private function map_wp_content_entry( string $inside ): ?string {
+		$inside = ltrim( $inside, '/' );
+		$lower  = strtolower( $inside );
+
+		if ( '' === $inside || 'wp-config.php' === basename( $lower ) ) {
+			return null;
+		}
+
+		if ( str_starts_with( $lower, 'uploads/' ) ) {
+			return 'uploads/' . substr( $inside, strlen( 'uploads/' ) );
+		}
+
+		foreach ( array( 'plugins/', 'themes/', 'mu-plugins/', 'languages/' ) as $prefix ) {
+			if ( str_starts_with( $lower, $prefix ) ) {
+				return 'files/' . $inside;
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Cleans an archive entry and rejects obvious traversal.
+	 *
+	 * @param string $name Raw entry name.
+	 * @return string|null
+	 */
+	private function clean_entry_name( string $name ): ?string {
+		$name = str_replace( '\\', '/', trim( $name ) );
+		$name = ltrim( $name, './' );
+
+		if ( '' === $name || str_contains( $name, "\0" ) || str_starts_with( $name, '/' ) || 1 === preg_match( '/^[A-Za-z]:/', $name ) ) {
+			return null;
+		}
+
+		foreach ( explode( '/', $name ) as $segment ) {
+			if ( '..' === $segment ) {
+				return null;
+			}
+		}
+
+		return $name;
+	}
+
+	/**
+	 * Validates a normalized staging target with the existing Timevault guard.
+	 *
+	 * @param string $staging Staging directory.
+	 * @param string $mapped  Timevault relative entry.
+	 * @return string|\WP_Error
+	 */
+	private function safe_staging_target( string $staging, string $mapped ): string|\WP_Error {
+		$valid = PathGuard::validate_entry_name( $mapped );
+
+		if ( is_wp_error( $valid ) ) {
+			return $valid;
+		}
+
+		wp_mkdir_p( dirname( $staging . '/' . $mapped ) );
+
+		return PathGuard::safe_target( $staging, $mapped );
+	}
+
+	/**
+	 * Copies one ZIP entry to disk.
+	 *
+	 * @param \ZipArchive $zip    Open ZIP.
+	 * @param int         $index  Entry index.
+	 * @param string      $target Target path.
+	 * @param int         $size   Expected uncompressed size.
+	 * @return true|\WP_Error
+	 */
+	private function copy_zip_entry( \ZipArchive $zip, int $index, string $target, int $size ): bool|\WP_Error {
+		// phpcs:disable WordPress.WP.AlternativeFunctions -- Streaming external archive entry.
+		$stream = $zip->getStream( $zip->getNameIndex( $index ) );
+
+		if ( ! is_resource( $stream ) ) {
+			return new \WP_Error( 'timevault_import_external_read', __( 'Could not read an external package entry.', 'timevault' ) );
+		}
+
+		$result = $this->copy_stream_bytes( $stream, $target, $size );
+		fclose( $stream );
+		// phpcs:enable
+
+		return $result;
+	}
+
+	/**
+	 * Copies a fixed number of bytes from a stream to a target file.
+	 *
+	 * @param resource $stream Source stream.
+	 * @param string   $target Target path.
+	 * @param int      $size   Bytes to copy.
+	 * @return true|\WP_Error
+	 */
+	private function copy_stream_bytes( $stream, string $target, int $size ): bool|\WP_Error {
+		// phpcs:disable WordPress.WP.AlternativeFunctions -- Streaming package entry bytes.
+		if ( $size < 0 || $size > self::MAX_ENTRY_BYTES ) {
+			return new \WP_Error( 'timevault_import_external_size', __( 'An external package entry is too large to import safely.', 'timevault' ) );
+		}
+
+		$out = fopen( $target, 'wb' );
+
+		if ( false === $out ) {
+			return new \WP_Error( 'timevault_import_external_write', __( 'Could not write a normalized package entry.', 'timevault' ) );
+		}
+
+		$remaining = $size;
+
+		while ( $remaining > 0 ) {
+			$chunk = fread( $stream, min( 1048576, $remaining ) );
+
+			if ( false === $chunk || '' === $chunk ) {
+				fclose( $out );
+				return new \WP_Error( 'timevault_import_external_truncated', __( 'The external package ended unexpectedly.', 'timevault' ) );
+			}
+
+			$remaining -= strlen( $chunk );
+			fwrite( $out, $chunk );
+		}
+
+		fclose( $out );
+		// phpcs:enable
+
+		return true;
+	}
+
+	/**
+	 * Reads a WPRESS header name.
+	 *
+	 * @param string $header 512-byte header.
+	 * @return string
+	 */
+	private function read_wpress_name( string $header ): string {
+		$name   = rtrim( substr( $header, 0, 100 ), "\0" );
+		$prefix = rtrim( substr( $header, 345, 155 ), "\0" );
+
+		return '' === $prefix ? $name : $prefix . '/' . $name;
+	}
+
+	/**
+	 * Reads the decimal size field from a WPRESS header.
+	 *
+	 * @param string $header 512-byte header.
+	 * @return int|\WP_Error
+	 */
+	private function read_wpress_size( string $header ): int|\WP_Error {
+		$raw = trim( rtrim( substr( $header, 124, 12 ), "\0" ) );
+
+		if ( '' === $raw ) {
+			return 0;
+		}
+
+		if ( 1 !== preg_match( '/^\d+$/', $raw ) ) {
+			return new \WP_Error( 'timevault_import_wpress_size', __( 'The WPRESS archive has an invalid entry size.', 'timevault' ) );
+		}
+
+		return (int) $raw;
+	}
+
+	/**
+	 * Infers a WordPress table prefix from a SQL dump.
+	 *
+	 * @param string $sql_path SQL dump path.
+	 * @return string
+	 */
+	private function infer_db_prefix( string $sql_path ): string {
+		// phpcs:disable WordPress.WP.AlternativeFunctions -- Streaming SQL dump.
+		$handle = fopen( $sql_path, 'rb' );
+
+		if ( false === $handle ) {
+			return '';
+		}
+
+		$suffixes = array( 'options', 'posts', 'postmeta', 'users', 'usermeta', 'terms', 'term_taxonomy', 'term_relationships', 'comments', 'commentmeta' );
+		$seen     = array();
+		$limit    = 0;
+
+		while ( ! feof( $handle ) && $limit < 2097152 ) {
+			$line = fgets( $handle );
+
+			if ( false === $line ) {
+				break;
+			}
+
+			$limit += strlen( $line );
+
+			if ( 1 !== preg_match_all( '/`([^`]+)`/', $line, $matches ) && empty( $matches[1] ) ) {
+				continue;
+			}
+
+			foreach ( $matches[1] as $table ) {
+				foreach ( $suffixes as $suffix ) {
+					if ( str_ends_with( $table, $suffix ) && strlen( $table ) > strlen( $suffix ) ) {
+						$prefix          = substr( $table, 0, -strlen( $suffix ) );
+						$seen[ $prefix ] = ( $seen[ $prefix ] ?? 0 ) + 1;
+					}
+				}
+			}
+		}
+
+		fclose( $handle );
+		// phpcs:enable
+
+		if ( array() === $seen ) {
+			return '';
+		}
+
+		arsort( $seen );
+
+		return (string) array_key_first( $seen );
+	}
+}

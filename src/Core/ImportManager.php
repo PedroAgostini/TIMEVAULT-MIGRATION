@@ -142,18 +142,41 @@ final class ImportManager {
 			return new \WP_Error( 'timevault_unknown_storage', __( 'Local storage is not available.', 'timevault' ) );
 		}
 
-		$encrypted = str_ends_with( strtolower( $original_name ), '.enc' );
-		$name      = sprintf( 'timevault-imported-%s-%s.zip%s', gmdate( 'Ymd-His' ), substr( wp_generate_uuid4(), 0, 8 ), $encrypted ? '.enc' : '' );
+		$encrypted     = str_ends_with( strtolower( $original_name ), '.enc' );
+		$source_format = 'timevault';
+		$import_source = $tmp_path;
+		$workdir       = Paths::ensure_working_dir( 'import-upload-' . substr( wp_generate_uuid4(), 0, 8 ) );
+
+		if ( ! $encrypted ) {
+			$prepared = $this->prepare_plaintext_import_package( $tmp_path, $original_name, $workdir );
+
+			if ( is_wp_error( $prepared ) ) {
+				Paths::delete_tree( $workdir );
+
+				return $prepared;
+			}
+
+			$import_source = $prepared['path'];
+			$source_format = $prepared['source_format'];
+		}
+
+		$name = sprintf(
+			'timevault-imported-%s-%s.zip%s',
+			gmdate( 'Ymd-His' ),
+			substr( wp_generate_uuid4(), 0, 8 ),
+			$encrypted ? '.enc' : ''
+		);
 
 		// Store into the hardened directory under a controlled, safe name.
-		$stored = $adapter->store( $tmp_path, $name );
+		$stored = $adapter->store( $import_source, $name );
 
 		if ( is_wp_error( $stored ) ) {
+			Paths::delete_tree( $workdir );
+
 			return $stored;
 		}
 
 		$artifact = Paths::backup_dir() . '/' . $name;
-		$workdir  = Paths::ensure_working_dir( 'import-' . substr( $name, 0, 24 ) );
 
 		try {
 			$checksum = hash_file( 'sha256', $artifact );
@@ -195,6 +218,7 @@ final class ImportManager {
 					'remote_id' => $name,
 					'imported'  => true,
 					'manifest'  => $manifest,
+					'external'  => 'timevault' !== $source_format,
 				)
 			);
 
@@ -204,6 +228,7 @@ final class ImportManager {
 					'file_name'   => $name,
 					'type'        => $type,
 					'encrypted'   => $encrypted,
+					'source'      => $source_format,
 					'source_site' => isset( $manifest['site']['home_url'] ) ? (string) $manifest['site']['home_url'] : '',
 				),
 				'backup',
@@ -219,6 +244,37 @@ final class ImportManager {
 		} finally {
 			Paths::delete_tree( $workdir );
 		}
+	}
+
+	/**
+	 * Validates a plaintext Timevault package or converts a supported external
+	 * package into one.
+	 *
+	 * @param string $tmp_path      Upload temp path.
+	 * @param string $original_name Client supplied file name.
+	 * @param string $workdir       Import working directory.
+	 * @return array{path: string, source_format: string}|\WP_Error
+	 */
+	private function prepare_plaintext_import_package( string $tmp_path, string $original_name, string $workdir ): array|\WP_Error {
+		$inspection = $this->inspector->inspect( $tmp_path );
+
+		if ( ! is_wp_error( $inspection ) ) {
+			return array(
+				'path'          => $tmp_path,
+				'source_format' => 'timevault',
+			);
+		}
+
+		$normalized = ( new ExternalPackageNormalizer() )->normalize( $tmp_path, $original_name, $workdir );
+
+		if ( is_wp_error( $normalized ) ) {
+			return $normalized;
+		}
+
+		return array(
+			'path'          => (string) $normalized['path'],
+			'source_format' => (string) $normalized['source_format'],
+		);
 	}
 
 	/**

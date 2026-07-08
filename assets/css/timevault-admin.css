@@ -191,18 +191,40 @@
 
 /* ── Header ──────────────────────────────────────────────────── */
 .tv-header {
-	display: flex;
-	align-items: center;
-	gap: var(--tv-space-5);
-	margin-bottom: var(--tv-space-7);
+	display: grid;
+	grid-template-columns: minmax(320px, 560px) minmax(0, 1fr);
+	align-items: start;
+	gap: var(--tv-space-6);
+	margin-bottom: var(--tv-space-6);
+}
+
+.tv-header__brand {
+	display: grid;
+	gap: var(--tv-space-4);
+	align-content: start;
+	justify-items: start;
+	min-width: 0;
+}
+
+.tv-header__logoFrame {
+	width: 236px;
+	height: 84px;
+	overflow: hidden;
+	display: block;
+	position: relative;
 }
 
 .tv-header__logo {
-	height: clamp(78px, 7vw, 112px);
-	width: auto;
-	max-width: min(440px, 36vw);
-	object-fit: contain;
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	width: 300px;
+	height: 174px;
+	max-width: none;
+	object-fit: cover;
+	object-position: center;
 	display: block;
+	transform: translate(-50%, -50%);
 	filter: drop-shadow(0 14px 24px rgba(30, 25, 15, 0.14));
 }
 
@@ -220,7 +242,7 @@
 }
 
 .tv-header__titles p {
-	max-width: 52ch;
+	max-width: 50ch;
 }
 
 /* ── Header controls: theme toggle + language selector ───────── */
@@ -353,11 +375,11 @@
 
 .tv-header__titles p {
 	color: var(--tv-text-muted);
-	font-size: 13px;
+	font-size: 14px;
+	line-height: 1.55;
 }
 
 .tv-header__actions {
-	margin-left: auto;
 	display: flex;
 	align-items: center;
 	flex-wrap: wrap;
@@ -1206,6 +1228,19 @@
 	max-width: none;
 }
 
+.tv-import-panel {
+	width: min(100%, 1240px);
+	max-width: none;
+}
+
+.tv-import-copy {
+	display: grid;
+	gap: var(--tv-space-2);
+	max-width: 900px;
+	margin-bottom: var(--tv-space-5);
+	color: var(--tv-text-muted);
+}
+
 .tv-export-scope {
 	min-width: min(100%, 300px);
 }
@@ -1321,18 +1356,11 @@
 
 @media (max-width: 1180px) {
 	.tv-header {
-		align-items: flex-start;
-		flex-wrap: wrap;
-	}
-
-	.tv-header__logo {
-		height: clamp(72px, 10vw, 96px);
-		max-width: min(420px, 70vw);
+		grid-template-columns: 1fr;
 	}
 
 	.tv-header__actions {
 		width: 100%;
-		margin-left: 0;
 		justify-content: flex-start;
 	}
 }
@@ -1348,9 +1376,9 @@
 		margin-bottom: var(--tv-space-6);
 	}
 
-	.tv-header__logo {
-		height: 72px;
-		max-width: 100%;
+	.tv-header__logoFrame {
+		width: 220px;
+		height: 78px;
 	}
 
 	.tv-header__actions,

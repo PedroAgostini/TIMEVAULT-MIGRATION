@@ -15,7 +15,7 @@
 	/* ── i18n ────────────────────────────────────────────────── */
 	var STR = {
 		'pt-BR': {
-			subtitle: 'Backup, exportação e migração para preservar o estado do site.',
+			subtitle: 'Backups, exportações e migrações seguras para WordPress, com arquivos protegidos e restauração em etapas.',
 			backupDb: 'Só banco de dados', backupFull: 'Criar backup completo',
 			tabBackups: 'Backups', tabExport: 'Exportar', tabImport: 'Importar',
 			theme: 'Alternar tema', lang: 'Idioma',
@@ -39,9 +39,10 @@
 			tables: 'Tabelas', selectAll: 'Selecionar todas', clear: 'Limpar',
 			includeUploads: 'Incluir a pasta de uploads (mídia).', anonymize: 'Anonimizar dados pessoais', anonymizeHint: '(staging/dev: mascara e-mail, nome, telefone; determinístico)',
 			genExport: 'Gerar exportação', generating: 'Gerando…', preparingDl: 'Preparando download…',
-			importTitle: 'Importar backup (migração)', importDesc: 'Envie um pacote gerado pelo Timevault em outro site. Ele é validado (checksum, estrutura, decifragem) e adicionado à lista. A restauração é sempre um passo separado, com dupla confirmação.',
-			importWarn1: 'Atenção: ', importWarn2: 'pacotes cifrados só podem ser lidos com a MESMA ', importWarn3: ' definida no site de origem. Chaves diferentes = pacote ilegível.',
-			importFile: 'Pacote (.zip ou .zip.enc)', doImport: 'Importar pacote',
+			importTitle: 'Importar backup (migração)', importDesc: 'Envie pacotes do Timevault, All-in-One WP Migration (.wpress) ou WPvivid em ZIP único. O arquivo é validado e convertido para o formato seguro do Timevault antes de aparecer na lista.',
+			importSupport: 'Depois de importar, a restauração continua sendo um passo separado, com dupla confirmação e backup de segurança automático.',
+			importWarn1: 'Atenção: ', importWarn2: 'pacotes cifrados do Timevault só podem ser lidos com a MESMA ', importWarn3: ' definida no site de origem. Chaves diferentes = pacote ilegível.',
+			importFile: 'Pacote (.zip, .zip.enc ou .wpress)', doImport: 'Importar pacote',
 			restoreTitle: 'Restaurar este backup vai substituir o site atual.',
 			restoreP2: 'O conteúdo atual do banco será sobrescrito pelo conteúdo deste backup. Esta ação não pode ser desfeita manualmente.',
 			safeNote: 'Um backup de segurança completo do estado atual é criado automaticamente antes de qualquer alteração.',
@@ -58,14 +59,14 @@
 			errNoSelection: 'Selecione ao menos uma tabela ou inclua os uploads.', errNoSelectionT: 'Selecione algo para exportar',
 			errBackup: 'Não foi possível criar o backup', errDownload: 'Download indisponível', errExport: 'Não foi possível exportar',
 			errPrepare: 'Não foi possível preparar a restauração', errRestore: 'Não foi possível restaurar', errDelete: 'Não foi possível excluir', errImport: 'Não foi possível importar', errRename: 'Não foi possível salvar o nome',
-			chooseFile: 'Escolha um arquivo', chooseFileMsg: 'Selecione um pacote .zip ou .zip.enc.', loadFail: 'Não foi possível carregar o Timevault: ', close: 'Fechar', loading: 'Carregando…',
+			chooseFile: 'Escolha um arquivo', chooseFileMsg: 'Selecione um pacote .zip, .zip.enc ou .wpress.', loadFail: 'Não foi possível carregar o Timevault: ', close: 'Fechar', loading: 'Carregando…',
 			schedTitle: 'Backup automático', schedDesc: 'Roda sozinho na frequência escolhida e mantém apenas os mais recentes.',
 			schedFreq: 'Frequência', schedOff: 'Desligado', schedDaily: 'Diário', schedWeekly: 'Semanal', schedMonthly: 'Mensal',
 			schedKeep: 'Manter', schedKeepUnit: 'backups automáticos', schedNote: 'Ao passar do limite, os automáticos mais antigos são excluídos com rotatividade; os manuais nunca são tocados.',
 			tSchedSaved: 'Agendamento salvo', errSched: 'Não foi possível salvar o agendamento',
 		},
 		en: {
-			subtitle: 'Backup, export and migration to preserve your site’s state.',
+			subtitle: 'Secure WordPress backups, exports, and migrations with protected archives and step-by-step restore.',
 			backupDb: 'Database only', backupFull: 'Create full backup',
 			tabBackups: 'Backups', tabExport: 'Export', tabImport: 'Import',
 			theme: 'Toggle theme', lang: 'Language',
@@ -88,9 +89,10 @@
 			tables: 'Tables', selectAll: 'Select all', clear: 'Clear',
 			includeUploads: 'Include the uploads folder (media).', anonymize: 'Anonymize personal data', anonymizeHint: '(staging/dev: masks email, name, phone; deterministic)',
 			genExport: 'Generate export', generating: 'Generating…', preparingDl: 'Preparing download…',
-			importTitle: 'Import backup (migration)', importDesc: 'Upload a package created by Timevault on another site. It is validated (checksum, structure, decryption) and added to the list. Restoring is always a separate step, with double confirmation.',
-			importWarn1: 'Note: ', importWarn2: 'encrypted packages can only be read with the SAME ', importWarn3: ' defined on the source site. Different keys = unreadable package.',
-			importFile: 'Package (.zip or .zip.enc)', doImport: 'Import package',
+			importTitle: 'Import backup (migration)', importDesc: 'Upload Timevault packages, All-in-One WP Migration (.wpress), or single-file WPvivid ZIP backups. The file is validated and converted to Timevault’s safe format before it appears in the list.',
+			importSupport: 'After import, restoring is still a separate step with double confirmation and an automatic safety backup.',
+			importWarn1: 'Note: ', importWarn2: 'encrypted Timevault packages can only be read with the SAME ', importWarn3: ' defined on the source site. Different keys = unreadable package.',
+			importFile: 'Package (.zip, .zip.enc or .wpress)', doImport: 'Import package',
 			restoreTitle: 'Restoring this backup will replace the current site.',
 			restoreP2: 'The current database content will be overwritten by this backup. This action cannot be undone manually.',
 			safeNote: 'A full safety backup of the current state is created automatically before anything changes.',
@@ -107,14 +109,14 @@
 			errNoSelection: 'Select at least one table or include the uploads.', errNoSelectionT: 'Select something to export',
 			errBackup: 'Could not create the backup', errDownload: 'Download unavailable', errExport: 'Could not export',
 			errPrepare: 'Could not prepare the restore', errRestore: 'Could not restore', errDelete: 'Could not delete', errImport: 'Could not import', errRename: 'Could not save the name',
-			chooseFile: 'Choose a file', chooseFileMsg: 'Select a .zip or .zip.enc package.', loadFail: 'Could not load Timevault: ', close: 'Close', loading: 'Loading…',
+			chooseFile: 'Choose a file', chooseFileMsg: 'Select a .zip, .zip.enc or .wpress package.', loadFail: 'Could not load Timevault: ', close: 'Close', loading: 'Loading…',
 			schedTitle: 'Automatic backup', schedDesc: 'Runs on its own at the chosen frequency and keeps only the most recent ones.',
 			schedFreq: 'Frequency', schedOff: 'Off', schedDaily: 'Daily', schedWeekly: 'Weekly', schedMonthly: 'Monthly',
 			schedKeep: 'Keep', schedKeepUnit: 'automatic backups', schedNote: 'Past the limit, the oldest automatic backups are rotated out; manual backups are never touched.',
 			tSchedSaved: 'Schedule saved', errSched: 'Could not save the schedule',
 		},
 		es: {
-			subtitle: 'Copia, exportación y migración para preservar el estado del sitio.',
+			subtitle: 'Copias, exportaciones y migraciones seguras para WordPress, con archivos protegidos y restauración por etapas.',
 			backupDb: 'Solo base de datos', backupFull: 'Crear copia completa',
 			tabBackups: 'Copias', tabExport: 'Exportar', tabImport: 'Importar',
 			theme: 'Cambiar tema', lang: 'Idioma',
@@ -137,9 +139,10 @@
 			tables: 'Tablas', selectAll: 'Seleccionar todas', clear: 'Limpiar',
 			includeUploads: 'Incluir la carpeta de uploads (medios).', anonymize: 'Anonimizar datos personales', anonymizeHint: '(staging/dev: enmascara correo, nombre, teléfono; determinista)',
 			genExport: 'Generar exportación', generating: 'Generando…', preparingDl: 'Preparando descarga…',
-			importTitle: 'Importar copia (migración)', importDesc: 'Sube un paquete creado por Timevault en otro sitio. Se valida (checksum, estructura, descifrado) y se añade a la lista. Restaurar es siempre un paso aparte, con doble confirmación.',
-			importWarn1: 'Atención: ', importWarn2: 'los paquetes cifrados solo se leen con la MISMA ', importWarn3: ' definida en el sitio de origen. Claves distintas = paquete ilegible.',
-			importFile: 'Paquete (.zip o .zip.enc)', doImport: 'Importar paquete',
+			importTitle: 'Importar copia (migración)', importDesc: 'Sube paquetes de Timevault, All-in-One WP Migration (.wpress) o copias WPvivid en ZIP único. El archivo se valida y se convierte al formato seguro de Timevault antes de aparecer en la lista.',
+			importSupport: 'Después de importar, restaurar sigue siendo un paso separado, con doble confirmación y copia de seguridad automática.',
+			importWarn1: 'Atención: ', importWarn2: 'los paquetes cifrados de Timevault solo se leen con la MISMA ', importWarn3: ' definida en el sitio de origen. Claves distintas = paquete ilegible.',
+			importFile: 'Paquete (.zip, .zip.enc o .wpress)', doImport: 'Importar paquete',
 			restoreTitle: 'Restaurar esta copia reemplazará el sitio actual.',
 			restoreP2: 'El contenido actual de la base de datos se sobrescribirá con esta copia. Esta acción no se puede deshacer manualmente.',
 			safeNote: 'Se crea automáticamente una copia de seguridad completa del estado actual antes de cualquier cambio.',
@@ -156,7 +159,7 @@
 			errNoSelection: 'Selecciona al menos una tabla o incluye los uploads.', errNoSelectionT: 'Selecciona algo para exportar',
 			errBackup: 'No se pudo crear la copia', errDownload: 'Descarga no disponible', errExport: 'No se pudo exportar',
 			errPrepare: 'No se pudo preparar la restauración', errRestore: 'No se pudo restaurar', errDelete: 'No se pudo eliminar', errImport: 'No se pudo importar', errRename: 'No se pudo guardar el nombre',
-			chooseFile: 'Elige un archivo', chooseFileMsg: 'Selecciona un paquete .zip o .zip.enc.', loadFail: 'No se pudo cargar Timevault: ', close: 'Cerrar', loading: 'Cargando…',
+			chooseFile: 'Elige un archivo', chooseFileMsg: 'Selecciona un paquete .zip, .zip.enc o .wpress.', loadFail: 'No se pudo cargar Timevault: ', close: 'Cerrar', loading: 'Cargando…',
 			schedTitle: 'Copia automática', schedDesc: 'Se ejecuta sola en la frecuencia elegida y conserva solo las más recientes.',
 			schedFreq: 'Frecuencia', schedOff: 'Desactivado', schedDaily: 'Diaria', schedWeekly: 'Semanal', schedMonthly: 'Mensual',
 			schedKeep: 'Conservar', schedKeepUnit: 'copias automáticas', schedNote: 'Al pasar el límite, las copias automáticas más antiguas se eliminan por rotación; las manuales nunca se tocan.',
@@ -456,9 +459,13 @@
 		} } );
 
 		return h( 'div', { class: 'tv-header' }, [
-			cfg.logo ? h( 'img', { class: 'tv-header__logo', src: cfg.logo, alt: 'Timevault' } ) : h( 'span', { class: 'tv-header__logo tv-header__logo--icon', html: ICONS.vault } ),
-			h( 'div', { class: 'tv-header__titles' }, [
-				h( 'p', { text: t( 'subtitle' ) } ),
+			h( 'div', { class: 'tv-header__brand' }, [
+				h( 'div', { class: 'tv-header__logoFrame' }, [
+					cfg.logo ? h( 'img', { class: 'tv-header__logo', src: cfg.logo, alt: 'Timevault' } ) : h( 'span', { class: 'tv-header__logo tv-header__logo--icon', html: ICONS.vault } ),
+				] ),
+				h( 'div', { class: 'tv-header__titles' }, [
+					h( 'p', { text: t( 'subtitle' ) } ),
+				] ),
 			] ),
 			h( 'div', { class: 'tv-header__actions' }, [
 				h( 'div', { class: 'tv-controls' }, [ themeBtn, langSel ] ),
@@ -905,7 +912,7 @@
 
 	/* ── Import tab ──────────────────────────────────────────── */
 	function importTab() {
-		var fileInput = h( 'input', { type: 'file', accept: '.zip,.enc', class: 'tv-file' } );
+		var fileInput = h( 'input', { type: 'file', accept: '.zip,.enc,.wpress', class: 'tv-file' } );
 		var progress = h( 'div', { class: 'tv-progress', style: 'display:none' }, [ h( 'div', { class: 'tv-progress__fill', style: 'width:0%' } ) ] );
 		var btn;
 		function submit() {
@@ -931,9 +938,12 @@
 		}
 		btn = h( 'button', { class: 'tv-btn tv-btn--primary', text: t( 'doImport' ), onclick: submit }, [] );
 
-		return h( 'section', { class: 'tv-panel tv-glass', style: 'max-width:680px' }, [
+		return h( 'section', { class: 'tv-panel tv-glass tv-import-panel' }, [
 			h( 'div', { class: 'tv-panel__head' }, [ h( 'h2', { text: t( 'importTitle' ) } ) ] ),
-			h( 'p', { style: 'color:var(--tv-text-muted);margin-bottom:16px', text: t( 'importDesc' ) } ),
+			h( 'div', { class: 'tv-import-copy' }, [
+				h( 'p', { text: t( 'importDesc' ) } ),
+				h( 'p', { text: t( 'importSupport' ) } ),
+			] ),
 			h( 'div', { class: 'tv-notice', style: 'margin-bottom:20px' }, [ h( 'strong', { style: 'color:var(--tv-amber-text)', text: t( 'importWarn1' ) } ), t( 'importWarn2' ), h( 'code', { text: cfg.encryptConst || 'TIMEVAULT_ENCRYPTION_KEY' } ), t( 'importWarn3' ) ] ),
 			h( 'label', { class: 'tv-field' }, [ h( 'span', { style: 'display:block;color:var(--tv-text-muted);font-size:13px;margin-bottom:8px', text: t( 'importFile' ) } ), fileInput ] ),
 			progress,
