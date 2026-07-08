@@ -32,6 +32,15 @@ final class ExternalPackageNormalizer {
 	private const MAX_ENTRY_BYTES = 10737418240;
 
 	/**
+	 * All-in-One WP Migration (.wpress) fixed header size, in bytes.
+	 *
+	 * Layout: name(255) + size(14) + mtime(12) + path/prefix(4096) = 4377.
+	 * It is NOT tar. Content bytes follow each header with no padding; the
+	 * archive ends with an all-null header block.
+	 */
+	private const WPRESS_HEADER = 4377;
+
+	/**
 	 * Converts a supported external package into a Timevault plaintext ZIP.
 	 *
 	 * @param string $source_path   Uploaded file path.
@@ -190,10 +199,12 @@ final class ExternalPackageNormalizer {
 	}
 
 	/**
-	 * Extracts a basic WPRESS archive into a normalized staging tree.
+	 * Extracts an All-in-One WP Migration (.wpress) archive into a normalized
+	 * staging tree.
 	 *
-	 * WPRESS v1 is a sequence of 512-byte tar-like headers followed by raw file
-	 * bytes. It is not a ZIP file.
+	 * The format is a sequence of 4377-byte headers (see WPRESS_HEADER), each
+	 * immediately followed by exactly `size` content bytes (no padding). The
+	 * archive ends with an all-null header block.
 	 *
 	 * @param string $source_path Package path.
 	 * @param string $staging     Staging directory.
@@ -211,31 +222,32 @@ final class ExternalPackageNormalizer {
 		$mapped_entries = 0;
 
 		try {
-			while ( ! feof( $handle ) ) {
-				$header = fread( $handle, 512 );
+			while ( true ) {
+				$header = $this->read_wpress_header( $handle );
 
-				if ( false === $header || '' === $header ) {
-					break;
+				if ( null === $header ) {
+					break; // Clean end of the archive.
 				}
 
-				if ( 512 !== strlen( $header ) ) {
-					return new \WP_Error( 'timevault_import_wpress_header', __( 'The WPRESS archive has a truncated file header.', 'timevault' ) );
+				if ( is_wp_error( $header ) ) {
+					return $header;
 				}
 
-				if ( trim( $header, "\0" ) === '' ) {
-					break;
+				if ( '' === trim( $header, "\0" ) ) {
+					break; // All-null header: the end-of-archive marker.
 				}
 
-				$name   = $this->clean_entry_name( $this->read_wpress_name( $header ) );
-				$size   = $this->read_wpress_size( $header );
-				$mapped = null === $name ? null : $this->map_external_entry( $name, ! $sql_written );
+				$name = $this->clean_entry_name( $this->read_wpress_name( $header ) );
+				$size = $this->read_wpress_size( $header );
 
 				if ( is_wp_error( $size ) ) {
 					return $size;
 				}
 
-				if ( null === $mapped || str_ends_with( (string) $name, '/' ) ) {
-					if ( 0 !== fseek( $handle, (int) $size, SEEK_CUR ) ) {
+				$mapped = null === $name ? null : $this->map_external_entry( $name, ! $sql_written );
+
+				if ( null === $mapped ) {
+					if ( $size > 0 && 0 !== fseek( $handle, (int) $size, SEEK_CUR ) ) {
 						return new \WP_Error( 'timevault_import_wpress_seek', __( 'Could not read through the WPRESS archive.', 'timevault' ) );
 					}
 					continue;
@@ -272,6 +284,38 @@ final class ExternalPackageNormalizer {
 		}
 
 		return array( 'source_format' => 'all-in-one-wp-migration' );
+	}
+
+	/**
+	 * Reads exactly one WPRESS header (4377 bytes).
+	 *
+	 * @param resource $handle Archive handle.
+	 * @return string|\WP_Error|null Header bytes, error on a truncated header, or null at clean EOF.
+	 */
+	private function read_wpress_header( $handle ): string|\WP_Error|null {
+		// phpcs:disable WordPress.WP.AlternativeFunctions -- Fixed-size binary read.
+		$header = '';
+
+		while ( strlen( $header ) < self::WPRESS_HEADER ) {
+			$chunk = fread( $handle, self::WPRESS_HEADER - strlen( $header ) );
+
+			if ( false === $chunk || '' === $chunk ) {
+				break;
+			}
+
+			$header .= $chunk;
+		}
+		// phpcs:enable
+
+		if ( '' === $header ) {
+			return null;
+		}
+
+		if ( self::WPRESS_HEADER !== strlen( $header ) ) {
+			return new \WP_Error( 'timevault_import_wpress_header', __( 'The WPRESS archive has a truncated file header.', 'timevault' ) );
+		}
+
+		return $header;
 	}
 
 	/**
@@ -445,26 +489,33 @@ final class ExternalPackageNormalizer {
 	}
 
 	/**
-	 * Reads a WPRESS header name.
+	 * Reads the full entry path from a WPRESS header.
 	 *
-	 * @param string $header 512-byte header.
+	 * name is bytes 0..255; the directory prefix is bytes 281..4377. The full
+	 * path is prefix + '/' + name (a prefix of '.' means the archive root).
+	 *
+	 * @param string $header 4377-byte header.
 	 * @return string
 	 */
 	private function read_wpress_name( string $header ): string {
-		$name   = rtrim( substr( $header, 0, 100 ), "\0" );
-		$prefix = rtrim( substr( $header, 345, 155 ), "\0" );
+		$name   = rtrim( substr( $header, 0, 255 ), "\0" );
+		$prefix = trim( rtrim( substr( $header, 281, 4096 ), "\0" ) );
 
-		return '' === $prefix ? $name : $prefix . '/' . $name;
+		if ( '' === $prefix || '.' === $prefix ) {
+			return $name;
+		}
+
+		return rtrim( $prefix, '/' ) . '/' . $name;
 	}
 
 	/**
-	 * Reads the decimal size field from a WPRESS header.
+	 * Reads the decimal size field from a WPRESS header (bytes 255..269).
 	 *
-	 * @param string $header 512-byte header.
+	 * @param string $header 4377-byte header.
 	 * @return int|\WP_Error
 	 */
 	private function read_wpress_size( string $header ): int|\WP_Error {
-		$raw = trim( rtrim( substr( $header, 124, 12 ), "\0" ) );
+		$raw = trim( rtrim( substr( $header, 255, 14 ), "\0" ) );
 
 		if ( '' === $raw ) {
 			return 0;

@@ -7,8 +7,26 @@
 
 **Última atualização:** 2026-07-08
 **Fase atual:** ✅ **TODAS as fases (P0–P7) concluídas e VALIDADAS.** Roteiro do brief completo.
-**Versão atual do plugin:** 0.7.6 · **Schema DB:** v2
+**Versão atual do plugin:** 0.7.7 · **Schema DB:** v2
 **Git:** repositório em https://github.com/PedroAgostini/TIMEVAULT-MIGRATION.git (branch `main`)
+
+## Fix de import .wpress / All-in-One WP Migration (2026-07-08)
+
+- **Bug:** `ExternalPackageNormalizer::extract_wpress` parseava o `.wpress` como **tar (header de
+  512 bytes)**, mas o formato do All-in-One WP Migration **não é tar** — usa header fixo de **4377
+  bytes** (name 255 + size 14 + mtime 12 + path 4096), com o conteúdo logo após cada header (sem
+  padding) e um bloco de nulos como marcador de fim. Resultado: lia lixo e retornava "The WPRESS
+  archive did not contain recognizable WordPress content".
+- **Fix:** reescrito `extract_wpress` (+ `read_wpress_header` lendo 4377 bytes de forma robusta) e
+  os leitores `read_wpress_name` (name 0..255, path 281..4377) e `read_wpress_size` (255..269). O
+  helper de teste `write_wpress` foi reescrito para gerar o formato REAL (antes gerava tar-512, por
+  isso o teste passava com o parser errado).
+- **Validado em runtime:** import de um `.wpress` realista (package.json + database.sql + uploads +
+  themes + wp-config) → `status=completed`, `source_format=all-in-one-wp-migration`, `db_prefix=wp_`,
+  com uploads mapeados p/ `uploads/`, temas p/ `files/themes/` e `wp-config.php` **excluído**.
+  **69 testes verdes**, phpcs limpo.
+- **Nota de ambiente:** a junction `wp-content/plugins/timevault` do site de teste tinha sumido
+  (o WP não achava o plugin); recriada e reativada.
 
 ## Ajuste pós-roadmap (2026-07-08) — chave automática no wp-config.php
 

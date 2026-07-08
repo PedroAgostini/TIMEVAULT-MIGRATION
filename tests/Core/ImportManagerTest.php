@@ -152,26 +152,37 @@ final class ImportManagerTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Writes a minimal WPRESS v1-style archive for import tests.
+	 * Writes a real All-in-One WP Migration (.wpress) archive for import tests.
+	 *
+	 * Matches the on-disk format: a 4377-byte header per entry
+	 * (name 255 + size 14 + mtime 12 + path 4096), each followed by exactly the
+	 * content bytes, then an all-null header as the end marker. Keys may include
+	 * a directory (split into path + basename, as AIO stores them).
 	 *
 	 * @param string               $path    Target path.
 	 * @param array<string,string> $entries Entry => content.
 	 */
 	private function write_wpress( string $path, array $entries ): void {
-		$handle = fopen( $path, 'wb' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen
+		// phpcs:disable WordPress.WP.AlternativeFunctions -- Building a binary fixture.
+		$handle = fopen( $path, 'wb' );
 		$this->assertIsResource( $handle );
 
-		foreach ( $entries as $name => $content ) {
-			$header = str_repeat( "\0", 512 );
-			$header = substr_replace( $header, substr( $name, 0, 100 ), 0, min( strlen( $name ), 100 ) );
-			$size   = (string) strlen( $content );
-			$header = substr_replace( $header, $size, 124, strlen( $size ) );
+		foreach ( $entries as $full => $content ) {
+			$name   = basename( $full );
+			$dir    = dirname( $full );
+			$prefix = ( '.' === $dir ) ? '.' : $dir;
 
-			fwrite( $handle, $header ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
-			fwrite( $handle, $content ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
+			$header  = str_pad( substr( $name, 0, 255 ), 255, "\0" );
+			$header .= str_pad( (string) strlen( $content ), 14, "\0" );
+			$header .= str_pad( '0', 12, "\0" );
+			$header .= str_pad( substr( $prefix, 0, 4096 ), 4096, "\0" );
+
+			fwrite( $handle, $header );
+			fwrite( $handle, $content );
 		}
 
-		fwrite( $handle, str_repeat( "\0", 512 ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
-		fclose( $handle ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
+		fwrite( $handle, str_repeat( "\0", 4377 ) );
+		fclose( $handle );
+		// phpcs:enable
 	}
 }
