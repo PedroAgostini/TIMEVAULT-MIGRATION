@@ -63,4 +63,19 @@ final class BackupManagerTest extends WP_UnitTestCase {
 		$uuid = Plugin::instance()->backups()->run_now( 'bogus' );
 		$this->assertWPError( $uuid );
 	}
+
+	public function test_repository_delete_removes_row(): void {
+		$plugin = Plugin::instance();
+		$uuid   = $plugin->backups()->run_now( 'db' );
+		$this->assertIsString( $uuid, is_wp_error( $uuid ) ? $uuid->get_error_message() : '' );
+
+		$row  = $plugin->backup_repository()->get( $uuid );
+		$path = \Timevault\Support\Paths::backup_dir() . '/' . $row['file_name'];
+		$this->assertFileExists( $path );
+
+		$this->assertTrue( $plugin->backup_repository()->delete( $uuid ) );
+		$this->assertNull( $plugin->backup_repository()->get( $uuid ) );
+
+		wp_delete_file( $path ); // The REST endpoint also removes the artifact; here we tidy up.
+	}
 }

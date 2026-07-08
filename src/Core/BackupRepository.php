@@ -113,6 +113,18 @@ final class BackupRepository {
 	}
 
 	/**
+	 * Deletes a backup registry row.
+	 *
+	 * @param string $uuid Backup UUID.
+	 */
+	public function delete( string $uuid ): bool {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Dedicated plugin table.
+		return false !== $wpdb->delete( $this->table(), array( 'backup_uuid' => $uuid ), array( '%s' ) );
+	}
+
+	/**
 	 * Merges a patch into the row's meta JSON (patch wins on key conflict).
 	 *
 	 * @param string               $uuid  Backup UUID.

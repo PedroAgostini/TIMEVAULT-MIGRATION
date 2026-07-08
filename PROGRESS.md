@@ -67,6 +67,25 @@ Pipeline testado ponta a ponta num WordPress real:
 
 ---
 
+## Ajustes de UX pós-P6 (2026-07-08, segunda rodada de feedback)
+
+Pedidos do usuário implementados:
+- **Excluir backups**: `DELETE /backups/{uuid}` (apaga artefato + registro, auditado) +
+  `BackupRepository::delete()`; botão "Excluir" com modal de confirmação em cada backup.
+- **Tema claro por padrão + alternável para escuro**: CSS reescrito com tokens de cor por tema
+  (claro é o default; `.timevault-app[data-theme="dark"]` restaura o escuro). Novo token
+  `--tv-amber-text` (âmbar legível como texto no claro, ~4.7:1) usado nos contextos de texto.
+  **Logo inverte para branca no tema escuro** (`filter: brightness(0) invert(1)`). Toggle sol/lua
+  no header, persistido em localStorage.
+- **Idioma selecionável (PT-BR / EN / ES)**: dicionário i18n completo no JS, seletor no header,
+  persistido. Padrão PT-BR.
+- **Exportação inicia download automático**: ao clicar "Gerar exportação", agenda → faz polling do
+  status → quando `completed`, emite token e inicia o download automaticamente.
+- **Exportação geral por padrão**: seletor de escopo "Tudo (banco + arquivos)" (default) ou
+  "Selecionar tabelas".
+- **Espinha temporal paginada de 4 em 4** com ordenação (mais recentes ⇄ mais antigos) e pager.
+- Testes: +1 (delete) → **60 testes verdes**. phpcs limpo; delete/overview validados em runtime.
+
 ## Ajuste pós-P6 (2026-07-08) — abas Exportar e Importar
 
 O usuário apontou (com razão) que faltavam as abas de **Exportar** e **Importar** no dashboard.

@@ -87,9 +87,16 @@ final class BackupsController extends AbstractController {
 			self::ROUTE_NAMESPACE,
 			'/backups/(?P<uuid>[a-f0-9\-]{36})',
 			array(
-				'methods'             => \WP_REST_Server::READABLE,
-				'callback'            => array( $this, 'get_backup' ),
-				'permission_callback' => array( $this, 'permission_check' ),
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'callback'            => array( $this, 'get_backup' ),
+					'permission_callback' => array( $this, 'permission_check' ),
+				),
+				array(
+					'methods'             => \WP_REST_Server::DELETABLE,
+					'callback'            => array( $this, 'delete_backup' ),
+					'permission_callback' => array( $this, 'permission_check' ),
+				),
 			)
 		);
 
@@ -181,6 +188,37 @@ final class BackupsController extends AbstractController {
 		}
 
 		return rest_ensure_response( $this->prepare_row( $row ) );
+	}
+
+	/**
+	 * DELETE /backups/{uuid} — removes the stored artifact and the registry row.
+	 *
+	 * @param \WP_REST_Request $request Request.
+	 * @return \WP_REST_Response|\WP_Error
+	 */
+	public function delete_backup( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
+		$uuid = (string) $request['uuid'];
+		$row  = $this->plugin->backup_repository()->get( $uuid );
+
+		if ( null === $row ) {
+			return new \WP_Error( 'timevault_not_found', __( 'Backup not found.', 'timevault' ), array( 'status' => 404 ) );
+		}
+
+		$adapters = $this->plugin->storage_adapters();
+		$adapter  = $adapters[ (string) $row['storage'] ] ?? null;
+
+		if ( null !== $adapter ) {
+			$remote_id = (string) ( $row['meta']['remote_id'] ?? $row['file_name'] );
+
+			if ( '' !== $remote_id ) {
+				$adapter->delete( $remote_id ); // Best-effort; a missing file still removes the record.
+			}
+		}
+
+		$this->plugin->backup_repository()->delete( $uuid );
+		$this->plugin->audit_log()->record( 'backup_deleted', array( 'file_name' => (string) $row['file_name'] ), 'backup', $uuid );
+
+		return rest_ensure_response( array( 'deleted' => true ) );
 	}
 
 	/**

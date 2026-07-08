@@ -12,6 +12,145 @@
 		return;
 	}
 
+	/* ── i18n ────────────────────────────────────────────────── */
+	var STR = {
+		'pt-BR': {
+			subtitle: 'Backup, exportação e migração — preservação do estado do site.',
+			backupDb: 'Só banco de dados', backupFull: 'Criar backup completo',
+			tabBackups: 'Backups', tabExport: 'Exportar', tabImport: 'Importar',
+			theme: 'Alternar tema', lang: 'Idioma',
+			keyMissing1: 'A chave de criptografia não está configurada. Defina a constante ',
+			keyMissing2: ' no wp-config.php antes de criar backups — a chave nunca fica no banco.',
+			cardLast: 'Último backup', cardCount: 'Backups guardados', cardCountMeta: 'Concluídos e íntegros',
+			cardSpace: 'Espaço usado', nextClean: 'Próxima limpeza: ', retentionOff: 'Retenção desligada',
+			cardHealth: 'Saúde do ambiente', hEncryption: 'Criptografia', hQueue: 'Fila', hDir: 'Diretório',
+			noneYet: 'Nenhum ainda', inProgress: 'Em andamento', jobRestore: 'Restauração',
+			queued: 'Na fila', processing: 'Processando',
+			spineTitle: 'Espinha temporal', sortNewest: 'Mais recentes primeiro', sortOldest: 'Mais antigos primeiro',
+			encrypted: 'Cifrado', dbType: 'Banco', download: 'Baixar', restore: 'Restaurar', del: 'Excluir',
+			prev: 'Anteriores', next: 'Próximos', pageOf: 'de',
+			stCompleted: 'Íntegro', stPending: 'Na fila', stRunning: 'Em andamento', stFailed: 'Falhou', stExpired: 'Expirado',
+			emptyTitle: 'Nenhum backup ainda.', emptyText: 'Crie o primeiro para preservar o estado atual do site — banco de dados e arquivos, cifrados em repouso.', emptyCta: 'Criar backup agora',
+			historyTitle: 'Histórico', fAll: 'Todos', fFull: 'Completo', fDb: 'Banco', fExport: 'Export',
+			thDate: 'Data', thType: 'Tipo', thSize: 'Tamanho', thDest: 'Destino', thStatus: 'Status', emptyFilter: 'Nenhum backup neste filtro.',
+			exportTitle: 'Exportação', exportDesc: 'Gere um pacote portátil para migrar ou levar uma cópia a staging. Ao gerar, o download começa automaticamente quando o pacote fica pronto.',
+			scope: 'Escopo', scopeAll: 'Tudo (banco + arquivos)', scopeSel: 'Selecionar tabelas',
+			tables: 'Tabelas', selectAll: 'Selecionar todas', clear: 'Limpar',
+			includeUploads: 'Incluir a pasta de uploads (mídia).', anonymize: 'Anonimizar dados pessoais', anonymizeHint: '(staging/dev — mascara e-mail, nome, telefone; determinístico)',
+			genExport: 'Gerar exportação', generating: 'Gerando…', preparingDl: 'Preparando download…',
+			importTitle: 'Importar backup (migração)', importDesc: 'Envie um pacote gerado pelo Timevault em outro site. Ele é validado (checksum, estrutura, decifragem) e adicionado à lista — a restauração é sempre um passo separado, com dupla confirmação.',
+			importWarn1: 'Atenção: ', importWarn2: 'pacotes cifrados só podem ser lidos com a MESMA ', importWarn3: ' definida no site de origem. Chaves diferentes = pacote ilegível.',
+			importFile: 'Pacote (.zip ou .zip.enc)', doImport: 'Importar pacote',
+			restoreTitle: 'Restaurar este backup vai substituir o site atual.',
+			restoreP2: 'O conteúdo atual do banco será sobrescrito pelo conteúdo deste backup. Esta ação não pode ser desfeita manualmente.',
+			safeNote: 'Um backup de segurança completo do estado atual é criado automaticamente antes de qualquer alteração.',
+			restoreFiles: 'Também restaurar os arquivos (uploads e wp-content) deste pacote.',
+			typeToConfirm1: 'Para confirmar, digite ', typeToConfirm2: ' abaixo.',
+			cancel: 'Cancelar', restoreNow: 'Restaurar agora',
+			delTitle: 'Excluir este backup?', delBody: 'O arquivo do backup e o registro serão removidos permanentemente. Esta ação não pode ser desfeita.', delNow: 'Excluir backup',
+			tBackupQueued: 'Backup agendado', tBackupQueuedMsg: 'O backup entrou na fila.',
+			tExportDone: 'Exportação pronta', tExportDoneMsg: 'O download vai começar.',
+			tExportFail: 'A exportação falhou', tImported: 'Pacote importado', tImportedMsg: 'Ele aparece em Backups e já pode ser restaurado.',
+			tRestoreStart: 'Restauração iniciada', tRestoreStartMsg: 'Um backup de segurança está sendo criado antes de sobrescrever.',
+			tDeleted: 'Backup excluído', tDeletedMsg: 'O arquivo e o registro foram removidos.',
+			errNoSelection: 'Selecione ao menos uma tabela ou inclua os uploads.', errNoSelectionT: 'Selecione algo para exportar',
+			errBackup: 'Não foi possível criar o backup', errDownload: 'Download indisponível', errExport: 'Não foi possível exportar',
+			errPrepare: 'Não foi possível preparar a restauração', errRestore: 'Não foi possível restaurar', errDelete: 'Não foi possível excluir', errImport: 'Não foi possível importar',
+			chooseFile: 'Escolha um arquivo', chooseFileMsg: 'Selecione um pacote .zip ou .zip.enc.', loadFail: 'Não foi possível carregar o Timevault: ', close: 'Fechar', loading: 'Carregando…',
+		},
+		en: {
+			subtitle: 'Backup, export and migration — preserve your site’s state.',
+			backupDb: 'Database only', backupFull: 'Create full backup',
+			tabBackups: 'Backups', tabExport: 'Export', tabImport: 'Import',
+			theme: 'Toggle theme', lang: 'Language',
+			keyMissing1: 'The encryption key is not configured. Define the ', keyMissing2: ' constant in wp-config.php before creating backups — the key never lives in the database.',
+			cardLast: 'Last backup', cardCount: 'Stored backups', cardCountMeta: 'Completed and verified',
+			cardSpace: 'Space used', nextClean: 'Next cleanup: ', retentionOff: 'Retention off',
+			cardHealth: 'Environment health', hEncryption: 'Encryption', hQueue: 'Queue', hDir: 'Directory',
+			noneYet: 'None yet', inProgress: 'In progress', jobRestore: 'Restore',
+			queued: 'Queued', processing: 'Processing',
+			spineTitle: 'Temporal spine', sortNewest: 'Newest first', sortOldest: 'Oldest first',
+			encrypted: 'Encrypted', dbType: 'Database', download: 'Download', restore: 'Restore', del: 'Delete',
+			prev: 'Previous', next: 'Next', pageOf: 'of',
+			stCompleted: 'Verified', stPending: 'Queued', stRunning: 'Running', stFailed: 'Failed', stExpired: 'Expired',
+			emptyTitle: 'No backups yet.', emptyText: 'Create the first one to preserve the current state of the site — database and files, encrypted at rest.', emptyCta: 'Create backup now',
+			historyTitle: 'History', fAll: 'All', fFull: 'Full', fDb: 'Database', fExport: 'Export',
+			thDate: 'Date', thType: 'Type', thSize: 'Size', thDest: 'Destination', thStatus: 'Status', emptyFilter: 'No backups in this filter.',
+			exportTitle: 'Export', exportDesc: 'Generate a portable package to migrate or take a copy to staging. When you generate it, the download starts automatically once the package is ready.',
+			scope: 'Scope', scopeAll: 'Everything (database + files)', scopeSel: 'Select tables',
+			tables: 'Tables', selectAll: 'Select all', clear: 'Clear',
+			includeUploads: 'Include the uploads folder (media).', anonymize: 'Anonymize personal data', anonymizeHint: '(staging/dev — masks email, name, phone; deterministic)',
+			genExport: 'Generate export', generating: 'Generating…', preparingDl: 'Preparing download…',
+			importTitle: 'Import backup (migration)', importDesc: 'Upload a package created by Timevault on another site. It is validated (checksum, structure, decryption) and added to the list — restoring is always a separate step, with double confirmation.',
+			importWarn1: 'Note: ', importWarn2: 'encrypted packages can only be read with the SAME ', importWarn3: ' defined on the source site. Different keys = unreadable package.',
+			importFile: 'Package (.zip or .zip.enc)', doImport: 'Import package',
+			restoreTitle: 'Restoring this backup will replace the current site.',
+			restoreP2: 'The current database content will be overwritten by this backup. This action cannot be undone manually.',
+			safeNote: 'A full safety backup of the current state is created automatically before anything changes.',
+			restoreFiles: 'Also restore the files (uploads and wp-content) from this package.',
+			typeToConfirm1: 'To confirm, type ', typeToConfirm2: ' below.',
+			cancel: 'Cancel', restoreNow: 'Restore now',
+			delTitle: 'Delete this backup?', delBody: 'The backup file and its record will be permanently removed. This action cannot be undone.', delNow: 'Delete backup',
+			tBackupQueued: 'Backup queued', tBackupQueuedMsg: 'The backup was added to the queue.',
+			tExportDone: 'Export ready', tExportDoneMsg: 'The download will start.',
+			tExportFail: 'The export failed', tImported: 'Package imported', tImportedMsg: 'It appears under Backups and can be restored.',
+			tRestoreStart: 'Restore started', tRestoreStartMsg: 'A safety backup is being created before overwriting.',
+			tDeleted: 'Backup deleted', tDeletedMsg: 'The file and record were removed.',
+			errNoSelection: 'Select at least one table or include the uploads.', errNoSelectionT: 'Select something to export',
+			errBackup: 'Could not create the backup', errDownload: 'Download unavailable', errExport: 'Could not export',
+			errPrepare: 'Could not prepare the restore', errRestore: 'Could not restore', errDelete: 'Could not delete', errImport: 'Could not import',
+			chooseFile: 'Choose a file', chooseFileMsg: 'Select a .zip or .zip.enc package.', loadFail: 'Could not load Timevault: ', close: 'Close', loading: 'Loading…',
+		},
+		es: {
+			subtitle: 'Copia, exportación y migración — preserva el estado del sitio.',
+			backupDb: 'Solo base de datos', backupFull: 'Crear copia completa',
+			tabBackups: 'Copias', tabExport: 'Exportar', tabImport: 'Importar',
+			theme: 'Cambiar tema', lang: 'Idioma',
+			keyMissing1: 'La clave de cifrado no está configurada. Define la constante ', keyMissing2: ' en wp-config.php antes de crear copias — la clave nunca queda en la base de datos.',
+			cardLast: 'Última copia', cardCount: 'Copias guardadas', cardCountMeta: 'Completas e íntegras',
+			cardSpace: 'Espacio usado', nextClean: 'Próxima limpieza: ', retentionOff: 'Retención desactivada',
+			cardHealth: 'Salud del entorno', hEncryption: 'Cifrado', hQueue: 'Cola', hDir: 'Directorio',
+			noneYet: 'Ninguna aún', inProgress: 'En curso', jobRestore: 'Restauración',
+			queued: 'En cola', processing: 'Procesando',
+			spineTitle: 'Espina temporal', sortNewest: 'Más recientes primero', sortOldest: 'Más antiguas primero',
+			encrypted: 'Cifrado', dbType: 'Base de datos', download: 'Descargar', restore: 'Restaurar', del: 'Eliminar',
+			prev: 'Anteriores', next: 'Siguientes', pageOf: 'de',
+			stCompleted: 'Íntegra', stPending: 'En cola', stRunning: 'En curso', stFailed: 'Falló', stExpired: 'Expirada',
+			emptyTitle: 'Aún no hay copias.', emptyText: 'Crea la primera para preservar el estado actual del sitio — base de datos y archivos, cifrados en reposo.', emptyCta: 'Crear copia ahora',
+			historyTitle: 'Historial', fAll: 'Todas', fFull: 'Completa', fDb: 'Base de datos', fExport: 'Export',
+			thDate: 'Fecha', thType: 'Tipo', thSize: 'Tamaño', thDest: 'Destino', thStatus: 'Estado', emptyFilter: 'No hay copias en este filtro.',
+			exportTitle: 'Exportación', exportDesc: 'Genera un paquete portátil para migrar o llevar una copia a staging. Al generarlo, la descarga empieza automáticamente cuando el paquete está listo.',
+			scope: 'Alcance', scopeAll: 'Todo (base de datos + archivos)', scopeSel: 'Seleccionar tablas',
+			tables: 'Tablas', selectAll: 'Seleccionar todas', clear: 'Limpiar',
+			includeUploads: 'Incluir la carpeta de uploads (medios).', anonymize: 'Anonimizar datos personales', anonymizeHint: '(staging/dev — enmascara correo, nombre, teléfono; determinista)',
+			genExport: 'Generar exportación', generating: 'Generando…', preparingDl: 'Preparando descarga…',
+			importTitle: 'Importar copia (migración)', importDesc: 'Sube un paquete creado por Timevault en otro sitio. Se valida (checksum, estructura, descifrado) y se añade a la lista — restaurar es siempre un paso aparte, con doble confirmación.',
+			importWarn1: 'Atención: ', importWarn2: 'los paquetes cifrados solo se leen con la MISMA ', importWarn3: ' definida en el sitio de origen. Claves distintas = paquete ilegible.',
+			importFile: 'Paquete (.zip o .zip.enc)', doImport: 'Importar paquete',
+			restoreTitle: 'Restaurar esta copia reemplazará el sitio actual.',
+			restoreP2: 'El contenido actual de la base de datos se sobrescribirá con esta copia. Esta acción no se puede deshacer manualmente.',
+			safeNote: 'Se crea automáticamente una copia de seguridad completa del estado actual antes de cualquier cambio.',
+			restoreFiles: 'Restaurar también los archivos (uploads y wp-content) de este paquete.',
+			typeToConfirm1: 'Para confirmar, escribe ', typeToConfirm2: ' abajo.',
+			cancel: 'Cancelar', restoreNow: 'Restaurar ahora',
+			delTitle: '¿Eliminar esta copia?', delBody: 'El archivo de la copia y su registro se eliminarán permanentemente. Esta acción no se puede deshacer.', delNow: 'Eliminar copia',
+			tBackupQueued: 'Copia en cola', tBackupQueuedMsg: 'La copia se añadió a la cola.',
+			tExportDone: 'Exportación lista', tExportDoneMsg: 'La descarga comenzará.',
+			tExportFail: 'La exportación falló', tImported: 'Paquete importado', tImportedMsg: 'Aparece en Copias y puede restaurarse.',
+			tRestoreStart: 'Restauración iniciada', tRestoreStartMsg: 'Se está creando una copia de seguridad antes de sobrescribir.',
+			tDeleted: 'Copia eliminada', tDeletedMsg: 'El archivo y el registro se eliminaron.',
+			errNoSelection: 'Selecciona al menos una tabla o incluye los uploads.', errNoSelectionT: 'Selecciona algo para exportar',
+			errBackup: 'No se pudo crear la copia', errDownload: 'Descarga no disponible', errExport: 'No se pudo exportar',
+			errPrepare: 'No se pudo preparar la restauración', errRestore: 'No se pudo restaurar', errDelete: 'No se pudo eliminar', errImport: 'No se pudo importar',
+			chooseFile: 'Elige un archivo', chooseFileMsg: 'Selecciona un paquete .zip o .zip.enc.', loadFail: 'No se pudo cargar Timevault: ', close: 'Cerrar', loading: 'Cargando…',
+		},
+	};
+
+	function t( k ) {
+		var d = STR[ state.lang ] || STR['pt-BR'];
+		return d[ k ] !== undefined ? d[ k ] : ( STR['pt-BR'][ k ] || k );
+	}
+
 	var state = {
 		overview: null,
 		backups: [],
@@ -22,7 +161,21 @@
 		tab: 'backups',
 		tables: null,
 		exportSel: {},
+		exportScope: 'all',
+		spinePage: 0,
+		spineSort: 'newest',
+		lang: localStorage.getItem( 'tv-lang' ) || 'pt-BR',
+		theme: localStorage.getItem( 'tv-theme' ) || 'light',
 	};
+	if ( ! STR[ state.lang ] ) {
+		state.lang = 'pt-BR';
+	}
+
+	var SPINE_PER_PAGE = 4;
+
+	function applyTheme() {
+		app.setAttribute( 'data-theme', state.theme );
+	}
 
 	/* ── DOM helper ──────────────────────────────────────────── */
 	function h( tag, attrs, children ) {
@@ -58,16 +211,15 @@
 		vault: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="12" cy="12" r="3.2"/><path d="M12 8.8V6.5M12 17.5v-2.3M15.2 12h2.3M6.5 12h2.3"/></svg>',
 		shield: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg>',
 		empty: '<svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="12" cy="12" r="3.5"/><path d="M12 8V6M12 18v-2M16 12h2M6 12h2"/></svg>',
+		sun: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
+		moon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>',
 	};
 
 	/* ── REST ────────────────────────────────────────────────── */
 	function api( path, method, body ) {
 		return fetch( cfg.root + path, {
 			method: method || 'GET',
-			headers: {
-				'Content-Type': 'application/json',
-				'X-WP-Nonce': cfg.nonce,
-			},
+			headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': cfg.nonce },
 			credentials: 'same-origin',
 			body: body ? JSON.stringify( body ) : undefined,
 		} ).then( function ( res ) {
@@ -91,6 +243,10 @@
 		return ( n / Math.pow( 1024, i ) ).toFixed( i ? 1 : 0 ) + ' ' + u[ i ];
 	}
 
+	function localeCode() {
+		return state.lang === 'en' ? 'en-US' : ( state.lang === 'es' ? 'es-ES' : 'pt-BR' );
+	}
+
 	function fmtDate( iso ) {
 		if ( ! iso ) {
 			return '—';
@@ -99,16 +255,16 @@
 		if ( isNaN( d.getTime() ) ) {
 			return iso;
 		}
-		return d.toLocaleString( 'pt-BR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' } );
+		return d.toLocaleString( localeCode(), { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' } );
 	}
 
 	function statusBadge( status ) {
 		var map = {
-			completed: [ 'ok', '✓ íntegro' ],
-			pending: [ 'info', '• na fila' ],
-			running: [ 'info', '• em andamento' ],
-			failed: [ 'danger', '✕ falhou' ],
-			expired: [ 'dest', '· expirado' ],
+			completed: [ 'ok', '✓ ' + t( 'stCompleted' ) ],
+			pending: [ 'info', '• ' + t( 'stPending' ) ],
+			running: [ 'info', '• ' + t( 'stRunning' ) ],
+			failed: [ 'danger', '✕ ' + t( 'stFailed' ) ],
+			expired: [ 'dest', '· ' + t( 'stExpired' ) ],
 		};
 		var m = map[ status ] || [ 'dest', status ];
 		return h( 'span', { class: 'tv-badge tv-badge--' + m[ 0 ] }, [ m[ 1 ] ] );
@@ -121,29 +277,25 @@
 			host = h( 'div', { class: 'tv-toasts', id: 'tv-toasts', aria: { live: 'polite' } }, [] );
 			document.body.appendChild( host );
 		}
-		var t = h( 'div', { class: 'tv-toast tv-glass tv-toast--' + kind }, [
+		var tt = h( 'div', { class: 'tv-toast tv-glass tv-toast--' + kind }, [
 			h( 'div', { class: 'tv-toast__title', text: title } ),
 			msg ? h( 'div', { text: msg } ) : null,
 		] );
-		host.appendChild( t );
+		host.appendChild( tt );
 		if ( kind !== 'error' ) {
 			setTimeout( function () {
-				t.remove();
+				tt.remove();
 			}, 5000 );
 		} else {
-			t.appendChild( h( 'button', { class: 'tv-btn tv-btn--ghost tv-btn--sm', style: 'margin-top:8px', text: 'Fechar', onclick: function () {
-				t.remove();
+			tt.appendChild( h( 'button', { class: 'tv-btn tv-btn--ghost tv-btn--sm', style: 'margin-top:8px', text: t( 'close' ), onclick: function () {
+				tt.remove();
 			} }, [] ) );
 		}
 	}
 
 	/* ── Data load ───────────────────────────────────────────── */
 	function load() {
-		return Promise.all( [
-			api( '/overview' ),
-			api( '/backups?per_page=50' ),
-			api( '/restores' ),
-		] ).then( function ( r ) {
+		return Promise.all( [ api( '/overview' ), api( '/backups?per_page=50' ), api( '/restores' ) ] ).then( function ( r ) {
 			state.overview = r[ 0 ];
 			state.backups = r[ 1 ];
 			state.restores = r[ 2 ];
@@ -153,18 +305,15 @@
 		} ).catch( function ( e ) {
 			state.loading = false;
 			app.innerHTML = '';
-			app.appendChild( h( 'div', { class: 'tv-notice', text: 'Não foi possível carregar o Timevault: ' + e.message } ) );
+			app.appendChild( h( 'div', { class: 'tv-notice', text: t( 'loadFail' ) + e.message } ) );
 		} );
 	}
 
 	function hasActiveJobs() {
-		var b = state.backups.some( function ( x ) {
+		var active = function ( x ) {
 			return x.status === 'pending' || x.status === 'running';
-		} );
-		var r = state.restores.some( function ( x ) {
-			return x.status === 'pending' || x.status === 'running';
-		} );
-		return b || r;
+		};
+		return state.backups.some( active ) || state.restores.some( active );
 	}
 
 	function managePolling() {
@@ -191,7 +340,6 @@
 		app.innerHTML = '';
 		app.appendChild( header() );
 		app.appendChild( tabbar() );
-
 		if ( state.tab === 'export' ) {
 			app.appendChild( exportTab() );
 		} else if ( state.tab === 'import' ) {
@@ -201,19 +349,49 @@
 		}
 	}
 
+	function header() {
+		var langSel = h( 'select', { class: 'tv-select', aria: { label: t( 'lang' ) }, onchange: function () {
+			state.lang = langSel.value;
+			localStorage.setItem( 'tv-lang', state.lang );
+			render();
+		} }, [
+			h( 'option', { value: 'pt-BR', text: 'PT-BR', selected: state.lang === 'pt-BR' ? 'selected' : null } ),
+			h( 'option', { value: 'en', text: 'EN', selected: state.lang === 'en' ? 'selected' : null } ),
+			h( 'option', { value: 'es', text: 'ES', selected: state.lang === 'es' ? 'selected' : null } ),
+		] );
+
+		var themeBtn = h( 'button', { class: 'tv-iconbtn', title: t( 'theme' ), aria: { label: t( 'theme' ) }, html: state.theme === 'dark' ? ICONS.sun : ICONS.moon, onclick: function () {
+			state.theme = state.theme === 'dark' ? 'light' : 'dark';
+			localStorage.setItem( 'tv-theme', state.theme );
+			applyTheme();
+			render();
+		} } );
+
+		return h( 'div', { class: 'tv-header' }, [
+			cfg.logo ? h( 'img', { class: 'tv-header__logo', src: cfg.logo, alt: '' } ) : h( 'span', { class: 'tv-header__logo', html: ICONS.vault } ),
+			h( 'div', { class: 'tv-header__titles' }, [
+				h( 'h1', { text: 'Timevault' } ),
+				h( 'p', { text: t( 'subtitle' ) } ),
+			] ),
+			h( 'div', { class: 'tv-header__actions' }, [
+				h( 'div', { class: 'tv-controls' }, [ themeBtn, langSel ] ),
+				h( 'button', { class: 'tv-btn tv-btn--ghost', text: t( 'backupDb' ), onclick: function () {
+					createBackup( 'db' );
+				} }, [] ),
+				h( 'button', { class: 'tv-btn tv-btn--primary', text: t( 'backupFull' ), onclick: function () {
+					createBackup( 'full' );
+				} }, [] ),
+			] ),
+		] );
+	}
+
 	function tabbar() {
-		var tabs = [ [ 'backups', 'Backups' ], [ 'export', 'Exportar' ], [ 'import', 'Importar' ] ];
-		return h( 'nav', { class: 'tv-tabs', role: 'tablist', 'aria-label': 'Seções' }, tabs.map( function ( t ) {
-			return h( 'button', {
-				class: 'tv-tab',
-				role: 'tab',
-				aria: { selected: String( state.tab === t[ 0 ] ) },
-				text: t[ 1 ],
-				onclick: function () {
-					state.tab = t[ 0 ];
-					render();
-				},
-			}, [] );
+		var tabs = [ [ 'backups', t( 'tabBackups' ) ], [ 'export', t( 'tabExport' ) ], [ 'import', t( 'tabImport' ) ] ];
+		return h( 'nav', { class: 'tv-tabs', role: 'tablist' }, tabs.map( function ( tb ) {
+			return h( 'button', { class: 'tv-tab', role: 'tab', aria: { selected: String( state.tab === tb[ 0 ] ) }, text: tb[ 1 ], onclick: function () {
+				state.tab = tb[ 0 ];
+				render();
+			} }, [] );
 		} ) );
 	}
 
@@ -222,11 +400,7 @@
 		var ov = state.overview || {};
 		var health = ov.health || {};
 		if ( ! health.encryption_configured ) {
-			wrap.appendChild( h( 'div', { class: 'tv-notice' }, [
-				'A chave de criptografia não está configurada. Defina a constante ',
-				h( 'code', { text: cfg.encryptConst || 'TIMEVAULT_ENCRYPTION_KEY' } ),
-				' no wp-config.php antes de criar backups — a chave nunca fica no banco.',
-			] ) );
+			wrap.appendChild( h( 'div', { class: 'tv-notice' }, [ t( 'keyMissing1' ), h( 'code', { text: cfg.encryptConst || 'TIMEVAULT_ENCRYPTION_KEY' } ), t( 'keyMissing2' ) ] ) );
 		}
 		wrap.appendChild( cards() );
 		wrap.appendChild( activeJobsBanner() );
@@ -234,7 +408,198 @@
 		return wrap;
 	}
 
-	/* ── Export tab ──────────────────────────────────────────── */
+	function card( label, hero, unit, meta ) {
+		return h( 'div', { class: 'tv-card tv-glass' }, [
+			h( 'div', { class: 'tv-card__label', text: label } ),
+			h( 'div', { class: 'tv-card__hero' }, [ h( 'span', { text: String( hero ) } ), unit ? h( 'span', { class: 'tv-unit', text: unit } ) : null ] ),
+			meta ? h( 'div', { class: 'tv-card__meta' }, meta ) : null,
+		] );
+	}
+
+	function cards() {
+		var ov = state.overview || {};
+		var last = ov.last_backup;
+		var health = ov.health || {};
+		var sizeParts = fmtBytes( ov.total_size_bytes || 0 ).split( ' ' );
+
+		var healthItems = [ [ health.encryption_configured, t( 'hEncryption' ) ], [ health.queue_available, t( 'hQueue' ) ], [ health.backup_dir_protected, t( 'hDir' ) ] ].map( function ( it ) {
+			return h( 'span', { class: 'tv-badge tv-badge--' + ( it[ 0 ] ? 'ok' : 'warn' ), text: ( it[ 0 ] ? '✓ ' : '⚠ ' ) + it[ 1 ] } );
+		} );
+
+		return h( 'div', { class: 'tv-cards' }, [
+			card( t( 'cardLast' ), last ? fmtBytes( last.size_bytes ) : '—', null, last ? [ h( 'span', { class: 'tv-data', text: fmtDate( last.created_at ) } ) ] : [ h( 'span', { text: t( 'noneYet' ) } ) ] ),
+			card( t( 'cardCount' ), ov.backups_completed || 0, null, [ h( 'span', { text: t( 'cardCountMeta' ) } ) ] ),
+			card( t( 'cardSpace' ), sizeParts[ 0 ], sizeParts[ 1 ], [ h( 'span', { text: ov.next_maintenance ? t( 'nextClean' ) : t( 'retentionOff' ) } ), ov.next_maintenance ? h( 'span', { class: 'tv-data', text: fmtDate( ov.next_maintenance ) } ) : null ] ),
+			h( 'div', { class: 'tv-card tv-glass' }, [
+				h( 'div', { class: 'tv-card__label', text: t( 'cardHealth' ) } ),
+				h( 'div', { style: 'display:flex;flex-wrap:wrap;gap:8px;margin-top:6px' }, healthItems ),
+			] ),
+		] );
+	}
+
+	function activeJobsBanner() {
+		var running = state.backups.filter( function ( b ) {
+			return b.status === 'pending' || b.status === 'running';
+		} );
+		var runningR = state.restores.filter( function ( r ) {
+			return r.status === 'pending' || r.status === 'running';
+		} );
+		if ( ! running.length && ! runningR.length ) {
+			return document.createComment( 'no-jobs' );
+		}
+		var rows = [];
+		running.forEach( function ( b ) {
+			rows.push( jobRow( 'Backup ' + b.type, b.status, null ) );
+		} );
+		runningR.forEach( function ( r ) {
+			rows.push( jobRow( t( 'jobRestore' ), r.status, r.step ) );
+		} );
+		return h( 'div', { class: 'tv-panel tv-glass tv-glass--active', style: 'margin-bottom:32px' }, [
+			h( 'div', { class: 'tv-eyebrow', text: t( 'inProgress' ) } ),
+			h( 'div', { style: 'margin-top:12px;display:flex;flex-direction:column;gap:16px' }, rows ),
+		] );
+	}
+
+	function jobRow( label, status, step ) {
+		var stepLabels = {
+			safety_backup: { 'pt-BR': 'criando backup de segurança', en: 'creating safety backup', es: 'creando copia de seguridad' },
+			validate: { 'pt-BR': 'validando pacote', en: 'validating package', es: 'validando paquete' },
+			extract: { 'pt-BR': 'extraindo', en: 'extracting', es: 'extrayendo' },
+			restore_db: { 'pt-BR': 'restaurando banco', en: 'restoring database', es: 'restaurando base de datos' },
+			restore_files: { 'pt-BR': 'restaurando arquivos', en: 'restoring files', es: 'restaurando archivos' },
+			finalize: { 'pt-BR': 'finalizando', en: 'finishing', es: 'finalizando' },
+			dump_db: { 'pt-BR': 'exportando banco', en: 'dumping database', es: 'exportando base de datos' },
+			package: { 'pt-BR': 'empacotando', en: 'packaging', es: 'empaquetando' },
+		};
+		var caption = step && stepLabels[ step ] ? ( stepLabels[ step ][ state.lang ] || stepLabels[ step ]['pt-BR'] ) : ( status === 'pending' ? t( 'queued' ) : t( 'processing' ) );
+		return h( 'div', {}, [
+			h( 'div', { style: 'display:flex;justify-content:space-between;align-items:center' }, [
+				h( 'span', { style: 'color:var(--tv-text-strong);font-weight:600', text: label } ),
+				h( 'span', { class: 'tv-data', style: 'color:var(--tv-text-muted)', text: caption } ),
+			] ),
+			h( 'div', { class: 'tv-progress tv-progress--indeterminate', aria: { label: caption } }, [ h( 'div', { class: 'tv-progress__fill' } ) ] ),
+		] );
+	}
+
+	/* ── Temporal Spine (paginated + sortable) ───────────────── */
+	function spinePanel() {
+		var done = state.backups.filter( function ( b ) {
+			return b.status === 'completed';
+		} );
+		if ( state.spineSort === 'oldest' ) {
+			done = done.slice().reverse();
+		}
+
+		var sortBtn = h( 'button', { class: 'tv-btn tv-btn--ghost tv-btn--sm', text: state.spineSort === 'newest' ? t( 'sortNewest' ) : t( 'sortOldest' ), onclick: function () {
+			state.spineSort = state.spineSort === 'newest' ? 'oldest' : 'newest';
+			state.spinePage = 0;
+			render();
+		} } );
+
+		var head = h( 'div', { class: 'tv-panel__head' }, [ h( 'h2', { text: t( 'spineTitle' ) } ), h( 'div', { class: 'tv-spine-controls' }, [ done.length ? sortBtn : null ] ) ] );
+
+		if ( ! done.length ) {
+			return h( 'section', { class: 'tv-panel tv-glass', aria: { label: t( 'spineTitle' ) } }, [ head, emptyState() ] );
+		}
+
+		var pages = Math.ceil( done.length / SPINE_PER_PAGE );
+		state.spinePage = Math.min( state.spinePage, pages - 1 );
+		var start = state.spinePage * SPINE_PER_PAGE;
+		var slice = done.slice( start, start + SPINE_PER_PAGE );
+
+		var list = h( 'ol', { class: 'tv-spine' }, slice.map( function ( b, i ) {
+			return spineItem( b, state.spineSort === 'newest' && state.spinePage === 0 && i === 0 );
+		} ) );
+
+		var children = [ head, list ];
+		if ( pages > 1 ) {
+			children.push( h( 'div', { class: 'tv-pager' }, [
+				h( 'button', { class: 'tv-btn tv-btn--ghost tv-btn--sm', disabled: state.spinePage === 0 ? 'disabled' : null, text: '‹ ' + t( 'prev' ), onclick: function () {
+					state.spinePage--;
+					render();
+				} }, [] ),
+				h( 'span', { class: 'tv-data', text: ( start + 1 ) + '–' + ( start + slice.length ) + ' ' + t( 'pageOf' ) + ' ' + done.length } ),
+				h( 'button', { class: 'tv-btn tv-btn--ghost tv-btn--sm', disabled: state.spinePage >= pages - 1 ? 'disabled' : null, text: t( 'next' ) + ' ›', onclick: function () {
+					state.spinePage++;
+					render();
+				} }, [] ),
+			] ) );
+		}
+		return h( 'section', { class: 'tv-panel tv-glass', aria: { label: t( 'spineTitle' ) } }, children );
+	}
+
+	function spineItem( b, isNow ) {
+		return h( 'li', { class: 'tv-spine__item' + ( isNow ? ' tv-spine__item--now' : '' ) }, [
+			h( 'span', { class: 'tv-spine__node', aria: { hidden: 'true' } } ),
+			h( 'div', { class: 'tv-spine__date', text: fmtDate( b.created_at ) } ),
+			h( 'div', { class: 'tv-spine__facts' }, [
+				h( 'span', { class: 'tv-data', text: fmtBytes( b.size_bytes ) } ),
+				h( 'span', { class: 'tv-badge tv-badge--dest', text: b.storage } ),
+				b.is_encrypted ? h( 'span', { class: 'tv-badge tv-badge--dest', text: '🔒 ' + t( 'encrypted' ) } ) : null,
+				statusBadge( b.status ),
+			] ),
+			h( 'div', { class: 'tv-spine__actions' }, [
+				h( 'button', { class: 'tv-btn tv-btn--ghost tv-btn--sm', text: t( 'download' ), onclick: function () {
+					downloadBackup( b.uuid );
+				} }, [] ),
+				h( 'button', { class: 'tv-btn tv-btn--ghost tv-btn--sm', text: t( 'restore' ), onclick: function () {
+					openRestore( b );
+				} }, [] ),
+				h( 'button', { class: 'tv-btn tv-btn--danger tv-btn--sm', text: t( 'del' ), onclick: function () {
+					openDelete( b );
+				} }, [] ),
+			] ),
+		] );
+	}
+
+	function emptyState() {
+		return h( 'div', { class: 'tv-empty' }, [
+			h( 'div', { class: 'tv-empty__icon', html: ICONS.empty } ),
+			h( 'h3', { text: t( 'emptyTitle' ) } ),
+			h( 'p', { text: t( 'emptyText' ) } ),
+			h( 'button', { class: 'tv-btn tv-btn--primary', text: t( 'emptyCta' ), onclick: function () {
+				createBackup( 'full' );
+			} }, [] ),
+		] );
+	}
+
+	/* ── History ─────────────────────────────────────────────── */
+	function historyPanel() {
+		var types = [ [ 'all', t( 'fAll' ) ], [ 'full', t( 'fFull' ) ], [ 'db', t( 'fDb' ) ], [ 'export', t( 'fExport' ) ] ];
+		var filters = h( 'div', { class: 'tv-filters', role: 'group' }, types.map( function ( ty ) {
+			return h( 'button', { class: 'tv-chip', aria: { pressed: String( state.filterType === ty[ 0 ] ) }, text: ty[ 1 ], onclick: function () {
+				state.filterType = ty[ 0 ];
+				render();
+			} }, [] );
+		} ) );
+
+		var rows = state.backups.filter( function ( b ) {
+			return state.filterType === 'all' || b.type === state.filterType;
+		} );
+
+		var table;
+		if ( ! rows.length ) {
+			table = h( 'p', { style: 'color:var(--tv-text-muted);padding:16px 4px', text: t( 'emptyFilter' ) } );
+		} else {
+			table = h( 'div', { style: 'overflow-x:auto' }, [
+				h( 'table', { class: 'tv-table' }, [
+					h( 'thead', {}, [ h( 'tr', {}, [ h( 'th', { text: t( 'thDate' ) } ), h( 'th', { text: t( 'thType' ) } ), h( 'th', { text: t( 'thSize' ), class: 'tv-num' } ), h( 'th', { text: t( 'thDest' ) } ), h( 'th', { text: t( 'thStatus' ) } ) ] ) ] ),
+					h( 'tbody', {}, rows.map( function ( b ) {
+						return h( 'tr', {}, [
+							h( 'td', { class: 'tv-data', text: fmtDate( b.created_at ) } ),
+							h( 'td', { text: b.type } ),
+							h( 'td', { class: 'tv-data tv-num', text: b.size_bytes ? fmtBytes( b.size_bytes ) : '—' } ),
+							h( 'td', {}, [ h( 'span', { class: 'tv-badge tv-badge--dest', text: b.storage } ) ] ),
+							h( 'td', {}, [ b.error ? h( 'span', { class: 'tv-badge tv-badge--danger', title: b.error, text: '✕ ' + t( 'stFailed' ) } ) : statusBadge( b.status ) ] ),
+						] );
+					} ) ),
+				] ),
+			] );
+		}
+		return h( 'section', { class: 'tv-panel tv-glass', aria: { label: t( 'historyTitle' ) } }, [ h( 'div', { class: 'tv-panel__head' }, [ h( 'h2', { text: t( 'historyTitle' ) } ) ] ), filters, table ] );
+	}
+
+	/* ── Export tab (scope + auto-download) ──────────────────── */
 	function exportTab() {
 		if ( state.tables === null ) {
 			api( '/exports/tables' ).then( function ( r ) {
@@ -245,72 +610,127 @@
 			} ).catch( function () {
 				state.tables = [];
 			} );
-			return h( 'div', { class: 'tv-panel tv-glass' }, [ h( 'div', { class: 'tv-boot' }, [ h( 'div', { class: 'tv-boot__spinner' } ), h( 'p', { text: 'Carregando tabelas…' } ) ] ) ] );
+			return h( 'div', { class: 'tv-panel tv-glass' }, [ h( 'div', { class: 'tv-boot' }, [ h( 'div', { class: 'tv-boot__spinner' } ), h( 'p', { text: t( 'loading' ) } ) ] ) ] );
 		}
 
-		var uploadsCb = h( 'input', { type: 'checkbox' } );
+		var uploadsCb = h( 'input', { type: 'checkbox', checked: 'checked' } );
 		var anonCb = h( 'input', { type: 'checkbox' } );
 
-		var tableList = h( 'div', { class: 'tv-checklist' }, state.tables.map( function ( t ) {
-			var cb = h( 'input', { type: 'checkbox', checked: state.exportSel[ t ] ? 'checked' : null, onchange: function () {
-				state.exportSel[ t ] = cb.checked;
+		var tableList = h( 'div', { class: 'tv-checklist' }, state.tables.map( function ( tb ) {
+			var cb = h( 'input', { type: 'checkbox', checked: state.exportSel[ tb ] ? 'checked' : null, onchange: function () {
+				state.exportSel[ tb ] = cb.checked;
 			} } );
-			return h( 'label', { class: 'tv-checkitem' }, [ cb, h( 'span', { class: 'tv-data', text: t } ) ] );
+			return h( 'label', { class: 'tv-checkitem' }, [ cb, h( 'span', { class: 'tv-data', text: tb } ) ] );
 		} ) );
 
-		function submit() {
-			var tables = state.tables.filter( function ( t ) {
-				return state.exportSel[ t ];
-			} );
-			if ( ! tables.length && ! uploadsCb.checked ) {
-				toast( 'error', 'Selecione algo para exportar', 'Escolha ao menos uma tabela ou inclua os uploads.' );
-				return;
-			}
-			api( '/exports', 'POST', { tables: tables, include_uploads: uploadsCb.checked, anonymize: anonCb.checked } ).then( function () {
-				toast( 'ok', 'Exportação agendada', 'O pacote entrará na fila e aparecerá em Backups.' );
-				state.tab = 'backups';
-				load();
-			} ).catch( function ( e ) {
-				toast( 'error', 'Não foi possível exportar', e.message );
-			} );
-		}
-
-		function toggleAll( on ) {
-			state.tables.forEach( function ( t ) {
-				state.exportSel[ t ] = on;
-			} );
-			render();
-		}
-
-		return h( 'section', { class: 'tv-panel tv-glass', style: 'max-width:820px' }, [
-			h( 'div', { class: 'tv-panel__head' }, [ h( 'h2', { text: 'Exportação seletiva' } ) ] ),
-			h( 'p', { style: 'color:var(--tv-text-muted);margin-bottom:20px', text: 'Escolha tabelas e/ou os uploads para gerar um pacote portátil — útil para migrar conteúdo ou levar uma cópia para staging.' } ),
-			h( 'div', { class: 'tv-eyebrow', style: 'margin-bottom:8px', text: 'Tabelas' } ),
+		var selectiveBox = h( 'div', { style: state.exportScope === 'all' ? 'display:none' : '' }, [
+			h( 'div', { class: 'tv-eyebrow', style: 'margin-bottom:8px', text: t( 'tables' ) } ),
 			h( 'div', { style: 'display:flex;gap:8px;margin-bottom:10px' }, [
-				h( 'button', { class: 'tv-btn tv-btn--ghost tv-btn--sm', text: 'Selecionar todas', onclick: function () {
-					toggleAll( true );
+				h( 'button', { class: 'tv-btn tv-btn--ghost tv-btn--sm', text: t( 'selectAll' ), onclick: function () {
+					state.tables.forEach( function ( x ) {
+						state.exportSel[ x ] = true;
+					} );
+					render();
 				} }, [] ),
-				h( 'button', { class: 'tv-btn tv-btn--ghost tv-btn--sm', text: 'Limpar', onclick: function () {
-					toggleAll( false );
+				h( 'button', { class: 'tv-btn tv-btn--ghost tv-btn--sm', text: t( 'clear' ), onclick: function () {
+					state.tables.forEach( function ( x ) {
+						state.exportSel[ x ] = false;
+					} );
+					render();
 				} }, [] ),
 			] ),
 			tableList,
-			h( 'label', { class: 'tv-checkbox', style: 'margin-top:20px' }, [ uploadsCb, h( 'span', { text: 'Incluir a pasta de uploads (mídia).' } ) ] ),
-			h( 'label', { class: 'tv-checkbox' }, [ anonCb, h( 'span', {}, [ 'Anonimizar dados pessoais ', h( 'span', { style: 'color:var(--tv-text-faint)', text: '(staging/dev — mascara e-mail, nome, telefone; determinístico)' } ) ] ) ] ),
-			h( 'div', { style: 'margin-top:16px' }, [ h( 'button', { class: 'tv-btn tv-btn--primary', text: 'Gerar exportação', onclick: submit }, [] ) ] ),
 		] );
+
+		var scopeSel = h( 'select', { class: 'tv-select', style: 'min-width:260px', onchange: function () {
+			state.exportScope = scopeSel.value;
+			render();
+		} }, [
+			h( 'option', { value: 'all', text: t( 'scopeAll' ), selected: state.exportScope === 'all' ? 'selected' : null } ),
+			h( 'option', { value: 'selective', text: t( 'scopeSel' ), selected: state.exportScope === 'selective' ? 'selected' : null } ),
+		] );
+
+		var btn = h( 'button', { class: 'tv-btn tv-btn--primary', text: t( 'genExport' ) }, [] );
+		btn.addEventListener( 'click', function () {
+			var tables, includeUploads;
+			if ( state.exportScope === 'all' ) {
+				tables = state.tables.slice();
+				includeUploads = true;
+			} else {
+				tables = state.tables.filter( function ( x ) {
+					return state.exportSel[ x ];
+				} );
+				includeUploads = uploadsCb.checked;
+				if ( ! tables.length && ! includeUploads ) {
+					toast( 'error', t( 'errNoSelectionT' ), t( 'errNoSelection' ) );
+					return;
+				}
+			}
+			runExport( tables, includeUploads, anonCb.checked, btn );
+		} );
+
+		return h( 'section', { class: 'tv-panel tv-glass', style: 'max-width:820px' }, [
+			h( 'div', { class: 'tv-panel__head' }, [ h( 'h2', { text: t( 'exportTitle' ) } ) ] ),
+			h( 'p', { style: 'color:var(--tv-text-muted);margin-bottom:20px', text: t( 'exportDesc' ) } ),
+			h( 'label', { class: 'tv-field' }, [ h( 'span', { style: 'display:block;color:var(--tv-text-muted);font-size:13px;margin-bottom:8px', text: t( 'scope' ) } ), scopeSel ] ),
+			selectiveBox,
+			h( 'label', { class: 'tv-checkbox', style: 'margin-top:20px' + ( state.exportScope === 'all' ? ';display:none' : '' ) }, [ uploadsCb, h( 'span', { text: t( 'includeUploads' ) } ) ] ),
+			h( 'label', { class: 'tv-checkbox' }, [ anonCb, h( 'span', {}, [ t( 'anonymize' ) + ' ', h( 'span', { style: 'color:var(--tv-text-faint)', text: t( 'anonymizeHint' ) } ) ] ) ] ),
+			h( 'div', { style: 'margin-top:16px' }, [ btn ] ),
+		] );
+	}
+
+	function runExport( tables, includeUploads, anonymize, btn ) {
+		btn.disabled = true;
+		btn.textContent = t( 'generating' );
+		api( '/exports', 'POST', { tables: tables, include_uploads: includeUploads, anonymize: anonymize } ).then( function ( r ) {
+			pollUntilComplete( r.uuid, btn );
+		} ).catch( function ( e ) {
+			btn.disabled = false;
+			btn.textContent = t( 'genExport' );
+			toast( 'error', t( 'errExport' ), e.message );
+		} );
+	}
+
+	function pollUntilComplete( uuid, btn ) {
+		var tries = 0;
+		var iv = setInterval( function () {
+			tries++;
+			api( '/backups/' + uuid ).then( function ( b ) {
+				if ( b.status === 'completed' ) {
+					clearInterval( iv );
+					btn.textContent = t( 'preparingDl' );
+					toast( 'ok', t( 'tExportDone' ), t( 'tExportDoneMsg' ) );
+					downloadBackup( uuid, function () {
+						btn.disabled = false;
+						btn.textContent = t( 'genExport' );
+						state.tab = 'backups';
+						load();
+					} );
+				} else if ( b.status === 'failed' ) {
+					clearInterval( iv );
+					btn.disabled = false;
+					btn.textContent = t( 'genExport' );
+					toast( 'error', t( 'tExportFail' ), b.error || '' );
+				}
+			} );
+			if ( tries > 200 ) {
+				clearInterval( iv );
+				btn.disabled = false;
+				btn.textContent = t( 'genExport' );
+			}
+		}, 3000 );
 	}
 
 	/* ── Import tab ──────────────────────────────────────────── */
 	function importTab() {
-		var fileInput = h( 'input', { type: 'file', accept: '.zip,.enc', class: 'tv-file', id: 'tv-import-file' } );
+		var fileInput = h( 'input', { type: 'file', accept: '.zip,.enc', class: 'tv-file' } );
 		var progress = h( 'div', { class: 'tv-progress', style: 'display:none' }, [ h( 'div', { class: 'tv-progress__fill', style: 'width:0%' } ) ] );
 		var btn;
-
 		function submit() {
 			var file = fileInput.files && fileInput.files[ 0 ];
 			if ( ! file ) {
-				toast( 'error', 'Escolha um arquivo', 'Selecione um pacote .zip ou .zip.enc para importar.' );
+				toast( 'error', t( 'chooseFile' ), t( 'chooseFileMsg' ) );
 				return;
 			}
 			btn.disabled = true;
@@ -319,28 +739,22 @@
 			uploadPackage( file, function ( pct ) {
 				fill.style.width = pct + '%';
 			} ).then( function () {
-				toast( 'ok', 'Pacote importado', 'Ele aparece em Backups e já pode ser restaurado.' );
+				toast( 'ok', t( 'tImported' ), t( 'tImportedMsg' ) );
 				state.tab = 'backups';
 				load();
 			} ).catch( function ( e ) {
 				btn.disabled = false;
 				progress.style.display = 'none';
-				toast( 'error', 'Não foi possível importar', e.message );
+				toast( 'error', t( 'errImport' ), e.message );
 			} );
 		}
-
-		btn = h( 'button', { class: 'tv-btn tv-btn--primary', text: 'Importar pacote', onclick: submit }, [] );
+		btn = h( 'button', { class: 'tv-btn tv-btn--primary', text: t( 'doImport' ), onclick: submit }, [] );
 
 		return h( 'section', { class: 'tv-panel tv-glass', style: 'max-width:680px' }, [
-			h( 'div', { class: 'tv-panel__head' }, [ h( 'h2', { text: 'Importar backup (migração)' } ) ] ),
-			h( 'p', { style: 'color:var(--tv-text-muted);margin-bottom:16px', text: 'Envie um pacote gerado pelo Timevault em outro site. Ele é validado (checksum, estrutura, decifragem) e adicionado à lista de backups — a restauração é sempre um passo separado, com dupla confirmação.' } ),
-			h( 'div', { class: 'tv-notice', style: 'margin-bottom:20px' }, [
-				h( 'strong', { style: 'color:var(--tv-amber-300)', text: 'Atenção: ' } ),
-				'pacotes cifrados só podem ser lidos com a MESMA ',
-				h( 'code', { text: cfg.encryptConst || 'TIMEVAULT_ENCRYPTION_KEY' } ),
-				' definida no site de origem. Chaves diferentes = pacote ilegível.',
-			] ),
-			h( 'label', { class: 'tv-field' }, [ h( 'span', { style: 'display:block;color:var(--tv-text-muted);font-size:13px;margin-bottom:8px', text: 'Pacote (.zip ou .zip.enc)' } ), fileInput ] ),
+			h( 'div', { class: 'tv-panel__head' }, [ h( 'h2', { text: t( 'importTitle' ) } ) ] ),
+			h( 'p', { style: 'color:var(--tv-text-muted);margin-bottom:16px', text: t( 'importDesc' ) } ),
+			h( 'div', { class: 'tv-notice', style: 'margin-bottom:20px' }, [ h( 'strong', { style: 'color:var(--tv-amber-text)', text: t( 'importWarn1' ) } ), t( 'importWarn2' ), h( 'code', { text: cfg.encryptConst || 'TIMEVAULT_ENCRYPTION_KEY' } ), t( 'importWarn3' ) ] ),
+			h( 'label', { class: 'tv-field' }, [ h( 'span', { style: 'display:block;color:var(--tv-text-muted);font-size:13px;margin-bottom:8px', text: t( 'importFile' ) } ), fileInput ] ),
 			progress,
 			h( 'div', { style: 'margin-top:16px' }, [ btn ] ),
 		] );
@@ -372,290 +786,40 @@
 				}
 			};
 			xhr.onerror = function () {
-				reject( new Error( 'Falha de rede no envio.' ) );
+				reject( new Error( 'HTTP error' ) );
 			};
 			xhr.send( fd );
 		} );
 	}
 
-	function header() {
-		return h( 'div', { class: 'tv-header' }, [
-			cfg.logo ? h( 'img', { class: 'tv-header__logo', src: cfg.logo, alt: '' } ) : h( 'span', { class: 'tv-header__logo', html: ICONS.vault } ),
-			h( 'div', { class: 'tv-header__titles' }, [
-				h( 'h1', { text: 'Timevault' } ),
-				h( 'p', { text: 'Backup, exportação e migração — preservação do estado do site.' } ),
-			] ),
-			h( 'div', { class: 'tv-header__actions' }, [
-				h( 'button', { class: 'tv-btn tv-btn--ghost', text: 'Só banco de dados', onclick: function () {
-					createBackup( 'db' );
-				} }, [] ),
-				h( 'button', { class: 'tv-btn tv-btn--primary', text: 'Criar backup completo', onclick: function () {
-					createBackup( 'full' );
-				} }, [] ),
-			] ),
-		] );
-	}
-
-	function card( label, hero, unit, meta ) {
-		return h( 'div', { class: 'tv-card tv-glass' }, [
-			h( 'div', { class: 'tv-card__label', text: label } ),
-			h( 'div', { class: 'tv-card__hero' }, [ h( 'span', { text: String( hero ) } ), unit ? h( 'span', { class: 'tv-unit', text: unit } ) : null ] ),
-			meta ? h( 'div', { class: 'tv-card__meta' }, meta ) : null,
-		] );
-	}
-
-	function cards() {
-		var ov = state.overview || {};
-		var last = ov.last_backup;
-		var health = ov.health || {};
-
-		var lastMeta = last
-			? [ h( 'span', { class: 'tv-data', text: fmtDate( last.created_at ) } ) ]
-			: [ h( 'span', { text: 'nenhum ainda' } ) ];
-
-		var healthItems = [
-			[ health.encryption_configured, 'Criptografia' ],
-			[ health.queue_available, 'Fila' ],
-			[ health.backup_dir_protected, 'Diretório' ],
-		].map( function ( it ) {
-			return h( 'span', { class: 'tv-badge tv-badge--' + ( it[ 0 ] ? 'ok' : 'warn' ), text: ( it[ 0 ] ? '✓ ' : '⚠ ' ) + it[ 1 ] } );
-		} );
-
-		return h( 'div', { class: 'tv-cards' }, [
-			card( 'Último backup', last ? fmtBytes( last.size_bytes ) : '—', null, lastMeta ),
-			card( 'Backups guardados', ov.backups_completed || 0, null, [ h( 'span', { text: 'concluídos e íntegros' } ) ] ),
-			card( 'Espaço usado', fmtBytes( ov.total_size_bytes || 0 ).split( ' ' )[ 0 ], fmtBytes( ov.total_size_bytes || 0 ).split( ' ' )[ 1 ], [
-				h( 'span', { text: ov.next_maintenance ? 'próxima limpeza: ' : 'retenção desligada' } ),
-				ov.next_maintenance ? h( 'span', { class: 'tv-data', text: fmtDate( ov.next_maintenance ) } ) : null,
-			] ),
-			h( 'div', { class: 'tv-card tv-glass' }, [
-				h( 'div', { class: 'tv-card__label', text: 'Saúde do ambiente' } ),
-				h( 'div', { style: 'display:flex;flex-wrap:wrap;gap:8px;margin-top:6px' }, healthItems ),
-			] ),
-		] );
-	}
-
-	function activeJobsBanner() {
-		var running = state.backups.filter( function ( b ) {
-			return b.status === 'pending' || b.status === 'running';
-		} );
-		var runningR = state.restores.filter( function ( r ) {
-			return r.status === 'pending' || r.status === 'running';
-		} );
-		if ( ! running.length && ! runningR.length ) {
-			return document.createComment( 'no-jobs' );
-		}
-
-		var rows = [];
-		running.forEach( function ( b ) {
-			rows.push( jobRow( 'Backup ' + b.type, b.status, null ) );
-		} );
-		runningR.forEach( function ( r ) {
-			rows.push( jobRow( 'Restauração', r.status, r.step ) );
-		} );
-
-		return h( 'div', { class: 'tv-panel tv-glass tv-glass--active', style: 'margin-bottom:32px' }, [
-			h( 'div', { class: 'tv-eyebrow', text: 'Em andamento' } ),
-			h( 'div', { style: 'margin-top:12px;display:flex;flex-direction:column;gap:16px' }, rows ),
-		] );
-	}
-
-	function jobRow( label, status, step ) {
-		var stepLabels = {
-			safety_backup: 'criando backup de segurança',
-			validate: 'validando pacote',
-			extract: 'extraindo',
-			restore_db: 'restaurando banco',
-			restore_files: 'restaurando arquivos',
-			finalize: 'finalizando',
-			dump_db: 'exportando banco',
-			package: 'empacotando',
-		};
-		var caption = step ? stepLabels[ step ] || step : ( status === 'pending' ? 'na fila' : 'processando' );
-		return h( 'div', {}, [
-			h( 'div', { style: 'display:flex;justify-content:space-between;align-items:center' }, [
-				h( 'span', { style: 'color:var(--tv-text-strong);font-weight:600', text: label } ),
-				h( 'span', { class: 'tv-data', style: 'color:var(--tv-text-muted)', text: caption } ),
-			] ),
-			h( 'div', { class: 'tv-progress tv-progress--indeterminate', aria: { label: caption } }, [ h( 'div', { class: 'tv-progress__fill' } ) ] ),
-		] );
-	}
-
-	/* ── Temporal Spine ──────────────────────────────────────── */
-	function spinePanel() {
-		var done = state.backups.filter( function ( b ) {
-			return b.status === 'completed';
-		} );
-
-		var body;
-		if ( ! done.length ) {
-			body = emptyState();
-		} else {
-			body = h( 'ol', { class: 'tv-spine' }, done.slice( 0, 8 ).map( function ( b, i ) {
-				return spineItem( b, i === 0 );
-			} ) );
-		}
-
-		return h( 'section', { class: 'tv-panel tv-glass', 'aria-label': 'Linha do tempo de backups' }, [
-			h( 'div', { class: 'tv-panel__head' }, [ h( 'h2', { text: 'Espinha temporal' } ) ] ),
-			body,
-		] );
-	}
-
-	function spineItem( b, isNow ) {
-		var cls = 'tv-spine__item' + ( isNow ? ' tv-spine__item--now' : '' );
-		return h( 'li', { class: cls }, [
-			h( 'span', { class: 'tv-spine__node', aria: { hidden: 'true' } } ),
-			h( 'div', { class: 'tv-spine__date', text: fmtDate( b.created_at ) } ),
-			h( 'div', { class: 'tv-spine__facts' }, [
-				h( 'span', { class: 'tv-data', text: fmtBytes( b.size_bytes ) } ),
-				h( 'span', { class: 'tv-badge tv-badge--dest', text: b.storage } ),
-				b.is_encrypted ? h( 'span', { class: 'tv-badge tv-badge--dest', text: '🔒 cifrado' } ) : null,
-				statusBadge( b.status ),
-			] ),
-			h( 'div', { class: 'tv-spine__actions' }, [
-				h( 'button', { class: 'tv-btn tv-btn--ghost tv-btn--sm', text: 'Baixar', onclick: function () {
-					downloadBackup( b.uuid );
-				} }, [] ),
-				h( 'button', { class: 'tv-btn tv-btn--danger tv-btn--sm', text: 'Restaurar', onclick: function () {
-					openRestore( b );
-				} }, [] ),
-			] ),
-		] );
-	}
-
-	function emptyState() {
-		return h( 'div', { class: 'tv-empty' }, [
-			h( 'div', { class: 'tv-empty__icon', html: ICONS.empty } ),
-			h( 'h3', { text: 'Nenhum backup ainda.' } ),
-			h( 'p', { text: 'Crie o primeiro para preservar o estado atual do site — banco de dados e arquivos, cifrados em repouso.' } ),
-			h( 'button', { class: 'tv-btn tv-btn--primary', text: 'Criar backup agora', onclick: function () {
-				createBackup( 'full' );
-			} }, [] ),
-		] );
-	}
-
-	/* ── History ─────────────────────────────────────────────── */
-	function historyPanel() {
-		var types = [ [ 'all', 'Todos' ], [ 'full', 'Completo' ], [ 'db', 'Banco' ], [ 'export', 'Export' ] ];
-		var filters = h( 'div', { class: 'tv-filters', role: 'group', 'aria-label': 'Filtrar por tipo' }, types.map( function ( t ) {
-			return h( 'button', {
-				class: 'tv-chip',
-				aria: { pressed: String( state.filterType === t[ 0 ] ) },
-				text: t[ 1 ],
-				onclick: function () {
-					state.filterType = t[ 0 ];
-					render();
-				},
-			}, [] );
-		} ) );
-
-		var rows = state.backups.filter( function ( b ) {
-			return state.filterType === 'all' || b.type === state.filterType;
-		} );
-
-		var table;
-		if ( ! rows.length ) {
-			table = h( 'p', { style: 'color:var(--tv-text-muted);padding:16px 4px', text: 'Nenhum backup neste filtro.' } );
-		} else {
-			table = h( 'div', { style: 'overflow-x:auto' }, [
-				h( 'table', { class: 'tv-table' }, [
-					h( 'thead', {}, [ h( 'tr', {}, [
-						h( 'th', { text: 'Data' } ),
-						h( 'th', { text: 'Tipo' } ),
-						h( 'th', { text: 'Tamanho', class: 'tv-num' } ),
-						h( 'th', { text: 'Destino' } ),
-						h( 'th', { text: 'Status' } ),
-					] ) ] ),
-					h( 'tbody', {}, rows.map( function ( b ) {
-						return h( 'tr', {}, [
-							h( 'td', { class: 'tv-data', text: fmtDate( b.created_at ) } ),
-							h( 'td', { text: b.type } ),
-							h( 'td', { class: 'tv-data tv-num', text: b.size_bytes ? fmtBytes( b.size_bytes ) : '—' } ),
-							h( 'td', {}, [ h( 'span', { class: 'tv-badge tv-badge--dest', text: b.storage } ) ] ),
-							h( 'td', {}, [ b.error ? h( 'span', { class: 'tv-badge tv-badge--danger', title: b.error, text: '✕ falhou' } ) : statusBadge( b.status ) ] ),
-						] );
-					} ) ),
-				] ),
-			] );
-		}
-
-		return h( 'section', { class: 'tv-panel tv-glass', 'aria-label': 'Histórico de backups' }, [
-			h( 'div', { class: 'tv-panel__head' }, [ h( 'h2', { text: 'Histórico' } ) ] ),
-			filters,
-			table,
-		] );
-	}
-
 	/* ── Actions ─────────────────────────────────────────────── */
 	function createBackup( type ) {
-		api( '/backups', 'POST', { type: type, files_scope: 'wp-content', storage: 'local' } ).then( function ( r ) {
-			toast( 'ok', 'Backup agendado', 'O ' + ( type === 'db' ? 'backup do banco' : 'backup completo' ) + ' entrou na fila.' );
+		api( '/backups', 'POST', { type: type, files_scope: 'wp-content', storage: 'local' } ).then( function () {
+			toast( 'ok', t( 'tBackupQueued' ), t( 'tBackupQueuedMsg' ) );
+			state.tab = 'backups';
 			load();
 		} ).catch( function ( e ) {
-			toast( 'error', 'Não foi possível criar o backup', e.message );
+			toast( 'error', t( 'errBackup' ), e.message );
 		} );
 	}
 
-	function downloadBackup( uuid ) {
+	function downloadBackup( uuid, done ) {
 		api( '/backups/' + uuid + '/download-token', 'POST' ).then( function ( r ) {
 			window.location.assign( r.url );
+			if ( done ) {
+				done();
+			}
 		} ).catch( function ( e ) {
-			toast( 'error', 'Download indisponível', e.message );
+			toast( 'error', t( 'errDownload' ), e.message );
+			if ( done ) {
+				done();
+			}
 		} );
 	}
 
-	/* ── Restore double confirmation ─────────────────────────── */
-	function openRestore( backup ) {
-		api( '/restore/prepare', 'POST', { backup_uuid: backup.uuid } ).then( function ( prep ) {
-			showRestoreModal( backup, prep );
-		} ).catch( function ( e ) {
-			toast( 'error', 'Não foi possível preparar a restauração', e.message );
-		} );
-	}
-
-	function showRestoreModal( backup, prep ) {
-		var phrase = prep.confirm_phrase || 'RESTORE';
-		var input, filesCb, confirmBtn;
-
-		function validate() {
-			confirmBtn.disabled = input.value.trim() !== phrase;
-		}
-
-		input = h( 'input', { class: 'tv-input', type: 'text', autocomplete: 'off', 'aria-label': 'Frase de confirmação', oninput: validate } );
-		filesCb = h( 'input', { type: 'checkbox' } );
-		confirmBtn = h( 'button', { class: 'tv-btn tv-btn--danger', disabled: 'disabled', text: 'Restaurar agora', onclick: function () {
-			doRestore( prep.confirm_token, phrase, filesCb.checked, overlay );
-		} }, [] );
-
-		var manifest = ( prep.summary && prep.summary.manifest ) || {};
-		var dbInfo = manifest.database ? manifest.database.tables + ' tabelas · ' + manifest.database.rows + ' registros' : '';
-
-		var overlay = h( 'div', { class: 'tv-overlay', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'tv-modal-title' }, [
-			h( 'div', { class: 'tv-modal tv-glass tv-glass--active' }, [
-				h( 'h2', { class: 'tv-modal__title', id: 'tv-modal-title', text: 'Restaurar este backup vai substituir o site atual.' } ),
-				h( 'div', { class: 'tv-modal__body' }, [
-					h( 'p', { text: 'Backup de ' + fmtDate( backup.created_at ) + ' (' + fmtBytes( backup.size_bytes ) + ')' + ( dbInfo ? ' — ' + dbInfo + '.' : '.' ) } ),
-					h( 'p', { text: 'O conteúdo atual do banco será sobrescrito pelo conteúdo deste backup. Esta ação não pode ser desfeita manualmente.' } ),
-				] ),
-				h( 'div', { class: 'tv-safenote' }, [
-					h( 'span', { html: ICONS.shield } ),
-					h( 'span', { text: 'Um backup de segurança completo do estado atual é criado automaticamente antes de qualquer alteração.' } ),
-				] ),
-				h( 'label', { class: 'tv-checkbox' }, [ filesCb, h( 'span', { text: 'Também restaurar os arquivos (uploads e wp-content) deste pacote.' } ) ] ),
-				h( 'div', { class: 'tv-field' }, [
-					h( 'label', {}, [ 'Para confirmar, digite ', h( 'code', { text: phrase } ), ' abaixo.' ] ),
-					input,
-				] ),
-				h( 'div', { class: 'tv-modal__actions' }, [
-					h( 'button', { class: 'tv-btn tv-btn--ghost', text: 'Cancelar', onclick: function () {
-						close();
-					} }, [] ),
-					confirmBtn,
-				] ),
-			] ),
-		] );
-
+	/* ── Modals ──────────────────────────────────────────────── */
+	function modal( content ) {
+		var overlay = h( 'div', { class: 'tv-overlay' }, [ h( 'div', { class: 'timevault-app', 'data-theme': state.theme, style: 'min-height:0;padding:0;background:none' }, [ content ] ) ] );
 		function close() {
 			document.removeEventListener( 'keydown', onKey );
 			overlay.remove();
@@ -671,24 +835,87 @@
 			}
 		} );
 		document.addEventListener( 'keydown', onKey );
-		overlay._close = close;
-
 		document.body.appendChild( overlay );
+		overlay._close = close;
+		return overlay;
+	}
+
+	function openRestore( backup ) {
+		api( '/restore/prepare', 'POST', { backup_uuid: backup.uuid } ).then( function ( prep ) {
+			showRestoreModal( backup, prep );
+		} ).catch( function ( e ) {
+			toast( 'error', t( 'errPrepare' ), e.message );
+		} );
+	}
+
+	function showRestoreModal( backup, prep ) {
+		var phrase = prep.confirm_phrase || 'RESTORE';
+		var input = h( 'input', { class: 'tv-input', type: 'text', autocomplete: 'off' } );
+		var filesCb = h( 'input', { type: 'checkbox' } );
+		var confirmBtn = h( 'button', { class: 'tv-btn tv-btn--danger', disabled: 'disabled', text: t( 'restoreNow' ) }, [] );
+		input.addEventListener( 'input', function () {
+			confirmBtn.disabled = input.value.trim() !== phrase;
+		} );
+		var manifest = ( prep.summary && prep.summary.manifest ) || {};
+		var dbInfo = manifest.database ? ' — ' + manifest.database.tables + ' / ' + manifest.database.rows : '';
+
+		var m = h( 'div', { class: 'tv-modal tv-glass tv-glass--active', role: 'dialog', aria: { modal: 'true' } }, [
+			h( 'h2', { class: 'tv-modal__title', text: t( 'restoreTitle' ) } ),
+			h( 'div', { class: 'tv-modal__body' }, [
+				h( 'p', { text: fmtDate( backup.created_at ) + ' (' + fmtBytes( backup.size_bytes ) + ')' + dbInfo } ),
+				h( 'p', { text: t( 'restoreP2' ) } ),
+			] ),
+			h( 'div', { class: 'tv-safenote' }, [ h( 'span', { html: ICONS.shield } ), h( 'span', { text: t( 'safeNote' ) } ) ] ),
+			h( 'label', { class: 'tv-checkbox' }, [ filesCb, h( 'span', { text: t( 'restoreFiles' ) } ) ] ),
+			h( 'div', { class: 'tv-field' }, [ h( 'label', {}, [ t( 'typeToConfirm1' ), h( 'code', { text: phrase } ), t( 'typeToConfirm2' ) ] ), input ] ),
+			h( 'div', { class: 'tv-modal__actions' }, [
+				h( 'button', { class: 'tv-btn tv-btn--ghost', text: t( 'cancel' ), onclick: function () {
+					overlay._close();
+				} }, [] ),
+				confirmBtn,
+			] ),
+		] );
+		var overlay = modal( m );
+		confirmBtn.addEventListener( 'click', function () {
+			api( '/restore/confirm', 'POST', { token: prep.confirm_token, confirm: phrase, restore_files: filesCb.checked } ).then( function () {
+				overlay._close();
+				toast( 'ok', t( 'tRestoreStart' ), t( 'tRestoreStartMsg' ) );
+				load();
+			} ).catch( function ( e ) {
+				toast( 'error', t( 'errRestore' ), e.message );
+			} );
+		} );
 		input.focus();
 	}
 
-	function doRestore( token, phrase, restoreFiles, overlay ) {
-		api( '/restore/confirm', 'POST', { token: token, confirm: phrase, restore_files: !! restoreFiles } ).then( function ( r ) {
-			if ( overlay._close ) {
+	function openDelete( backup ) {
+		var confirmBtn = h( 'button', { class: 'tv-btn tv-btn--danger', text: t( 'delNow' ) }, [] );
+		var m = h( 'div', { class: 'tv-modal tv-glass tv-glass--active', role: 'dialog', aria: { modal: 'true' } }, [
+			h( 'h2', { class: 'tv-modal__title', text: t( 'delTitle' ) } ),
+			h( 'div', { class: 'tv-modal__body' }, [
+				h( 'p', { text: fmtDate( backup.created_at ) + ' · ' + fmtBytes( backup.size_bytes ) + ' · ' + backup.storage } ),
+				h( 'p', { text: t( 'delBody' ) } ),
+			] ),
+			h( 'div', { class: 'tv-modal__actions' }, [
+				h( 'button', { class: 'tv-btn tv-btn--ghost', text: t( 'cancel' ), onclick: function () {
+					overlay._close();
+				} }, [] ),
+				confirmBtn,
+			] ),
+		] );
+		var overlay = modal( m );
+		confirmBtn.addEventListener( 'click', function () {
+			api( '/backups/' + backup.uuid, 'DELETE' ).then( function () {
 				overlay._close();
-			}
-			toast( 'ok', 'Restauração iniciada', 'Um backup de segurança está sendo criado antes de sobrescrever.' );
-			load();
-		} ).catch( function ( e ) {
-			toast( 'error', 'Não foi possível restaurar', e.message );
+				toast( 'ok', t( 'tDeleted' ), t( 'tDeletedMsg' ) );
+				load();
+			} ).catch( function ( e ) {
+				toast( 'error', t( 'errDelete' ), e.message );
+			} );
 		} );
 	}
 
 	/* ── Boot ────────────────────────────────────────────────── */
+	applyTheme();
 	load();
 }() );
