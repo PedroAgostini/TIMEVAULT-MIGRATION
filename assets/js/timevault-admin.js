@@ -372,9 +372,8 @@
 		} } );
 
 		return h( 'div', { class: 'tv-header' }, [
-			cfg.logo ? h( 'img', { class: 'tv-header__logo', src: cfg.logo, alt: '' } ) : h( 'span', { class: 'tv-header__logo', html: ICONS.vault } ),
+			cfg.logo ? h( 'img', { class: 'tv-header__logo', src: cfg.logo, alt: 'Timevault' } ) : h( 'span', { class: 'tv-header__logo tv-header__logo--icon', html: ICONS.vault } ),
 			h( 'div', { class: 'tv-header__titles' }, [
-				h( 'h1', { text: 'Timevault' } ),
 				h( 'p', { text: t( 'subtitle' ) } ),
 			] ),
 			h( 'div', { class: 'tv-header__actions' }, [

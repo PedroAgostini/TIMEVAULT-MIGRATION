@@ -198,15 +198,28 @@
 }
 
 .tv-header__logo {
-	width: 44px;
-	height: 44px;
+	height: 58px;
+	width: auto;
+	max-width: 320px;
 	object-fit: contain;
+	display: block;
+}
+
+/* Fallback SVG icon (when no logo image): keep it compact and amber. */
+.tv-header__logo--icon {
+	height: 44px;
+	width: 44px;
+	color: var(--tv-amber-500);
 }
 
 /* The logo art is dark: it sits fine on the light theme; on dark, invert it
    to white and add an amber glow (design system: "a logo fica branca"). */
 .timevault-app[data-theme="dark"] .tv-header__logo {
-	filter: brightness(0) invert(1) drop-shadow(0 0 12px rgba(255, 163, 0, 0.45));
+	filter: brightness(0) invert(1) drop-shadow(0 0 14px rgba(255, 163, 0, 0.5));
+}
+
+.tv-header__titles p {
+	max-width: 52ch;
 }
 
 /* ── Header controls: theme toggle + language selector ───────── */
@@ -237,13 +250,37 @@
 
 .tv-select {
 	min-height: 40px;
-	padding: 8px 12px;
+	padding: 8px 40px 8px 14px;
 	border-radius: var(--tv-radius-md);
 	border: 1px solid var(--tv-glass-border);
-	background: var(--tv-glass-fill);
+	background-color: var(--tv-ink-600);
 	color: var(--tv-text-body);
 	font: 500 13px/1 var(--tv-font-sans);
 	cursor: pointer;
+	appearance: none;
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	/* Custom chevron (muted gray works on both themes). */
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239a9aa2' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+	background-repeat: no-repeat;
+	background-position: right 12px center;
+	transition: border-color var(--tv-dur-fast) var(--tv-ease);
+}
+
+.tv-select:hover {
+	border-color: var(--tv-glass-border-amber);
+}
+
+.tv-select:focus {
+	border-color: var(--tv-amber-500);
+	outline: none;
+}
+
+/* Native dropdown list items follow the OS, but keep our surface for the
+   closed control. Option colors fall back to the browser default popup. */
+.tv-select option {
+	color: #17171a;
+	background: #ffffff;
 }
 
 /* ── Spine controls: sort + pager ────────────────────────────── */
