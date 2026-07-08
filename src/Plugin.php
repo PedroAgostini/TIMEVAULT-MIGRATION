@@ -96,6 +96,13 @@ final class Plugin {
 	private ?Core\PrivacyService $privacy = null;
 
 	/**
+	 * Shared schedule manager (automatic backups + rotation).
+	 *
+	 * @var Core\ScheduleManager|null
+	 */
+	private ?Core\ScheduleManager $schedule = null;
+
+	/**
 	 * Retrieves the singleton instance.
 	 */
 	public static function instance(): Plugin {
@@ -129,11 +136,14 @@ final class Plugin {
 		( new Rest\RestoreController( $this ) )->register();
 		( new Rest\PrivacyController( $this ) )->register();
 		( new Rest\ImportController( $this ) )->register();
+		( new Rest\ScheduleController( $this ) )->register();
 
 		// Action Scheduler executes pipeline steps through these hooks.
 		add_action( Core\BackupManager::STEP_HOOK, array( $this->backups(), 'handle_step' ), 10, 2 );
 		add_action( Core\ImportManager::STEP_HOOK, array( $this->imports(), 'handle_step' ), 10, 2 );
 		add_action( Core\PrivacyService::RETENTION_HOOK, array( $this->privacy(), 'apply_retention_policy' ) );
+		add_action( Core\ScheduleManager::HOOK, array( $this->schedule(), 'run' ) );
+		add_action( 'timevault_backup_completed', array( $this->schedule(), 'on_backup_completed' ) );
 
 		// Scheduling touches the Action Scheduler store, which only initializes
 		// on `init` — registering it earlier (plugins_loaded) is "called too
@@ -142,13 +152,14 @@ final class Plugin {
 	}
 
 	/**
-	 * Ensures the recurring retention sweep is scheduled (daily). Idempotent.
+	 * Ensures the recurring maintenance jobs match their config. Idempotent.
 	 */
 	public function schedule_maintenance(): void {
 		$queue = $this->queue();
 
 		if ( $queue->is_available() ) {
 			$queue->schedule_recurring( DAY_IN_SECONDS, Core\PrivacyService::RETENTION_HOOK );
+			$this->schedule()->ensure_scheduled();
 		}
 	}
 
@@ -268,6 +279,23 @@ final class Plugin {
 		}
 
 		return $this->privacy;
+	}
+
+	/**
+	 * Schedule manager (automatic backups + rotation).
+	 */
+	public function schedule(): Core\ScheduleManager {
+		if ( null === $this->schedule ) {
+			$this->schedule = new Core\ScheduleManager(
+				$this->backup_repository(),
+				$this->backups(),
+				$this->queue(),
+				$this->audit_log(),
+				$this->storage_adapters()
+			);
+		}
+
+		return $this->schedule;
 	}
 
 	/**

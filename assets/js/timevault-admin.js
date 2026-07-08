@@ -57,6 +57,10 @@
 			errBackup: 'Não foi possível criar o backup', errDownload: 'Download indisponível', errExport: 'Não foi possível exportar',
 			errPrepare: 'Não foi possível preparar a restauração', errRestore: 'Não foi possível restaurar', errDelete: 'Não foi possível excluir', errImport: 'Não foi possível importar',
 			chooseFile: 'Escolha um arquivo', chooseFileMsg: 'Selecione um pacote .zip ou .zip.enc.', loadFail: 'Não foi possível carregar o Timevault: ', close: 'Fechar', loading: 'Carregando…',
+			schedTitle: 'Backup automático', schedDesc: 'Roda sozinho na frequência escolhida e mantém apenas os mais recentes.',
+			schedFreq: 'Frequência', schedOff: 'Desligado', schedDaily: 'Diário', schedWeekly: 'Semanal', schedMonthly: 'Mensal',
+			schedKeep: 'Manter', schedKeepUnit: 'backups automáticos', schedNote: 'Ao passar do limite, os automáticos mais antigos são excluídos com rotatividade — os manuais nunca são tocados.',
+			tSchedSaved: 'Agendamento salvo', errSched: 'Não foi possível salvar o agendamento',
 		},
 		en: {
 			subtitle: 'Backup, export and migration — preserve your site’s state.',
@@ -100,6 +104,10 @@
 			errBackup: 'Could not create the backup', errDownload: 'Download unavailable', errExport: 'Could not export',
 			errPrepare: 'Could not prepare the restore', errRestore: 'Could not restore', errDelete: 'Could not delete', errImport: 'Could not import',
 			chooseFile: 'Choose a file', chooseFileMsg: 'Select a .zip or .zip.enc package.', loadFail: 'Could not load Timevault: ', close: 'Close', loading: 'Loading…',
+			schedTitle: 'Automatic backup', schedDesc: 'Runs on its own at the chosen frequency and keeps only the most recent ones.',
+			schedFreq: 'Frequency', schedOff: 'Off', schedDaily: 'Daily', schedWeekly: 'Weekly', schedMonthly: 'Monthly',
+			schedKeep: 'Keep', schedKeepUnit: 'automatic backups', schedNote: 'Past the limit, the oldest automatic backups are rotated out — manual backups are never touched.',
+			tSchedSaved: 'Schedule saved', errSched: 'Could not save the schedule',
 		},
 		es: {
 			subtitle: 'Copia, exportación y migración — preserva el estado del sitio.',
@@ -143,6 +151,10 @@
 			errBackup: 'No se pudo crear la copia', errDownload: 'Descarga no disponible', errExport: 'No se pudo exportar',
 			errPrepare: 'No se pudo preparar la restauración', errRestore: 'No se pudo restaurar', errDelete: 'No se pudo eliminar', errImport: 'No se pudo importar',
 			chooseFile: 'Elige un archivo', chooseFileMsg: 'Selecciona un paquete .zip o .zip.enc.', loadFail: 'No se pudo cargar Timevault: ', close: 'Cerrar', loading: 'Cargando…',
+			schedTitle: 'Copia automática', schedDesc: 'Se ejecuta sola en la frecuencia elegida y conserva solo las más recientes.',
+			schedFreq: 'Frecuencia', schedOff: 'Desactivado', schedDaily: 'Diaria', schedWeekly: 'Semanal', schedMonthly: 'Mensual',
+			schedKeep: 'Conservar', schedKeepUnit: 'copias automáticas', schedNote: 'Al pasar el límite, las copias automáticas más antiguas se eliminan por rotación — las manuales nunca se tocan.',
+			tSchedSaved: 'Programación guardada', errSched: 'No se pudo guardar la programación',
 		},
 	};
 
@@ -406,9 +418,53 @@
 			wrap.appendChild( h( 'div', { class: 'tv-notice' }, [ t( 'keyMissing1' ), h( 'code', { text: cfg.encryptConst || 'TIMEVAULT_ENCRYPTION_KEY' } ), t( 'keyMissing2' ) ] ) );
 		}
 		wrap.appendChild( cards() );
+		wrap.appendChild( schedulePanel() );
 		wrap.appendChild( activeJobsBanner() );
 		wrap.appendChild( h( 'div', { class: 'tv-columns' }, [ spinePanel(), historyPanel() ] ) );
 		return wrap;
+	}
+
+	function schedulePanel() {
+		var sc = ( state.overview && state.overview.schedule ) || { enabled: false, frequency: 'weekly', keep: 6 };
+		var freqVal = sc.enabled ? sc.frequency : 'off';
+
+		var freqSel = h( 'select', { class: 'tv-select', aria: { label: t( 'schedFreq' ) } }, [
+			h( 'option', { value: 'off', text: t( 'schedOff' ), selected: freqVal === 'off' ? 'selected' : null } ),
+			h( 'option', { value: 'daily', text: t( 'schedDaily' ), selected: freqVal === 'daily' ? 'selected' : null } ),
+			h( 'option', { value: 'weekly', text: t( 'schedWeekly' ), selected: freqVal === 'weekly' ? 'selected' : null } ),
+			h( 'option', { value: 'monthly', text: t( 'schedMonthly' ), selected: freqVal === 'monthly' ? 'selected' : null } ),
+		] );
+		var keepInput = h( 'input', { class: 'tv-input tv-input--num', type: 'number', min: '1', max: '60', value: String( sc.keep || 6 ) } );
+
+		function save() {
+			var freq = freqSel.value;
+			saveSchedule( { enabled: freq !== 'off', frequency: freq === 'off' ? 'weekly' : freq, keep: parseInt( keepInput.value, 10 ) || 6 } );
+		}
+		freqSel.addEventListener( 'change', save );
+		keepInput.addEventListener( 'change', save );
+
+		return h( 'div', { class: 'tv-panel tv-glass', style: 'margin-bottom:32px' }, [
+			h( 'div', { class: 'tv-sched' }, [
+				h( 'div', { style: 'flex:1;min-width:240px' }, [
+					h( 'div', { class: 'tv-eyebrow', style: 'margin-bottom:4px', text: t( 'schedTitle' ) } ),
+					h( 'p', { style: 'color:var(--tv-text-muted);font-size:13px', text: t( 'schedDesc' ) } ),
+				] ),
+				h( 'label', { class: 'tv-sched__field' }, [ h( 'span', { class: 'tv-sched__lbl', text: t( 'schedFreq' ) } ), freqSel ] ),
+				h( 'label', { class: 'tv-sched__field' }, [ h( 'span', { class: 'tv-sched__lbl', text: t( 'schedKeep' ) } ), h( 'span', { style: 'display:flex;align-items:center;gap:8px' }, [ keepInput, h( 'span', { style: 'color:var(--tv-text-muted);font-size:13px', text: t( 'schedKeepUnit' ) } ) ] ) ] ),
+			] ),
+			h( 'p', { class: 'tv-sched__note', text: t( 'schedNote' ) } ),
+		] );
+	}
+
+	function saveSchedule( data ) {
+		api( '/schedule', 'POST', data ).then( function ( sc ) {
+			if ( state.overview ) {
+				state.overview.schedule = sc;
+			}
+			toast( 'ok', t( 'tSchedSaved' ), '' );
+		} ).catch( function ( e ) {
+			toast( 'error', t( 'errSched' ), e.message );
+		} );
 	}
 
 	function card( label, hero, unit, meta ) {

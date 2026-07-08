@@ -67,6 +67,24 @@ Pipeline testado ponta a ponta num WordPress real:
 
 ---
 
+## Backup automático agendado + rotação (2026-07-08, terceira rodada)
+
+- **`ScheduleManager`** (`src/Core/ScheduleManager.php`): config em `timevault_schedule`
+  {enabled, frequency (daily/weekly/monthly), keep (default 6)}. `run()` (callback do Action
+  Scheduler recorrente) dispara um backup full marcado `auto:true`. `on_backup_completed()`
+  (hook `timevault_backup_completed` disparado pelo BackupManager ao concluir) roda `rotate($keep)`
+  que mantém os N automáticos mais recentes e apaga os antigos (artefato + registro). **Rotação só
+  toca backups automáticos** — manuais nunca são apagados. `ensure_scheduled()` sincroniza o job
+  recorrente no `init`.
+- **`ScheduleController`**: `GET/POST /schedule`. `/overview` passou a incluir `schedule`.
+- **UI**: painel "Backup automático" na aba Backups com select de frequência (Desligado/Diário/
+  Semanal/Mensal) + campo "Manter N automáticos" (default 6) + nota sobre a rotatividade.
+- **Wiring**: `Plugin::schedule()`, hooks `ScheduleManager::HOOK` e `timevault_backup_completed`,
+  `ensure_scheduled()` no init; `uninstall` remove a option.
+- Testes: +4 (config round-trip, frequência inválida cai pra weekly, rotação mantém N automáticos,
+  rotação preserva manuais) → **64 testes verdes**. Validado em runtime: 5 automáticos → mantém 3;
+  8 manuais preservados; desligar remove o recorrente.
+
 ## Ajustes de UX pós-P6 (2026-07-08, segunda rodada de feedback)
 
 Pedidos do usuário implementados:

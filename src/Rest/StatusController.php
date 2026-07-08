@@ -129,6 +129,7 @@ final class StatusController extends AbstractController {
 				),
 				'next_maintenance'  => is_int( $next_sweep ) ? gmdate( 'c', $next_sweep ) : null,
 				'retention'         => $this->plugin->privacy()->get_retention_policy(),
+				'schedule'          => $this->plugin->schedule()->get_schedule(),
 			)
 		);
 	}

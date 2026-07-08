@@ -473,6 +473,40 @@
 	color: var(--tv-amber-text);
 }
 
+/* ── Schedule panel ──────────────────────────────────────────── */
+.tv-sched {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	gap: var(--tv-space-5);
+}
+
+.tv-sched__field {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tv-space-2);
+}
+
+.tv-sched__lbl {
+	color: var(--tv-text-muted);
+	font-size: 12px;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+}
+
+.tv-sched__note {
+	margin-top: var(--tv-space-4);
+	padding-top: var(--tv-space-4);
+	border-top: 1px solid var(--tv-glass-border);
+	color: var(--tv-text-muted);
+	font-size: 13px;
+}
+
+.tv-input--num {
+	width: 80px;
+	text-align: center;
+}
+
 /* ── Status cards ────────────────────────────────────────────── */
 .tv-cards {
 	display: grid;

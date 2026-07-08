@@ -413,6 +413,14 @@ final class BackupManager {
 		Paths::delete_tree( $workdir );
 		$this->notify( $uuid, true );
 
+		/**
+		 * Fires when a backup completes successfully. Used by the scheduler to
+		 * rotate automatic backups.
+		 *
+		 * @param string $uuid Completed backup UUID.
+		 */
+		do_action( 'timevault_backup_completed', $uuid );
+
 		return null;
 	}
 
