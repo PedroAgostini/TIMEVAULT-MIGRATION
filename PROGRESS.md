@@ -7,7 +7,13 @@
 
 **Última atualização:** 2026-07-09
 **Fase atual:** ✅ **TODAS as fases (P0–P7) concluídas e VALIDADAS.** Roteiro do brief completo.
-**Versão atual do plugin:** 0.7.20 · **Schema DB:** v2
+**Versão atual do plugin:** 0.7.21 · **Schema DB:** v2
+
+## Restore: preservar acesso admin apos import (2026-07-09, v0.7.21)
+
+- Antes de substituir o banco, o restore captura o administrador atual.
+- Depois do SQL importado, recria/atualiza esse admin no banco novo e garante capability `administrator`.
+- Import aplicado retorna um token assinado de relogin; se o cookie antigo cair, a UI troca o token por um novo auth cookie e abre o wp-admin sem passar pela tela de login quando possivel.
 
 ## UI: sucesso quando a sessao cai apos import (2026-07-09, v0.7.20)
 

@@ -99,6 +99,7 @@ final class AdminMenu {
 				'encryptConst' => EncryptionService::KEY_CONSTANT,
 				'siteHost'     => (string) wp_parse_url( home_url(), PHP_URL_HOST ),
 				'loginUrl'     => esc_url_raw( wp_login_url( admin_url() ) ),
+				'adminUrl'     => esc_url_raw( admin_url() ),
 			)
 		);
 	}

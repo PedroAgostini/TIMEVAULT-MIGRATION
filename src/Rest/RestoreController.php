@@ -95,6 +95,22 @@ final class RestoreController extends AbstractController {
 
 		register_rest_route(
 			self::ROUTE_NAMESPACE,
+			'/restore/relogin/(?P<uuid>[a-f0-9\-]{36})',
+			array(
+				'methods'             => \WP_REST_Server::READABLE,
+				'callback'            => array( $this, 'relogin_after_restore' ),
+				'permission_callback' => '__return_true',
+				'args'                => array(
+					'token' => array(
+						'type'     => 'string',
+						'required' => true,
+					),
+				),
+			)
+		);
+
+		register_rest_route(
+			self::ROUTE_NAMESPACE,
 			'/restores',
 			array(
 				'methods'             => \WP_REST_Server::READABLE,
@@ -178,7 +194,10 @@ final class RestoreController extends AbstractController {
 
 		$uuid = $this->plugin->imports()->schedule_restore(
 			$backup_uuid,
-			array( 'restore_files' => (bool) $request['restore_files'] )
+			array(
+				'restore_files'  => (bool) $request['restore_files'],
+				'preserve_admin' => true,
+			)
 		);
 
 		if ( is_wp_error( $uuid ) ) {
@@ -194,6 +213,58 @@ final class RestoreController extends AbstractController {
 		$response->set_status( 202 );
 
 		return $response;
+	}
+
+	/**
+	 * GET /restore/relogin/{uuid} - exchanges a one-time signed import token
+	 * for a fresh WordPress auth cookie after the database has been replaced.
+	 *
+	 * @param \WP_REST_Request $request Request.
+	 * @return \WP_REST_Response|\WP_Error
+	 */
+	public function relogin_after_restore( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
+		$uuid  = (string) $request['uuid'];
+		$token = (string) $request['token'];
+		$row   = $this->plugin->restore_repository()->get( $uuid );
+
+		if ( null === $row ) {
+			return new \WP_Error( 'timevault_not_found', __( 'Restore not found.', 'timevault' ), array( 'status' => 404 ) );
+		}
+
+		$options = (array) ( $row['meta']['options'] ?? array() );
+		$hash    = (string) ( $options['admin_relogin_hash'] ?? '' );
+		$login   = (string) ( $options['preserve_admin_login'] ?? '' );
+
+		if ( '' === $token || '' === $hash || '' === $login ) {
+			return new \WP_Error( 'timevault_relogin_unavailable', __( 'Relogin is not available for this restore.', 'timevault' ), array( 'status' => 403 ) );
+		}
+
+		$expected = hash_hmac( 'sha256', $token, wp_salt( 'auth' ) );
+
+		if ( ! hash_equals( $hash, $expected ) ) {
+			return new \WP_Error( 'timevault_relogin_bad_token', __( 'The relogin token is invalid.', 'timevault' ), array( 'status' => 403 ) );
+		}
+
+		$user = get_user_by( 'login', $login );
+
+		if ( ! $user || ! user_can( $user, 'manage_options' ) ) {
+			return new \WP_Error( 'timevault_relogin_user_missing', __( 'The preserved administrator was not found.', 'timevault' ), array( 'status' => 404 ) );
+		}
+
+		wp_set_current_user( (int) $user->ID );
+		wp_set_auth_cookie( (int) $user->ID, true, is_ssl() );
+
+		unset( $options['admin_relogin_hash'] );
+		$meta            = (array) $row['meta'];
+		$meta['options'] = $options;
+		$this->plugin->restore_repository()->update( $uuid, array( 'meta' => $meta ) );
+
+		return rest_ensure_response(
+			array(
+				'ok'        => true,
+				'admin_url' => admin_url(),
+			)
+		);
 	}
 
 	/**

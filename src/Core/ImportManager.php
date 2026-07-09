@@ -563,11 +563,13 @@ final class ImportManager {
 			// deactivate the plugin, killing the pipeline. These few rows must
 			// reflect reality, not the restored snapshot.
 			$preserved = $this->snapshot_bookkeeping();
+			$admin     = $this->snapshot_current_admin( (array) ( $row['meta']['options'] ?? array() ) );
 
 			$stats = ( new SqlImporter() )->import( $sql_file, $from_prefix, $to_prefix );
 			$this->unwrap( $stats );
 
 			$this->restore_bookkeeping( $preserved );
+			$this->preserve_current_admin( $admin, $uuid );
 
 			$this->restores->merge_meta( $uuid, array( 'db' => $stats ) );
 			$this->audit->record(
@@ -678,6 +680,93 @@ final class ImportManager {
 			$active[] = $basename;
 			update_option( 'active_plugins', $active );
 		}
+	}
+
+	/**
+	 * Captures the current administrator before the users table is overwritten.
+	 *
+	 * @param array<string, mixed> $options Restore options.
+	 * @return array<string, string>|null Admin snapshot.
+	 */
+	private function snapshot_current_admin( array $options ): ?array {
+		if ( empty( $options['preserve_admin'] ) || ! function_exists( 'wp_get_current_user' ) ) {
+			return null;
+		}
+
+		$user = wp_get_current_user();
+
+		if ( ! $user || ! $user->exists() || ! user_can( $user, 'manage_options' ) ) {
+			return null;
+		}
+
+		return array(
+			'user_login'      => (string) $user->user_login,
+			'user_pass'       => (string) $user->user_pass,
+			'user_nicename'   => (string) $user->user_nicename,
+			'user_email'      => (string) $user->user_email,
+			'user_url'        => (string) $user->user_url,
+			'user_registered' => (string) $user->user_registered,
+			'display_name'    => (string) $user->display_name,
+		);
+	}
+
+	/**
+	 * Recreates the current admin in the imported database and issues a fresh
+	 * auth cookie so wp-admin can continue without a manual login.
+	 *
+	 * @param array<string, string>|null $admin        Admin snapshot.
+	 * @param string                     $restore_uuid Restore UUID.
+	 */
+	private function preserve_current_admin( ?array $admin, string $restore_uuid ): void {
+		if ( null === $admin || '' === ( $admin['user_login'] ?? '' ) || '' === ( $admin['user_pass'] ?? '' ) ) {
+			return;
+		}
+
+		global $wpdb;
+
+		$login = (string) $admin['user_login'];
+		$email = (string) $admin['user_email'];
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Restore-time admin preservation after DB replacement.
+		$user_id = (int) $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM {$wpdb->users} WHERE user_login = %s LIMIT 1", $login ) );
+
+		if ( 0 === $user_id && '' !== $email ) {
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Restore-time admin preservation after DB replacement.
+			$user_id = (int) $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM {$wpdb->users} WHERE user_email = %s LIMIT 1", $email ) );
+		}
+
+		$data = array(
+			'user_pass'     => (string) $admin['user_pass'],
+			'user_nicename' => (string) ( $admin['user_nicename'] ?: $login ),
+			'user_email'    => $email,
+			'user_url'      => (string) $admin['user_url'],
+			'display_name'  => (string) ( $admin['display_name'] ?: $login ),
+		);
+
+		if ( $user_id > 0 ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Restore-time admin preservation after DB replacement.
+			$wpdb->update( $wpdb->users, $data, array( 'ID' => $user_id ) );
+		} else {
+			$data['user_login']      = $login;
+			$data['user_registered'] = (string) ( $admin['user_registered'] ?: current_time( 'mysql', true ) );
+			$data['user_status']     = 0;
+
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Restore-time admin preservation after DB replacement.
+			$wpdb->insert( $wpdb->users, $data );
+			$user_id = (int) $wpdb->insert_id;
+		}
+
+		if ( $user_id <= 0 ) {
+			return;
+		}
+
+		update_user_meta( $user_id, $wpdb->base_prefix . 'capabilities', array( 'administrator' => true ) );
+		update_user_meta( $user_id, $wpdb->base_prefix . 'user_level', 10 );
+		clean_user_cache( $user_id );
+		wp_set_current_user( $user_id );
+		wp_set_auth_cookie( $user_id, true, is_ssl() );
+
+		$this->audit->record( 'restore_admin_preserved', array( 'user_login' => $login ), 'restore', $restore_uuid );
 	}
 
 	/**

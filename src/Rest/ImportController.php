@@ -97,15 +97,21 @@ final class ImportController extends AbstractController {
 
 		// Optionally apply the migration right away (import = replace the site).
 		$restore_uuid = null;
+		$relogin_token = null;
 
 		if ( filter_var( $request->get_param( 'apply' ), FILTER_VALIDATE_BOOLEAN ) ) {
 			$safety_backup = filter_var( $request->get_param( 'safety_backup' ), FILTER_VALIDATE_BOOLEAN );
+			$current_user  = wp_get_current_user();
+			$relogin_token = wp_generate_password( 32, false, false );
 			$restore = $this->plugin->imports()->schedule_restore(
 				(string) $uuid,
 				array(
-					'restore_files'       => true,
-					'manual_runner'       => true,
-					'skip_safety_backup'  => ! $safety_backup,
+					'restore_files'        => true,
+					'manual_runner'        => true,
+					'preserve_admin'       => true,
+					'preserve_admin_login' => $current_user && $current_user->exists() ? (string) $current_user->user_login : '',
+					'admin_relogin_hash'   => hash_hmac( 'sha256', $relogin_token, wp_salt( 'auth' ) ),
+					'skip_safety_backup'   => ! $safety_backup,
 				)
 			);
 
@@ -120,10 +126,11 @@ final class ImportController extends AbstractController {
 
 		$response = rest_ensure_response(
 			array(
-				'backup_uuid'  => $uuid,
-				'restore_uuid' => $restore_uuid,
-				'applied'      => null !== $restore_uuid,
-				'message'      => null !== $restore_uuid
+				'backup_uuid'   => $uuid,
+				'restore_uuid'  => $restore_uuid,
+				'relogin_token' => $relogin_token,
+				'applied'       => null !== $restore_uuid,
+				'message'       => null !== $restore_uuid
 					? __( 'Package imported. Applying it now.', 'timevault' )
 					: __( 'Package imported. You can now restore it from the backup list.', 'timevault' ),
 			)
