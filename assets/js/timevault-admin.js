@@ -1034,23 +1034,50 @@
 
 	function pollRestore( uuid, done ) {
 		var tries = 0;
-		function tick() {
+		function finishOrContinue( r ) {
+			if ( 'completed' === r.status ) {
+				done( true );
+				return;
+			}
+			if ( 'failed' === r.status ) {
+				done( false, r.error || '' );
+				return;
+			}
+			if ( tries > 900 ) {
+				done( false, 'Restore is still running. Refresh the dashboard to check the latest status.' );
+				return;
+			}
+			if ( 'pending' === r.status ) {
+				setTimeout( startStep, 600 );
+				return;
+			}
+			setTimeout( checkStep, 1600 );
+		}
+		function startStep() {
 			tries++;
 			api( '/restores/' + uuid, 'POST' ).then( function ( r ) {
-				if ( 'completed' === r.status ) {
-					done( true );
-				} else if ( 'failed' === r.status ) {
-					done( false, r.error || '' );
-				} else if ( tries > 400 ) {
-					done( false, 'Restore is still running. Refresh the dashboard to check the latest status.' );
-				} else {
-					setTimeout( tick, 900 );
-				}
+				setTimeout( function () {
+					finishOrContinue( r );
+				}, 1200 );
 			} ).catch( function ( e ) {
+				if ( 504 === e.status ) {
+					setTimeout( checkStep, 2500 );
+					return;
+				}
 				done( false, e.message );
 			} );
 		}
-		tick();
+		function checkStep() {
+			tries++;
+			api( '/restores/' + uuid ).then( finishOrContinue ).catch( function ( e ) {
+				if ( 504 === e.status ) {
+					setTimeout( checkStep, 2500 );
+					return;
+				}
+				done( false, e.message );
+			} );
+		}
+		startStep();
 	}
 
 	function uploadPackage( file, apply, onProgress, onProcessing ) {

@@ -228,15 +228,39 @@ final class RestoreController extends AbstractController {
 	 * @return \WP_REST_Response|\WP_Error
 	 */
 	public function advance_restore( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
-		$this->prepare_long_restore_runtime();
+		$uuid = (string) $request['uuid'];
+		$row  = $this->plugin->restore_repository()->get( $uuid );
 
-		$row = $this->plugin->imports()->advance_restore( (string) $request['uuid'] );
-
-		if ( is_wp_error( $row ) ) {
-			return $row;
+		if ( null === $row ) {
+			return new \WP_Error( 'timevault_not_found', __( 'Restore not found.', 'timevault' ), array( 'status' => 404 ) );
 		}
 
-		return rest_ensure_response( $this->prepare_row( $row ) );
+		if ( in_array( (string) $row['status'], array( 'completed', 'failed' ), true ) ) {
+			return rest_ensure_response( $this->prepare_row( $row ) );
+		}
+
+		$lock = $this->runner_lock_key( $uuid );
+
+		if ( ! get_transient( $lock ) ) {
+			set_transient( $lock, 1, 30 * MINUTE_IN_SECONDS );
+
+			$step = '' !== (string) $row['step'] ? (string) $row['step'] : 'safety_backup';
+			$this->plugin->restore_repository()->update(
+				$uuid,
+				array(
+					'status' => 'running',
+					'step'   => $step,
+				)
+			);
+
+			$this->run_restore_step_after_response( $uuid, $lock );
+		}
+
+		$current  = $this->plugin->restore_repository()->get( $uuid ) ?? $row;
+		$response = rest_ensure_response( $this->prepare_row( $current ) );
+		$response->set_status( 202 );
+
+		return $response;
 	}
 
 	/**
@@ -289,6 +313,43 @@ final class RestoreController extends AbstractController {
 			// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, Squiz.PHP.DiscouragedFunctions.Discouraged -- User-triggered restore step for large migrations.
 			@set_time_limit( 0 );
 		}
+	}
+
+	/**
+	 * Runs the heavy restore work after the REST response is flushed.
+	 *
+	 * @param string $uuid Restore UUID.
+	 * @param string $lock Transient lock key.
+	 */
+	private function run_restore_step_after_response( string $uuid, string $lock ): void {
+		register_shutdown_function(
+			function () use ( $uuid, $lock ): void {
+				if ( function_exists( 'ignore_user_abort' ) ) {
+					ignore_user_abort( true );
+				}
+
+				if ( function_exists( 'fastcgi_finish_request' ) ) {
+					fastcgi_finish_request();
+				}
+
+				$this->prepare_long_restore_runtime();
+
+				try {
+					$this->plugin->imports()->advance_restore( $uuid );
+				} finally {
+					delete_transient( $lock );
+				}
+			}
+		);
+	}
+
+	/**
+	 * Transient key for a background restore runner.
+	 *
+	 * @param string $uuid Restore UUID.
+	 */
+	private function runner_lock_key( string $uuid ): string {
+		return 'timevault_restore_runner_' . hash( 'sha256', $uuid );
 	}
 
 	/**

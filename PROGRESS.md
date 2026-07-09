@@ -7,7 +7,13 @@
 
 **Última atualização:** 2026-07-08
 **Fase atual:** ✅ **TODAS as fases (P0–P7) concluídas e VALIDADAS.** Roteiro do brief completo.
-**Versão atual do plugin:** 0.7.17 · **Schema DB:** v2
+**Versão atual do plugin:** 0.7.18 · **Schema DB:** v2
+
+## Fix: etapas pesadas do restore sem 504 no navegador (2026-07-09, v0.7.18)
+
+- `POST /restores/{uuid}` agora responde rapido e executa a etapa pesada no shutdown/background quando `fastcgi_finish_request` existe.
+- A UI inicia uma etapa com POST e acompanha com GET ate a etapa liberar a proxima, evitando manter a conexao aberta ate o nginx gerar 504.
+- Erros 504 durante aplicacao passam a ser tratados como "a etapa pode continuar rodando"; o painel volta a consultar o status antes de falhar.
 
 ## Fix: restore manual com backup de seguranca em etapas (2026-07-08, v0.7.17)
 
