@@ -135,6 +135,101 @@ final class BackupManager {
 	}
 
 	/**
+	 * Starts a backup that will be advanced manually by the dashboard.
+	 *
+	 * This is used by import/restore flows on hosts where Action Scheduler
+	 * loopback processing is unreliable.
+	 *
+	 * @param string               $type    Backup type: full|db|export.
+	 * @param array<string, mixed> $options Options stored in the row meta.
+	 * @return string|\WP_Error Backup UUID.
+	 */
+	public function start_manual( string $type, array $options = array() ): string|\WP_Error {
+		if ( ! in_array( $type, self::TYPES, true ) ) {
+			return new \WP_Error( 'timevault_invalid_type', __( 'Invalid backup type.', 'timevault' ) );
+		}
+
+		$storage = (string) ( $options['storage'] ?? 'local' );
+
+		if ( ! isset( $this->adapters[ $storage ] ) ) {
+			return new \WP_Error( 'timevault_unknown_storage', __( 'Unknown or disabled storage destination.', 'timevault' ) );
+		}
+
+		unset( $options['storage'] );
+
+		$uuid = $this->repository->create(
+			$type,
+			$storage,
+			array(
+				'options'     => $options,
+				'manual_step' => 'dump_db',
+				'manual'      => true,
+			)
+		);
+
+		if ( is_wp_error( $uuid ) ) {
+			return $uuid;
+		}
+
+		$this->audit->record(
+			'backup_scheduled',
+			array(
+				'type'    => $type,
+				'storage' => $storage,
+				'manual'  => true,
+			),
+			'backup',
+			$uuid
+		);
+
+		return $uuid;
+	}
+
+	/**
+	 * Advances one manually controlled backup step.
+	 *
+	 * @param string $uuid Backup UUID.
+	 * @return array<string, mixed>|\WP_Error Updated backup row.
+	 */
+	public function advance_manual( string $uuid ): array|\WP_Error {
+		$row = $this->repository->get( $uuid );
+
+		if ( null === $row ) {
+			return new \WP_Error( 'timevault_not_found', __( 'Backup not found.', 'timevault' ) );
+		}
+
+		if ( in_array( (string) $row['status'], array( 'completed', 'failed' ), true ) ) {
+			return $row;
+		}
+
+		$step = (string) ( $row['meta']['manual_step'] ?? 'dump_db' );
+
+		if ( ! in_array( $step, array( 'dump_db', 'package', 'finalize' ), true ) ) {
+			$this->fail( $uuid, 'Unknown backup step: ' . $step );
+
+			return new \WP_Error( 'timevault_backup_step_unknown', __( 'Unknown backup step.', 'timevault' ) );
+		}
+
+		try {
+			$next = match ( $step ) {
+				'dump_db'  => $this->step_dump_db( $row ),
+				'package'  => $this->step_package( $row ),
+				'finalize' => $this->step_finalize( $row ),
+			};
+
+			if ( null !== $next ) {
+				$this->repository->merge_meta( $uuid, array( 'manual_step' => $next ) );
+			}
+		} catch ( \Throwable $e ) {
+			$this->fail( $uuid, $e->getMessage() );
+
+			return new \WP_Error( 'timevault_manual_backup_failed', $e->getMessage() );
+		}
+
+		return $this->repository->get( $uuid ) ?? $row;
+	}
+
+	/**
 	 * Action Scheduler callback: runs one pipeline step.
 	 *
 	 * @param string $uuid Backup UUID.

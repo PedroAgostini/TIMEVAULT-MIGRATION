@@ -263,23 +263,54 @@
 		return url.toString();
 	}
 
+	function plainErrorMessage( status, text ) {
+		var clean = String( text || '' )
+			.replace( /<script[\s\S]*?<\/script>/gi, ' ' )
+			.replace( /<style[\s\S]*?<\/style>/gi, ' ' )
+			.replace( /<[^>]+>/g, ' ' )
+			.replace( /\s+/g, ' ' )
+			.trim();
+
+		if ( clean.length > 180 ) {
+			clean = clean.substring( 0, 180 ) + '...';
+		}
+
+		return clean || 'The server returned an empty response.';
+	}
+
+	function parseApiResponse( res ) {
+		return res.text().then( function ( text ) {
+			var data = null;
+
+			if ( text ) {
+				try {
+					data = JSON.parse( text );
+				} catch ( err ) {
+					var parseError = new Error( 'The server returned HTML instead of JSON (HTTP ' + res.status + '): ' + plainErrorMessage( res.status, text ) );
+					parseError.status = res.status;
+					parseError.raw = text;
+					throw parseError;
+				}
+			}
+
+			if ( ! res.ok ) {
+				var apiError = new Error( ( data && data.message ) || 'HTTP ' + res.status );
+				apiError.code = data && data.code;
+				apiError.status = res.status;
+				throw apiError;
+			}
+
+			return data || {};
+		} );
+	}
+
 	function apiFetch( root, path, method, body ) {
 		return fetch( apiUrl( root, path ), {
 			method: method || 'GET',
 			headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': cfg.nonce },
 			credentials: 'same-origin',
 			body: body ? JSON.stringify( body ) : undefined,
-		} ).then( function ( res ) {
-			return res.json().then( function ( data ) {
-				if ( ! res.ok ) {
-					var err = new Error( ( data && data.message ) || 'HTTP ' + res.status );
-					err.code = data && data.code;
-					err.status = res.status;
-					throw err;
-				}
-				return data;
-			} );
-		} );
+		} ).then( parseApiResponse );
 	}
 
 	function api( path, method, body ) {
@@ -1028,7 +1059,7 @@
 			fd.append( 'package', file );
 			fd.append( 'apply', apply ? '1' : '0' );
 			var xhr = new XMLHttpRequest();
-			xhr.open( 'POST', cfg.root + '/import' );
+			xhr.open( 'POST', apiUrl( cfg.root, '/import' ) );
 			xhr.setRequestHeader( 'X-WP-Nonce', cfg.nonce );
 			xhr.upload.onprogress = function ( e ) {
 				if ( e.lengthComputable && onProgress ) {
@@ -1045,7 +1076,8 @@
 				try {
 					data = JSON.parse( xhr.responseText );
 				} catch ( err ) {
-					data = {};
+					reject( new Error( 'The server returned HTML instead of JSON (HTTP ' + xhr.status + '): ' + plainErrorMessage( xhr.status, xhr.responseText ) ) );
+					return;
 				}
 				if ( xhr.status >= 200 && xhr.status < 300 ) {
 					resolve( data );

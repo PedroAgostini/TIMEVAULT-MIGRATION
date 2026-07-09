@@ -7,7 +7,13 @@
 
 **Última atualização:** 2026-07-08
 **Fase atual:** ✅ **TODAS as fases (P0–P7) concluídas e VALIDADAS.** Roteiro do brief completo.
-**Versão atual do plugin:** 0.7.16 · **Schema DB:** v2
+**Versão atual do plugin:** 0.7.17 · **Schema DB:** v2
+
+## Fix: restore manual com backup de seguranca em etapas (2026-07-08, v0.7.17)
+
+- O backup de seguranca criado antes de aplicar uma importacao agora pode avancar em etapas pelo painel.
+- Evita a requisicao unica longa que fazia alguns hosts devolverem HTML/erro e deixarem a UI em "Applying migration".
+- A camada JS de REST agora trata resposta HTML como erro legivel, em vez de mostrar `Unexpected token '<'`.
 
 ## Import apply sem depender do cron (2026-07-08, v0.7.16)
 

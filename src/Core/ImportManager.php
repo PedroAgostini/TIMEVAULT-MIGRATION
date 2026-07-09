@@ -430,7 +430,38 @@ final class ImportManager {
 	 * @throws \RuntimeException On failure.
 	 */
 	private function step_safety_backup( array $row ): string {
-		$uuid   = (string) $row['restore_uuid'];
+		$uuid    = (string) $row['restore_uuid'];
+		$options = (array) ( $row['meta']['options'] ?? array() );
+
+		if ( ! empty( $options['manual_runner'] ) ) {
+			$safety = (string) ( $row['safety_backup_uuid'] ?? '' );
+
+			if ( '' === $safety ) {
+				$safety = $this->backup_mgr->start_manual( 'full', array( 'files_scope' => 'wp-content' ) );
+				$this->unwrap( $safety );
+
+				$this->restores->update( $uuid, array( 'safety_backup_uuid' => (string) $safety ) );
+
+				return 'safety_backup';
+			}
+
+			$backup = $this->backup_mgr->advance_manual( $safety );
+			$this->unwrap( $backup );
+
+			if ( 'failed' === (string) $backup['status'] ) {
+				$error = (string) ( $backup['meta']['error'] ?? __( 'The safety backup failed.', 'timevault' ) );
+				throw new \RuntimeException( $error );
+			}
+
+			if ( 'completed' !== (string) $backup['status'] ) {
+				return 'safety_backup';
+			}
+
+			$this->audit->record( 'restore_safety_backup', array( 'safety_backup' => $safety ), 'restore', $uuid );
+
+			return 'validate';
+		}
+
 		$safety = $this->backup_mgr->run_now( 'full', array( 'files_scope' => 'wp-content' ) );
 
 		$this->unwrap( $safety );
