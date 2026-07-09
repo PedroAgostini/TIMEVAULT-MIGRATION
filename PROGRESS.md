@@ -7,7 +7,13 @@
 
 **Última atualização:** 2026-07-09
 **Fase atual:** ✅ **TODAS as fases (P0–P7) concluídas e VALIDADAS.** Roteiro do brief completo.
-**Versão atual do plugin:** 0.7.19 · **Schema DB:** v2
+**Versão atual do plugin:** 0.7.20 · **Schema DB:** v2
+
+## UI: sucesso quando a sessao cai apos import (2026-07-09, v0.7.20)
+
+- Depois que a importacao substitui o banco, o WordPress pode invalidar o cookie/nonce atual.
+- A UI agora trata `Cookie check failed` durante import aplicado como sucesso com aviso para fazer login novamente.
+- Adicionado `loginUrl` ao config do painel para o botao final levar ao login/admin correto.
 
 ## Fix: import direto sem travar no backup de seguranca (2026-07-09, v0.7.19)
 

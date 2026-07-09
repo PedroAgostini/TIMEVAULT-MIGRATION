@@ -98,6 +98,7 @@ final class AdminMenu {
 				'logo'         => esc_url_raw( TIMEVAULT_URL . 'assets/images/TIMEVAULT-LOGO-2-cropped.webp' ),
 				'encryptConst' => EncryptionService::KEY_CONSTANT,
 				'siteHost'     => (string) wp_parse_url( home_url(), PHP_URL_HOST ),
+				'loginUrl'     => esc_url_raw( wp_login_url( admin_url() ) ),
 			)
 		);
 	}

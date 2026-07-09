@@ -45,7 +45,7 @@
 			importFile: 'Pacote (.zip, .zip.enc ou .wpress)', doImport: 'Importar pacote',
 			applyLabel: 'Substituir este site agora (aplicar a importação)', applyWarn: 'Isto sobrescreve o banco e os arquivos do site atual.',
 			safetyLabel: 'Criar backup de segurança antes de substituir', safetyWarn: 'Mais seguro, mas pode demorar ou travar em hospedagens com limite baixo.',
-			uploading: 'Enviando pacote…', processingImport: 'Upload concluído. Processando o pacote; arquivos grandes podem levar alguns minutos.', applying: 'Aplicando migração…', tMigrated: 'Migração concluída', tMigratedMsg: 'O site foi substituído pelo conteúdo importado.', tApplyFail: 'A importação foi salva, mas a aplicação falhou',
+			uploading: 'Enviando pacote…', processingImport: 'Upload concluído. Processando o pacote; arquivos grandes podem levar alguns minutos.', applying: 'Aplicando migração…', tMigrated: 'Migração concluída', tMigratedMsg: 'O site foi substituído pelo conteúdo importado.', tMigratedLoginMsg: 'A sessão atual foi encerrada porque o banco do WordPress foi substituído. Entre novamente usando um usuário do site importado.', loginAgain: 'Entrar novamente', tApplyFail: 'A importação foi salva, mas a aplicação falhou',
 			restoreTitle: 'Restaurar este backup vai substituir o site atual.',
 			restoreP2: 'O conteúdo atual do banco será sobrescrito pelo conteúdo deste backup. Esta ação não pode ser desfeita manualmente.',
 			safeNote: 'Um backup de segurança completo do estado atual é criado automaticamente antes de qualquer alteração.',
@@ -98,7 +98,7 @@
 			importFile: 'Package (.zip, .zip.enc or .wpress)', doImport: 'Import package',
 			applyLabel: 'Replace this site now (apply the import)', applyWarn: 'This overwrites the current site’s database and files.',
 			safetyLabel: 'Create a safety backup before replacing', safetyWarn: 'Safer, but it can be slow or get stuck on hosts with low limits.',
-			uploading: 'Uploading package…', processingImport: 'Upload complete. Processing the package; large files can take several minutes.', applying: 'Applying migration…', tMigrated: 'Migration complete', tMigratedMsg: 'The site was replaced with the imported content.', tApplyFail: 'The import was saved, but applying it failed',
+			uploading: 'Uploading package…', processingImport: 'Upload complete. Processing the package; large files can take several minutes.', applying: 'Applying migration…', tMigrated: 'Migration complete', tMigratedMsg: 'The site was replaced with the imported content.', tMigratedLoginMsg: 'Your current session ended because the WordPress database was replaced. Log in again with a user from the imported site.', loginAgain: 'Log in again', tApplyFail: 'The import was saved, but applying it failed',
 			restoreTitle: 'Restoring this backup will replace the current site.',
 			restoreP2: 'The current database content will be overwritten by this backup. This action cannot be undone manually.',
 			safeNote: 'A full safety backup of the current state is created automatically before anything changes.',
@@ -151,7 +151,7 @@
 			importFile: 'Paquete (.zip, .zip.enc o .wpress)', doImport: 'Importar paquete',
 			applyLabel: 'Reemplazar este sitio ahora (aplicar la importación)', applyWarn: 'Esto sobrescribe la base de datos y los archivos del sitio actual.',
 			safetyLabel: 'Crear copia de seguridad antes de reemplazar', safetyWarn: 'Más seguro, pero puede tardar o atascarse en alojamientos con límites bajos.',
-			uploading: 'Subiendo paquete…', processingImport: 'Subida completada. Procesando el paquete; los archivos grandes pueden tardar varios minutos.', applying: 'Aplicando migración…', tMigrated: 'Migración completada', tMigratedMsg: 'El sitio fue reemplazado por el contenido importado.', tApplyFail: 'La importación se guardó, pero la aplicación falló',
+			uploading: 'Subiendo paquete…', processingImport: 'Subida completada. Procesando el paquete; los archivos grandes pueden tardar varios minutos.', applying: 'Aplicando migración…', tMigrated: 'Migración completada', tMigratedMsg: 'El sitio fue reemplazado por el contenido importado.', tMigratedLoginMsg: 'La sesión actual terminó porque la base de datos de WordPress fue reemplazada. Inicia sesión nuevamente con un usuario del sitio importado.', loginAgain: 'Iniciar sesión', tApplyFail: 'La importación se guardó, pero la aplicación falló',
 			restoreTitle: 'Restaurar esta copia reemplazará el sitio actual.',
 			restoreP2: 'El contenido actual de la base de datos se sobrescribirá con esta copia. Esta acción no se puede deshacer manualmente.',
 			safeNote: 'Se crea automáticamente una copia de seguridad completa del estado actual antes de cualquier cambio.',
@@ -328,6 +328,34 @@
 		} );
 	}
 
+	function isAuthExpired( err ) {
+		var msg = String( ( err && err.message ) || '' ).toLowerCase();
+
+		return ( err && ( err.code === 'rest_cookie_invalid_nonce' || err.status === 401 || err.status === 403 ) && msg.indexOf( 'cookie' ) !== -1 ) ||
+			msg.indexOf( 'cookie check failed' ) !== -1 ||
+			msg.indexOf( 'rest_cookie_invalid_nonce' ) !== -1;
+	}
+
+	function markImportApplying( uuid ) {
+		try {
+			sessionStorage.setItem( 'timevault-import-applying', uuid || '1' );
+		} catch ( err ) {}
+	}
+
+	function clearImportApplying() {
+		try {
+			sessionStorage.removeItem( 'timevault-import-applying' );
+		} catch ( err ) {}
+	}
+
+	function hasImportApplying() {
+		try {
+			return !! sessionStorage.getItem( 'timevault-import-applying' );
+		} catch ( err ) {
+			return false;
+		}
+	}
+
 	/* ── Formatting ──────────────────────────────────────────── */
 	function fmtBytes( n ) {
 		n = Number( n ) || 0;
@@ -394,6 +422,20 @@
 	}
 
 	/* ── Data load ───────────────────────────────────────────── */
+	function renderMigrationSuccess() {
+		clearImportApplying();
+		state.loading = false;
+		app.innerHTML = '';
+		app.appendChild(
+			h( 'section', { class: 'tv-panel tv-glass tv-import-panel', style: 'max-width:760px;margin:34px auto' }, [
+				h( 'div', { class: 'tv-panel__head' }, [ h( 'h2', { text: t( 'tMigrated' ) } ) ] ),
+				h( 'p', { style: 'color:var(--tv-text-muted);font-size:15px;line-height:1.7;margin:0 0 20px', text: t( 'tMigratedMsg' ) } ),
+				h( 'div', { class: 'tv-notice', style: 'margin-bottom:22px' }, [ t( 'tMigratedLoginMsg' ) ] ),
+				h( 'a', { class: 'tv-btn tv-btn--primary', href: cfg.loginUrl || 'wp-login.php', text: t( 'loginAgain' ) }, [] ),
+			] )
+		);
+	}
+
 	function overviewFromStatus( status ) {
 		return {
 			health: {
@@ -435,6 +477,10 @@
 			managePolling();
 		} ).catch( function ( e ) {
 			state.loading = false;
+			if ( hasImportApplying() && isAuthExpired( e ) ) {
+				renderMigrationSuccess();
+				return;
+			}
 			app.innerHTML = '';
 			app.appendChild( h( 'div', { class: 'tv-notice', text: t( 'loadFail' ) + e.message } ) );
 		} );
@@ -996,13 +1042,19 @@
 			} ).then( function ( data ) {
 				if ( apply && data && data.restore_uuid ) {
 					// The upload is done; now show the restore pipeline running.
+					markImportApplying( data.restore_uuid );
 					progress.className = 'tv-progress tv-progress--indeterminate';
 					status.textContent = t( 'applying' );
 					pollRestore( data.restore_uuid, function ( ok, err ) {
 						btn.disabled = false;
-						if ( ok ) {
+						if ( ok === 'reauth' ) {
+							renderMigrationSuccess();
+							return;
+						} else if ( ok ) {
+							clearImportApplying();
 							toast( 'ok', t( 'tMigrated' ), t( 'tMigratedMsg' ) );
 						} else {
+							clearImportApplying();
 							toast( 'error', t( 'errRestore' ), err || '' );
 						}
 						state.tab = 'backups';
@@ -1066,6 +1118,10 @@
 					finishOrContinue( r );
 				}, 1200 );
 			} ).catch( function ( e ) {
+				if ( isAuthExpired( e ) ) {
+					done( 'reauth' );
+					return;
+				}
 				if ( 504 === e.status ) {
 					setTimeout( checkStep, 2500 );
 					return;
@@ -1076,6 +1132,10 @@
 		function checkStep() {
 			tries++;
 			api( '/restores/' + uuid ).then( finishOrContinue ).catch( function ( e ) {
+				if ( isAuthExpired( e ) ) {
+					done( 'reauth' );
+					return;
+				}
 				if ( 504 === e.status ) {
 					setTimeout( checkStep, 2500 );
 					return;
