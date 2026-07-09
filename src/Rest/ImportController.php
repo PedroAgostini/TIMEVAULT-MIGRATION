@@ -58,6 +58,8 @@ final class ImportController extends AbstractController {
 	 * @return \WP_REST_Response|\WP_Error
 	 */
 	public function import( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
+		$this->prepare_large_import_runtime();
+
 		$limited = ( new RateLimiter() )->hit( 'import_upload', 10, 600 );
 
 		if ( is_wp_error( $limited ) ) {
@@ -99,7 +101,13 @@ final class ImportController extends AbstractController {
 		$restore_uuid = null;
 
 		if ( filter_var( $request->get_param( 'apply' ), FILTER_VALIDATE_BOOLEAN ) ) {
-			$restore = $this->plugin->imports()->schedule_restore( (string) $uuid, array( 'restore_files' => true ) );
+			$restore = $this->plugin->imports()->schedule_restore(
+				(string) $uuid,
+				array(
+					'restore_files' => true,
+					'manual_runner' => true,
+				)
+			);
 
 			if ( is_wp_error( $restore ) ) {
 				// The package is registered; only the apply step failed.
@@ -123,5 +131,20 @@ final class ImportController extends AbstractController {
 		$response->set_status( 201 );
 
 		return $response;
+	}
+
+	/**
+	 * Gives large migration uploads enough room to be converted and validated.
+	 *
+	 * Hosts may still enforce web-server/proxy limits, but this prevents PHP's
+	 * normal execution limit from killing a large .wpress normalization.
+	 */
+	private function prepare_large_import_runtime(): void {
+		wp_raise_memory_limit( 'admin' );
+
+		if ( function_exists( 'set_time_limit' ) ) {
+			// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, Squiz.PHP.DiscouragedFunctions.Discouraged -- Long-running import request for large migration packages.
+			@set_time_limit( 0 );
+		}
 	}
 }

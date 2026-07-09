@@ -42,6 +42,15 @@ final class EncryptionService {
 	private const METHOD_OPENSSL = 2;
 
 	/**
+	 * Sodium secretstream constants. Some PHP builds expose the secretstream
+	 * functions but not the related constants, so keep the stable libsodium
+	 * values here instead of relying on global constants.
+	 */
+	private const SODIUM_HEADER_BYTES = 24;
+	private const SODIUM_TAG_MESSAGE  = 0;
+	private const SODIUM_TAG_FINAL    = 3;
+
+	/**
 	 * Plaintext bytes per chunk (1 MiB) - bounds memory usage for large archives.
 	 */
 	private const CHUNK_SIZE = 1048576;
@@ -199,8 +208,8 @@ final class EncryptionService {
 			$next  = fread( $in, self::CHUNK_SIZE );
 			$final = ( false === $next || '' === $next );
 			$tag   = $final
-				? SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_TAG_FINAL
-				: SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_TAG_MESSAGE;
+				? self::SODIUM_TAG_FINAL
+				: self::SODIUM_TAG_MESSAGE;
 
 			$cipher = sodium_crypto_secretstream_xchacha20poly1305_push( $state, $plain, '', $tag );
 
@@ -227,7 +236,7 @@ final class EncryptionService {
 	 * @return true|\WP_Error
 	 */
 	private function decrypt_stream_sodium( $in, $out, string $key ): bool|\WP_Error {
-		$header = $this->read_exact( $in, SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_HEADERBYTES );
+		$header = $this->read_exact( $in, self::SODIUM_HEADER_BYTES );
 
 		if ( false === $header ) {
 			return $this->corrupted();
@@ -265,7 +274,7 @@ final class EncryptionService {
 				return new \WP_Error( 'timevault_encryption_write_failed', __( 'Could not write the decrypted file.', 'timevault' ) );
 			}
 
-			if ( SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_TAG_FINAL === $tag ) {
+			if ( self::SODIUM_TAG_FINAL === $tag ) {
 				return $this->at_clean_eof( $in ) ? true : $this->corrupted();
 			}
 		}

@@ -53,6 +53,16 @@ final class StatusController extends AbstractController {
 				'permission_callback' => array( $this, 'permission_check' ),
 			)
 		);
+
+		register_rest_route(
+			self::ROUTE_NAMESPACE,
+			'/jobs/cancel-active',
+			array(
+				'methods'             => \WP_REST_Server::CREATABLE,
+				'callback'            => array( $this, 'cancel_active_jobs' ),
+				'permission_callback' => array( $this, 'permission_check' ),
+			)
+		);
 	}
 
 	/**
@@ -133,6 +143,47 @@ final class StatusController extends AbstractController {
 				'next_maintenance'  => is_int( $next_sweep ) ? gmdate( 'c', $next_sweep ) : null,
 				'retention'         => $this->plugin->privacy()->get_retention_policy(),
 				'schedule'          => $this->plugin->schedule()->get_schedule(),
+			)
+		);
+	}
+
+	/**
+	 * Cancels active jobs that are stuck from an interrupted request.
+	 *
+	 * This does not delete completed backups. It only marks pending/running
+	 * backup and restore registry rows as failed so the dashboard can recover.
+	 */
+	public function cancel_active_jobs(): \WP_REST_Response {
+		$cancelled_backups  = 0;
+		$cancelled_restores = 0;
+		$message            = __( 'Cancelled by the administrator from the Timevault dashboard.', 'timevault' );
+
+		foreach ( $this->plugin->backup_repository()->list_backups( 100 ) as $backup ) {
+			if ( ! in_array( (string) $backup['status'], array( 'pending', 'running' ), true ) ) {
+				continue;
+			}
+
+			$this->plugin->backup_repository()->update( (string) $backup['backup_uuid'], array( 'status' => 'failed' ) );
+			$this->plugin->backup_repository()->merge_meta( (string) $backup['backup_uuid'], array( 'error' => $message ) );
+			$this->plugin->audit_log()->record( 'backup_cancelled', array( 'reason' => $message ), 'backup', (string) $backup['backup_uuid'] );
+			++$cancelled_backups;
+		}
+
+		foreach ( $this->plugin->restore_repository()->list_restores( 100 ) as $restore ) {
+			if ( ! in_array( (string) $restore['status'], array( 'pending', 'running' ), true ) ) {
+				continue;
+			}
+
+			$this->plugin->restore_repository()->update( (string) $restore['restore_uuid'], array( 'status' => 'failed' ) );
+			$this->plugin->restore_repository()->merge_meta( (string) $restore['restore_uuid'], array( 'error' => $message ) );
+			$this->plugin->audit_log()->record( 'restore_cancelled', array( 'reason' => $message ), 'restore', (string) $restore['restore_uuid'] );
+			++$cancelled_restores;
+		}
+
+		return rest_ensure_response(
+			array(
+				'cancelled_backups'  => $cancelled_backups,
+				'cancelled_restores' => $cancelled_restores,
 			)
 		);
 	}

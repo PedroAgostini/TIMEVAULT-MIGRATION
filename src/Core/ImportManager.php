@@ -312,6 +312,10 @@ final class ImportManager {
 			$uuid
 		);
 
+		if ( ! empty( $options['manual_runner'] ) ) {
+			return $uuid;
+		}
+
 		$dispatched = $this->queue->dispatch( self::STEP_HOOK, array( $uuid, 'safety_backup' ) );
 
 		if ( is_wp_error( $dispatched ) ) {
@@ -330,6 +334,43 @@ final class ImportManager {
 	 * @param string $step Step name.
 	 */
 	public function handle_step( string $uuid, string $step ): void {
+		$this->run_step( $uuid, $step, true );
+	}
+
+	/**
+	 * Advances one restore step synchronously, used by the dashboard when the
+	 * host does not process Action Scheduler jobs reliably.
+	 *
+	 * @param string $uuid Restore UUID.
+	 * @return array<string, mixed>|\WP_Error Updated restore row.
+	 */
+	public function advance_restore( string $uuid ): array|\WP_Error {
+		$row = $this->restores->get( $uuid );
+
+		if ( null === $row ) {
+			return new \WP_Error( 'timevault_not_found', __( 'Restore not found.', 'timevault' ) );
+		}
+
+		if ( in_array( (string) $row['status'], array( 'completed', 'failed' ), true ) ) {
+			return $row;
+		}
+
+		$step = '' !== (string) $row['step'] ? (string) $row['step'] : 'safety_backup';
+		$this->run_step( $uuid, $step, false );
+
+		$updated = $this->restores->get( $uuid );
+
+		return $updated ?? $row;
+	}
+
+	/**
+	 * Runs a restore pipeline step.
+	 *
+	 * @param string $uuid          Restore UUID.
+	 * @param string $step          Step to run.
+	 * @param bool   $dispatch_next Whether to enqueue the next step with Action Scheduler.
+	 */
+	private function run_step( string $uuid, string $step, bool $dispatch_next ): void {
 		$row = $this->restores->get( $uuid );
 
 		if ( null === $row || in_array( (string) $row['status'], array( 'completed', 'failed' ), true ) ) {
@@ -363,7 +404,17 @@ final class ImportManager {
 			};
 
 			if ( null !== $next ) {
-				$this->unwrap( $this->queue->dispatch( self::STEP_HOOK, array( $uuid, $next ) ) );
+				if ( $dispatch_next ) {
+					$this->unwrap( $this->queue->dispatch( self::STEP_HOOK, array( $uuid, $next ) ) );
+				} else {
+					$this->restores->update(
+						$uuid,
+						array(
+							'status' => 'pending',
+							'step'   => $next,
+						)
+					);
+				}
 			}
 		} catch ( \Throwable $e ) {
 			$this->fail( $uuid, $e->getMessage() );

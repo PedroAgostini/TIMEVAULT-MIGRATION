@@ -24,6 +24,7 @@
 			cardSpace: 'Espaço usado', nextClean: 'Próxima limpeza: ', retentionOff: 'Retenção desligada',
 			cardHealth: 'Saúde do ambiente', hEncryption: 'Criptografia', hQueue: 'Fila', hDir: 'Diretório',
 			noneYet: 'Nenhum ainda', inProgress: 'Em andamento', jobRestore: 'Restauração',
+			cancelJobs: 'Cancelar jobs presos', cancelJobsDone: 'Jobs cancelados', cancelJobsMsg: 'Você já pode iniciar uma nova importação.',
 			queued: 'Na fila', processing: 'Processando',
 			spineTitle: 'Espinha temporal', sortNewest: 'Mais recentes primeiro', sortOldest: 'Mais antigos primeiro',
 			encrypted: 'Cifrado', dbType: 'Banco', download: 'Baixar', restore: 'Restaurar', del: 'Excluir',
@@ -43,7 +44,7 @@
 			importWarn1: 'Atenção: ', importWarn2: 'pacotes cifrados do Timevault só podem ser lidos com a MESMA ', importWarn3: ' definida no site de origem. Chaves diferentes = pacote ilegível.',
 			importFile: 'Pacote (.zip, .zip.enc ou .wpress)', doImport: 'Importar pacote',
 			applyLabel: 'Substituir este site agora (aplicar a importação)', applyWarn: 'Isto sobrescreve o banco e os arquivos do site atual. Um backup de segurança completo é criado automaticamente antes.',
-			applying: 'Importando e aplicando…', tMigrated: 'Migração concluída', tMigratedMsg: 'O site foi substituído pelo conteúdo importado.', tApplyFail: 'A importação foi salva, mas a aplicação falhou',
+			uploading: 'Enviando pacote…', processingImport: 'Upload concluído. Processando o pacote; arquivos grandes podem levar alguns minutos.', applying: 'Aplicando migração…', tMigrated: 'Migração concluída', tMigratedMsg: 'O site foi substituído pelo conteúdo importado.', tApplyFail: 'A importação foi salva, mas a aplicação falhou',
 			restoreTitle: 'Restaurar este backup vai substituir o site atual.',
 			restoreP2: 'O conteúdo atual do banco será sobrescrito pelo conteúdo deste backup. Esta ação não pode ser desfeita manualmente.',
 			safeNote: 'Um backup de segurança completo do estado atual é criado automaticamente antes de qualquer alteração.',
@@ -75,6 +76,7 @@
 			cardSpace: 'Space used', nextClean: 'Next cleanup: ', retentionOff: 'Retention off',
 			cardHealth: 'Environment health', hEncryption: 'Encryption', hQueue: 'Queue', hDir: 'Directory',
 			noneYet: 'None yet', inProgress: 'In progress', jobRestore: 'Restore',
+			cancelJobs: 'Cancel stuck jobs', cancelJobsDone: 'Jobs cancelled', cancelJobsMsg: 'You can start a new import now.',
 			queued: 'Queued', processing: 'Processing',
 			spineTitle: 'Temporal spine', sortNewest: 'Newest first', sortOldest: 'Oldest first',
 			encrypted: 'Encrypted', dbType: 'Database', download: 'Download', restore: 'Restore', del: 'Delete',
@@ -94,7 +96,7 @@
 			importWarn1: 'Note: ', importWarn2: 'encrypted Timevault packages can only be read with the SAME ', importWarn3: ' defined on the source site. Different keys = unreadable package.',
 			importFile: 'Package (.zip, .zip.enc or .wpress)', doImport: 'Import package',
 			applyLabel: 'Replace this site now (apply the import)', applyWarn: 'This overwrites the current site’s database and files. A full safety backup is created automatically first.',
-			applying: 'Importing and applying…', tMigrated: 'Migration complete', tMigratedMsg: 'The site was replaced with the imported content.', tApplyFail: 'The import was saved, but applying it failed',
+			uploading: 'Uploading package…', processingImport: 'Upload complete. Processing the package; large files can take several minutes.', applying: 'Applying migration…', tMigrated: 'Migration complete', tMigratedMsg: 'The site was replaced with the imported content.', tApplyFail: 'The import was saved, but applying it failed',
 			restoreTitle: 'Restoring this backup will replace the current site.',
 			restoreP2: 'The current database content will be overwritten by this backup. This action cannot be undone manually.',
 			safeNote: 'A full safety backup of the current state is created automatically before anything changes.',
@@ -126,6 +128,7 @@
 			cardSpace: 'Espacio usado', nextClean: 'Próxima limpieza: ', retentionOff: 'Retención desactivada',
 			cardHealth: 'Salud del entorno', hEncryption: 'Cifrado', hQueue: 'Cola', hDir: 'Directorio',
 			noneYet: 'Ninguna aún', inProgress: 'En curso', jobRestore: 'Restauración',
+			cancelJobs: 'Cancelar trabajos atascados', cancelJobsDone: 'Trabajos cancelados', cancelJobsMsg: 'Ya puedes iniciar una nueva importación.',
 			queued: 'En cola', processing: 'Procesando',
 			spineTitle: 'Espina temporal', sortNewest: 'Más recientes primero', sortOldest: 'Más antiguas primero',
 			encrypted: 'Cifrado', dbType: 'Base de datos', download: 'Descargar', restore: 'Restaurar', del: 'Eliminar',
@@ -145,7 +148,7 @@
 			importWarn1: 'Atención: ', importWarn2: 'los paquetes cifrados de Timevault solo se leen con la MISMA ', importWarn3: ' definida en el sitio de origen. Claves distintas = paquete ilegible.',
 			importFile: 'Paquete (.zip, .zip.enc o .wpress)', doImport: 'Importar paquete',
 			applyLabel: 'Reemplazar este sitio ahora (aplicar la importación)', applyWarn: 'Esto sobrescribe la base de datos y los archivos del sitio actual. Se crea automáticamente una copia de seguridad completa antes.',
-			applying: 'Importando y aplicando…', tMigrated: 'Migración completada', tMigratedMsg: 'El sitio fue reemplazado por el contenido importado.', tApplyFail: 'La importación se guardó, pero la aplicación falló',
+			uploading: 'Subiendo paquete…', processingImport: 'Subida completada. Procesando el paquete; los archivos grandes pueden tardar varios minutos.', applying: 'Aplicando migración…', tMigrated: 'Migración completada', tMigratedMsg: 'El sitio fue reemplazado por el contenido importado.', tApplyFail: 'La importación se guardó, pero la aplicación falló',
 			restoreTitle: 'Restaurar esta copia reemplazará el sitio actual.',
 			restoreP2: 'El contenido actual de la base de datos se sobrescribirá con esta copia. Esta acción no se puede deshacer manualmente.',
 			safeNote: 'Se crea automáticamente una copia de seguridad completa del estado actual antes de cualquier cambio.',
@@ -592,10 +595,23 @@
 		runningR.forEach( function ( r ) {
 			rows.push( jobRow( t( 'jobRestore' ), r.status, r.step ) );
 		} );
+		var cancelBtn = h( 'button', { class: 'tv-btn tv-btn--ghost tv-btn--sm', text: t( 'cancelJobs' ), onclick: cancelActiveJobs }, [] );
 		return h( 'div', { class: 'tv-panel tv-glass tv-glass--active', style: 'margin-bottom:32px' }, [
-			h( 'div', { class: 'tv-eyebrow', text: t( 'inProgress' ) } ),
+			h( 'div', { style: 'display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap' }, [
+				h( 'div', { class: 'tv-eyebrow', text: t( 'inProgress' ) } ),
+				cancelBtn,
+			] ),
 			h( 'div', { style: 'margin-top:12px;display:flex;flex-direction:column;gap:16px' }, rows ),
 		] );
+	}
+
+	function cancelActiveJobs() {
+		api( '/jobs/cancel-active', 'POST' ).then( function () {
+			toast( 'ok', t( 'cancelJobsDone' ), t( 'cancelJobsMsg' ) );
+			load();
+		} ).catch( function ( e ) {
+			toast( 'error', t( 'errBackup' ), e.message );
+		} );
 	}
 
 	function jobRow( label, status, step ) {
@@ -764,11 +780,11 @@
 			return state.filterType === 'all' || b.type === state.filterType;
 		} );
 
-		var table;
+		var history;
 		if ( ! rows.length ) {
-			table = h( 'p', { style: 'color:var(--tv-text-muted);padding:16px 4px', text: t( 'emptyFilter' ) } );
+			history = h( 'p', { class: 'tv-history-empty', text: t( 'emptyFilter' ) } );
 		} else {
-			table = h( 'div', { style: 'overflow-x:auto' }, [
+			history = h( 'div', { style: 'overflow-x:auto' }, [
 				h( 'table', { class: 'tv-table' }, [
 					h( 'thead', {}, [ h( 'tr', {}, [ h( 'th', { text: t( 'backupName' ) } ), h( 'th', { text: t( 'thDate' ) } ), h( 'th', { text: t( 'thType' ) } ), h( 'th', { text: t( 'thSize' ), class: 'tv-num' } ), h( 'th', { text: t( 'thDest' ) } ), h( 'th', { text: t( 'thStatus' ) } ) ] ) ] ),
 					h( 'tbody', {}, rows.map( function ( b ) {
@@ -784,7 +800,7 @@
 				] ),
 			] );
 		}
-		return h( 'section', { class: 'tv-panel tv-glass', aria: { label: t( 'historyTitle' ) } }, [ h( 'div', { class: 'tv-panel__head' }, [ h( 'h2', { text: t( 'historyTitle' ) } ) ] ), filters, table ] );
+		return h( 'section', { class: 'tv-panel tv-glass', aria: { label: t( 'historyTitle' ) } }, [ h( 'div', { class: 'tv-panel__head' }, [ h( 'h2', { text: t( 'historyTitle' ) } ) ] ), filters, history ] );
 	}
 
 	/* ── Export tab (scope + auto-download) ──────────────────── */
@@ -929,15 +945,23 @@
 			progress.style.display = 'block';
 			progress.className = 'tv-progress';
 			var fill = progress.firstChild;
-			status.style.display = apply ? 'block' : 'none';
-			status.textContent = t( 'applying' );
+			status.style.display = 'block';
+			status.textContent = t( 'uploading' );
 
 			uploadPackage( file, apply, function ( pct ) {
 				fill.style.width = pct + '%';
+				if ( pct >= 100 ) {
+					status.textContent = t( 'processingImport' );
+					progress.className = 'tv-progress tv-progress--indeterminate';
+				}
+			}, function () {
+				status.textContent = t( 'processingImport' );
+				progress.className = 'tv-progress tv-progress--indeterminate';
 			} ).then( function ( data ) {
 				if ( apply && data && data.restore_uuid ) {
 					// The upload is done; now show the restore pipeline running.
 					progress.className = 'tv-progress tv-progress--indeterminate';
+					status.textContent = t( 'applying' );
 					pollRestore( data.restore_uuid, function ( ok, err ) {
 						btn.disabled = false;
 						if ( ok ) {
@@ -970,7 +994,7 @@
 			] ),
 			h( 'div', { class: 'tv-notice', style: 'margin-bottom:20px' }, [ h( 'strong', { style: 'color:var(--tv-amber-text)', text: t( 'importWarn1' ) } ), t( 'importWarn2' ), h( 'code', { text: cfg.encryptConst || 'TIMEVAULT_ENCRYPTION_KEY' } ), t( 'importWarn3' ) ] ),
 			h( 'label', { class: 'tv-field' }, [ h( 'span', { style: 'display:block;color:var(--tv-text-muted);font-size:13px;margin-bottom:8px', text: t( 'importFile' ) } ), fileInput ] ),
-			h( 'label', { class: 'tv-checkbox' }, [ applyCb, h( 'span', {}, [ h( 'strong', { text: t( 'applyLabel' ) } ), h( 'br', {} ), h( 'span', { style: 'color:var(--tv-text-muted);font-size:13px', text: t( 'applyWarn' ) } ) ] ) ] ),
+			h( 'label', { class: 'tv-checkbox tv-import-apply' }, [ applyCb, h( 'span', {}, [ h( 'strong', { text: t( 'applyLabel' ) } ), h( 'br', {} ), h( 'span', { style: 'color:var(--tv-text-muted);font-size:13px', text: t( 'applyWarn' ) } ) ] ) ] ),
 			progress,
 			status,
 			h( 'div', { style: 'margin-top:16px' }, [ btn ] ),
@@ -979,25 +1003,26 @@
 
 	function pollRestore( uuid, done ) {
 		var tries = 0;
-		var iv = setInterval( function () {
+		function tick() {
 			tries++;
-			api( '/restores/' + uuid ).then( function ( r ) {
+			api( '/restores/' + uuid, 'POST' ).then( function ( r ) {
 				if ( 'completed' === r.status ) {
-					clearInterval( iv );
 					done( true );
 				} else if ( 'failed' === r.status ) {
-					clearInterval( iv );
 					done( false, r.error || '' );
+				} else if ( tries > 400 ) {
+					done( false, 'Restore is still running. Refresh the dashboard to check the latest status.' );
+				} else {
+					setTimeout( tick, 900 );
 				}
-			} ).catch( function () {} );
-			if ( tries > 400 ) {
-				clearInterval( iv );
-				done( true ); // Stop waiting; the dashboard list will reflect the final state.
-			}
-		}, 3000 );
+			} ).catch( function ( e ) {
+				done( false, e.message );
+			} );
+		}
+		tick();
 	}
 
-	function uploadPackage( file, apply, onProgress ) {
+	function uploadPackage( file, apply, onProgress, onProcessing ) {
 		return new Promise( function ( resolve, reject ) {
 			var fd = new FormData();
 			fd.append( 'package', file );
@@ -1008,6 +1033,11 @@
 			xhr.upload.onprogress = function ( e ) {
 				if ( e.lengthComputable && onProgress ) {
 					onProgress( Math.round( ( e.loaded / e.total ) * 100 ) );
+				}
+			};
+			xhr.upload.onload = function () {
+				if ( onProcessing ) {
+					onProcessing();
 				}
 			};
 			xhr.onload = function () {

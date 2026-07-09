@@ -985,7 +985,14 @@
 
 .tv-table {
 	width: 100%;
-	border-collapse: collapse;
+	min-width: 680px;
+	border-collapse: separate;
+	border-spacing: 0 var(--tv-space-3);
+}
+
+.tv-history-empty {
+	color: var(--tv-text-muted);
+	padding: var(--tv-space-4) var(--tv-space-1);
 }
 
 .tv-table th {
@@ -994,23 +1001,46 @@
 	letter-spacing: 0.06em;
 	color: var(--tv-amber-text);
 	text-align: left;
-	padding: var(--tv-space-2) var(--tv-space-3);
-	border-bottom: 1px solid var(--tv-glass-border);
+	padding: 0 var(--tv-space-3) var(--tv-space-1);
+	border-bottom: 0;
 }
 
 .tv-table td {
-	padding: var(--tv-space-3);
-	border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+	padding: var(--tv-space-4) var(--tv-space-3);
+	border-block: 1px solid var(--tv-glass-border);
+	background:
+		linear-gradient(180deg, rgba(255, 255, 255, 0.50), rgba(255, 255, 255, 0.24)),
+		var(--tv-glass-fill);
 	color: var(--tv-text-body);
 	vertical-align: middle;
+	box-shadow: 0 10px 24px rgba(30, 25, 15, 0.06);
 }
 
-.tv-table tbody tr:nth-child(even) {
-	background: rgba(255, 255, 255, 0.02);
+.tv-table td:first-child {
+	border-left: 1px solid var(--tv-glass-border);
+	border-radius: 16px 0 0 16px;
+}
+
+.tv-table td:last-child {
+	border-right: 1px solid var(--tv-glass-border);
+	border-radius: 0 16px 16px 0;
+}
+
+.timevault-app[data-theme="dark"] .tv-table td {
+	background:
+		linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.025)),
+		var(--tv-glass-fill);
+}
+
+.tv-table tbody tr {
+	transition:
+		transform var(--tv-dur-fast) var(--tv-ease),
+		filter var(--tv-dur-fast) var(--tv-ease);
 }
 
 .tv-table tbody tr:hover {
-	background: var(--tv-ink-500);
+	filter: brightness(1.02);
+	transform: translateY(-1px);
 }
 
 .tv-table .tv-num {
@@ -1018,7 +1048,7 @@
 }
 
 .tv-table__name {
-	min-width: 280px;
+	min-width: 320px;
 }
 
 .tv-backup-name {
@@ -1033,6 +1063,7 @@
 
 .tv-table__name .tv-backup-name {
 	margin-top: 0;
+	max-width: 100%;
 }
 
 .timevault-app input.tv-backup-name__input {
@@ -1040,7 +1071,7 @@
 	min-height: 36px;
 	padding: 8px 12px;
 	font-size: 13px;
-	flex: 1 1 240px;
+	flex: 1 1 280px;
 }
 
 .tv-backup-name .tv-btn {
@@ -1231,6 +1262,13 @@
 	max-width: 900px;
 	margin-bottom: var(--tv-space-5);
 	color: var(--tv-text-muted);
+}
+
+.tv-import-apply {
+	margin-top: var(--tv-space-5);
+	padding-top: var(--tv-space-4);
+	border-top: 1px solid var(--tv-glass-border);
+	align-items: flex-start;
 }
 
 .tv-export-scope {

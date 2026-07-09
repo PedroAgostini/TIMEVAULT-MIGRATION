@@ -107,9 +107,16 @@ final class RestoreController extends AbstractController {
 			self::ROUTE_NAMESPACE,
 			'/restores/(?P<uuid>[a-f0-9\-]{36})',
 			array(
-				'methods'             => \WP_REST_Server::READABLE,
-				'callback'            => array( $this, 'get_restore' ),
-				'permission_callback' => array( $this, 'permission_check' ),
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'callback'            => array( $this, 'get_restore' ),
+					'permission_callback' => array( $this, 'permission_check' ),
+				),
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'callback'            => array( $this, 'advance_restore' ),
+					'permission_callback' => array( $this, 'permission_check' ),
+				),
 			)
 		);
 	}
@@ -215,6 +222,24 @@ final class RestoreController extends AbstractController {
 	}
 
 	/**
+	 * POST /restores/{uuid} - advances one restore step without relying on cron.
+	 *
+	 * @param \WP_REST_Request $request Request.
+	 * @return \WP_REST_Response|\WP_Error
+	 */
+	public function advance_restore( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
+		$this->prepare_long_restore_runtime();
+
+		$row = $this->plugin->imports()->advance_restore( (string) $request['uuid'] );
+
+		if ( is_wp_error( $row ) ) {
+			return $row;
+		}
+
+		return rest_ensure_response( $this->prepare_row( $row ) );
+	}
+
+	/**
 	 * Issues an HMAC-signed confirmation token bound to a backup.
 	 *
 	 * @param string $backup_uuid Backup identifier.
@@ -252,6 +277,18 @@ final class RestoreController extends AbstractController {
 		}
 
 		return $fields[0];
+	}
+
+	/**
+	 * Lets a manually advanced restore step finish even on large sites.
+	 */
+	private function prepare_long_restore_runtime(): void {
+		wp_raise_memory_limit( 'admin' );
+
+		if ( function_exists( 'set_time_limit' ) ) {
+			// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, Squiz.PHP.DiscouragedFunctions.Discouraged -- User-triggered restore step for large migrations.
+			@set_time_limit( 0 );
+		}
 	}
 
 	/**

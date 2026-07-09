@@ -7,7 +7,41 @@
 
 **Última atualização:** 2026-07-08
 **Fase atual:** ✅ **TODAS as fases (P0–P7) concluídas e VALIDADAS.** Roteiro do brief completo.
-**Versão atual do plugin:** 0.7.10 · **Schema DB:** v2
+**Versão atual do plugin:** 0.7.16 · **Schema DB:** v2
+
+## Import apply sem depender do cron (2026-07-08, v0.7.16)
+
+- Importação com "substituir este site" agora cria restore com runner manual.
+- Novo `POST /restores/{uuid}` avança uma etapa da restauração por request autenticado.
+- A UI chama esse endpoint enquanto aplica a migração, evitando ficar presa quando o Action Scheduler/wp-cron do host não processa a fila.
+
+## UI/REST: cancelar jobs presos (2026-07-08, v0.7.15)
+
+- Banner "Em andamento" agora mostra botão para cancelar jobs presos.
+- Novo endpoint `POST /jobs/cancel-active` marca backups/restores `pending` ou `running` como `failed` e audita a ação.
+- Resolve tela carregando infinitamente após tentativa de import/restauração interrompida.
+
+## Import: pacotes grandes com feedback e sem timeout PHP (2026-07-08, v0.7.14)
+
+- `POST /import` agora eleva memory limit administrativo e remove o limite de execução PHP durante a conversão/validação de pacotes grandes.
+- UI diferencia upload, processamento do pacote e aplicação da migração; após 100% de upload, mostra que arquivos grandes podem levar alguns minutos.
+
+## Fix: Sodium sem constantes globais (2026-07-08, v0.7.13)
+
+- `EncryptionService` deixou de depender das constantes globais `SODIUM_CRYPTO_SECRETSTREAM_*`.
+- Usa valores internos estáveis do libsodium para header/tag, mantendo apenas as funções `sodium_crypto_secretstream_*`.
+- Resolve ambientes onde o PHP expõe as funções Sodium, mas não expõe as constantes, causando `Undefined constant "SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_TAG_MESSAGE"` no fim da importação/aplicação.
+
+## Fix: constantes Sodium no namespace (2026-07-08, v0.7.12)
+
+- Corrigidas constantes `SODIUM_CRYPTO_SECRETSTREAM_*` em `EncryptionService` para usar o namespace global (`\SODIUM...`).
+- Resolve erro ao aplicar importação/restauração que dispara backup de segurança criptografado: `Undefined constant "Timevault\Core\SODIUM_..."`.
+
+## UI: histórico mais respirado + espaço no import (2026-07-08, v0.7.11)
+
+- Histórico ganhou linhas em formato de card, com mais padding, bordas arredondadas, sombra leve e melhor leitura em claro/escuro.
+- Campo de nome do backup no histórico ficou mais largo e menos apertado.
+- Importação ganhou espaçamento e divisória entre "Escolher arquivo" e "Substituir este site".
 
 ## UI: espinha temporal mais larga (2026-07-08, v0.7.10)
 
