@@ -433,6 +433,12 @@ final class ImportManager {
 		$uuid    = (string) $row['restore_uuid'];
 		$options = (array) ( $row['meta']['options'] ?? array() );
 
+		if ( ! empty( $options['skip_safety_backup'] ) ) {
+			$this->audit->record( 'restore_safety_backup_skipped', array( 'reason' => 'user_opt_out' ), 'restore', $uuid );
+
+			return 'validate';
+		}
+
 		if ( ! empty( $options['manual_runner'] ) ) {
 			$safety = (string) ( $row['safety_backup_uuid'] ?? '' );
 

@@ -5,9 +5,15 @@
 > requisitos de segurança e roteiro de prompts P0–P7), depois este arquivo para saber onde paramos.
 > **Ao concluir qualquer fase ou decisão relevante, atualize este arquivo.**
 
-**Última atualização:** 2026-07-08
+**Última atualização:** 2026-07-09
 **Fase atual:** ✅ **TODAS as fases (P0–P7) concluídas e VALIDADAS.** Roteiro do brief completo.
-**Versão atual do plugin:** 0.7.18 · **Schema DB:** v2
+**Versão atual do plugin:** 0.7.19 · **Schema DB:** v2
+
+## Fix: import direto sem travar no backup de seguranca (2026-07-09, v0.7.19)
+
+- A aplicacao imediata de importacao agora permite pular o backup de seguranca completo do site atual.
+- A UI adicionou a opcao "Criar backup de seguranca antes de substituir"; ela fica desmarcada por padrao para evitar timeout em hospedagens compartilhadas.
+- O polling de restore nao falha mais apenas por tempo decorrido; ele continua consultando e tenta reativar etapas presas periodicamente.
 
 ## Fix: etapas pesadas do restore sem 504 no navegador (2026-07-09, v0.7.18)
 

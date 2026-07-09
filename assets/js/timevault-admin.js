@@ -40,10 +40,11 @@
 			includeUploads: 'Incluir a pasta de uploads (mídia).', anonymize: 'Anonimizar dados pessoais', anonymizeHint: '(staging/dev: mascara e-mail, nome, telefone; determinístico)',
 			genExport: 'Gerar exportação', generating: 'Gerando…', preparingDl: 'Preparando download…',
 			importTitle: 'Importar backup (migração)', importDesc: 'Envie pacotes do Timevault, All-in-One WP Migration (.wpress) ou WPvivid em ZIP único. O arquivo é validado e convertido para o formato seguro do Timevault antes de aparecer na lista.',
-			importSupport: 'Marque "substituir o site" para aplicar a importação imediatamente (um backup de segurança é criado antes). Sem marcar, o pacote só é adicionado à lista.',
+			importSupport: 'Marque "substituir o site" para aplicar a importação imediatamente. Sem marcar, o pacote só é adicionado à lista.',
 			importWarn1: 'Atenção: ', importWarn2: 'pacotes cifrados do Timevault só podem ser lidos com a MESMA ', importWarn3: ' definida no site de origem. Chaves diferentes = pacote ilegível.',
 			importFile: 'Pacote (.zip, .zip.enc ou .wpress)', doImport: 'Importar pacote',
-			applyLabel: 'Substituir este site agora (aplicar a importação)', applyWarn: 'Isto sobrescreve o banco e os arquivos do site atual. Um backup de segurança completo é criado automaticamente antes.',
+			applyLabel: 'Substituir este site agora (aplicar a importação)', applyWarn: 'Isto sobrescreve o banco e os arquivos do site atual.',
+			safetyLabel: 'Criar backup de segurança antes de substituir', safetyWarn: 'Mais seguro, mas pode demorar ou travar em hospedagens com limite baixo.',
 			uploading: 'Enviando pacote…', processingImport: 'Upload concluído. Processando o pacote; arquivos grandes podem levar alguns minutos.', applying: 'Aplicando migração…', tMigrated: 'Migração concluída', tMigratedMsg: 'O site foi substituído pelo conteúdo importado.', tApplyFail: 'A importação foi salva, mas a aplicação falhou',
 			restoreTitle: 'Restaurar este backup vai substituir o site atual.',
 			restoreP2: 'O conteúdo atual do banco será sobrescrito pelo conteúdo deste backup. Esta ação não pode ser desfeita manualmente.',
@@ -92,10 +93,11 @@
 			includeUploads: 'Include the uploads folder (media).', anonymize: 'Anonymize personal data', anonymizeHint: '(staging/dev: masks email, name, phone; deterministic)',
 			genExport: 'Generate export', generating: 'Generating…', preparingDl: 'Preparing download…',
 			importTitle: 'Import backup (migration)', importDesc: 'Upload Timevault packages, All-in-One WP Migration (.wpress), or single-file WPvivid ZIP backups. The file is validated and converted to Timevault’s safe format before it appears in the list.',
-			importSupport: 'Tick "replace this site" to apply the import immediately (a safety backup is taken first). Left unticked, the package is only added to the list.',
+			importSupport: 'Tick "replace this site" to apply the import immediately. Left unticked, the package is only added to the list.',
 			importWarn1: 'Note: ', importWarn2: 'encrypted Timevault packages can only be read with the SAME ', importWarn3: ' defined on the source site. Different keys = unreadable package.',
 			importFile: 'Package (.zip, .zip.enc or .wpress)', doImport: 'Import package',
-			applyLabel: 'Replace this site now (apply the import)', applyWarn: 'This overwrites the current site’s database and files. A full safety backup is created automatically first.',
+			applyLabel: 'Replace this site now (apply the import)', applyWarn: 'This overwrites the current site’s database and files.',
+			safetyLabel: 'Create a safety backup before replacing', safetyWarn: 'Safer, but it can be slow or get stuck on hosts with low limits.',
 			uploading: 'Uploading package…', processingImport: 'Upload complete. Processing the package; large files can take several minutes.', applying: 'Applying migration…', tMigrated: 'Migration complete', tMigratedMsg: 'The site was replaced with the imported content.', tApplyFail: 'The import was saved, but applying it failed',
 			restoreTitle: 'Restoring this backup will replace the current site.',
 			restoreP2: 'The current database content will be overwritten by this backup. This action cannot be undone manually.',
@@ -144,10 +146,11 @@
 			includeUploads: 'Incluir la carpeta de uploads (medios).', anonymize: 'Anonimizar datos personales', anonymizeHint: '(staging/dev: enmascara correo, nombre, teléfono; determinista)',
 			genExport: 'Generar exportación', generating: 'Generando…', preparingDl: 'Preparando descarga…',
 			importTitle: 'Importar copia (migración)', importDesc: 'Sube paquetes de Timevault, All-in-One WP Migration (.wpress) o copias WPvivid en ZIP único. El archivo se valida y se convierte al formato seguro de Timevault antes de aparecer en la lista.',
-			importSupport: 'Marca "reemplazar el sitio" para aplicar la importación de inmediato (se crea una copia de seguridad antes). Sin marcar, el paquete solo se añade a la lista.',
+			importSupport: 'Marca "reemplazar el sitio" para aplicar la importación de inmediato. Sin marcar, el paquete solo se añade a la lista.',
 			importWarn1: 'Atención: ', importWarn2: 'los paquetes cifrados de Timevault solo se leen con la MISMA ', importWarn3: ' definida en el sitio de origen. Claves distintas = paquete ilegible.',
 			importFile: 'Paquete (.zip, .zip.enc o .wpress)', doImport: 'Importar paquete',
-			applyLabel: 'Reemplazar este sitio ahora (aplicar la importación)', applyWarn: 'Esto sobrescribe la base de datos y los archivos del sitio actual. Se crea automáticamente una copia de seguridad completa antes.',
+			applyLabel: 'Reemplazar este sitio ahora (aplicar la importación)', applyWarn: 'Esto sobrescribe la base de datos y los archivos del sitio actual.',
+			safetyLabel: 'Crear copia de seguridad antes de reemplazar', safetyWarn: 'Más seguro, pero puede tardar o atascarse en alojamientos con límites bajos.',
 			uploading: 'Subiendo paquete…', processingImport: 'Subida completada. Procesando el paquete; los archivos grandes pueden tardar varios minutos.', applying: 'Aplicando migración…', tMigrated: 'Migración completada', tMigratedMsg: 'El sitio fue reemplazado por el contenido importado.', tApplyFail: 'La importación se guardó, pero la aplicación falló',
 			restoreTitle: 'Restaurar esta copia reemplazará el sitio actual.',
 			restoreP2: 'El contenido actual de la base de datos se sobrescribirá con esta copia. Esta acción no se puede deshacer manualmente.',
@@ -961,6 +964,7 @@
 	function importTab() {
 		var fileInput = h( 'input', { type: 'file', accept: '.zip,.enc,.wpress', class: 'tv-file' } );
 		var applyCb = h( 'input', { type: 'checkbox', checked: 'checked' } );
+		var safetyCb = h( 'input', { type: 'checkbox' } );
 		var progress = h( 'div', { class: 'tv-progress', style: 'display:none' }, [ h( 'div', { class: 'tv-progress__fill', style: 'width:0%' } ) ] );
 		var status = h( 'p', { class: 'tv-import-status', style: 'display:none;color:var(--tv-text-muted);margin-top:10px' } );
 		var btn;
@@ -972,6 +976,7 @@
 				return;
 			}
 			var apply = applyCb.checked;
+			var safetyBackup = apply && safetyCb.checked;
 			btn.disabled = true;
 			progress.style.display = 'block';
 			progress.className = 'tv-progress';
@@ -979,7 +984,7 @@
 			status.style.display = 'block';
 			status.textContent = t( 'uploading' );
 
-			uploadPackage( file, apply, function ( pct ) {
+			uploadPackage( file, apply, safetyBackup, function ( pct ) {
 				fill.style.width = pct + '%';
 				if ( pct >= 100 ) {
 					status.textContent = t( 'processingImport' );
@@ -1026,6 +1031,7 @@
 			h( 'div', { class: 'tv-notice', style: 'margin-bottom:20px' }, [ h( 'strong', { style: 'color:var(--tv-amber-text)', text: t( 'importWarn1' ) } ), t( 'importWarn2' ), h( 'code', { text: cfg.encryptConst || 'TIMEVAULT_ENCRYPTION_KEY' } ), t( 'importWarn3' ) ] ),
 			h( 'label', { class: 'tv-field' }, [ h( 'span', { style: 'display:block;color:var(--tv-text-muted);font-size:13px;margin-bottom:8px', text: t( 'importFile' ) } ), fileInput ] ),
 			h( 'label', { class: 'tv-checkbox tv-import-apply' }, [ applyCb, h( 'span', {}, [ h( 'strong', { text: t( 'applyLabel' ) } ), h( 'br', {} ), h( 'span', { style: 'color:var(--tv-text-muted);font-size:13px', text: t( 'applyWarn' ) } ) ] ) ] ),
+			h( 'label', { class: 'tv-checkbox tv-import-apply' }, [ safetyCb, h( 'span', {}, [ h( 'strong', { text: t( 'safetyLabel' ) } ), h( 'br', {} ), h( 'span', { style: 'color:var(--tv-text-muted);font-size:13px', text: t( 'safetyWarn' ) } ) ] ) ] ),
 			progress,
 			status,
 			h( 'div', { style: 'margin-top:16px' }, [ btn ] ),
@@ -1043,11 +1049,11 @@
 				done( false, r.error || '' );
 				return;
 			}
-			if ( tries > 900 ) {
-				done( false, 'Restore is still running. Refresh the dashboard to check the latest status.' );
+			if ( 'pending' === r.status ) {
+				setTimeout( startStep, 600 );
 				return;
 			}
-			if ( 'pending' === r.status ) {
+			if ( tries > 0 && 0 === tries % 45 ) {
 				setTimeout( startStep, 600 );
 				return;
 			}
@@ -1080,11 +1086,12 @@
 		startStep();
 	}
 
-	function uploadPackage( file, apply, onProgress, onProcessing ) {
+	function uploadPackage( file, apply, safetyBackup, onProgress, onProcessing ) {
 		return new Promise( function ( resolve, reject ) {
 			var fd = new FormData();
 			fd.append( 'package', file );
 			fd.append( 'apply', apply ? '1' : '0' );
+			fd.append( 'safety_backup', safetyBackup ? '1' : '0' );
 			var xhr = new XMLHttpRequest();
 			xhr.open( 'POST', apiUrl( cfg.root, '/import' ) );
 			xhr.setRequestHeader( 'X-WP-Nonce', cfg.nonce );

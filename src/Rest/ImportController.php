@@ -96,16 +96,16 @@ final class ImportController extends AbstractController {
 		}
 
 		// Optionally apply the migration right away (import = replace the site).
-		// The restore pipeline takes a full safety backup before overwriting,
-		// so the current state is always recoverable.
 		$restore_uuid = null;
 
 		if ( filter_var( $request->get_param( 'apply' ), FILTER_VALIDATE_BOOLEAN ) ) {
+			$safety_backup = filter_var( $request->get_param( 'safety_backup' ), FILTER_VALIDATE_BOOLEAN );
 			$restore = $this->plugin->imports()->schedule_restore(
 				(string) $uuid,
 				array(
-					'restore_files' => true,
-					'manual_runner' => true,
+					'restore_files'       => true,
+					'manual_runner'       => true,
+					'skip_safety_backup'  => ! $safety_backup,
 				)
 			);
 
@@ -124,7 +124,7 @@ final class ImportController extends AbstractController {
 				'restore_uuid' => $restore_uuid,
 				'applied'      => null !== $restore_uuid,
 				'message'      => null !== $restore_uuid
-					? __( 'Package imported. Applying it now (a safety backup is taken first).', 'timevault' )
+					? __( 'Package imported. Applying it now.', 'timevault' )
 					: __( 'Package imported. You can now restore it from the backup list.', 'timevault' ),
 			)
 		);
