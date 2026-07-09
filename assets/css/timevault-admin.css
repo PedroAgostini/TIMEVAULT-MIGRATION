@@ -749,12 +749,12 @@
 /* ── Layout columns ──────────────────────────────────────────── */
 .tv-columns {
 	display: grid;
-	grid-template-columns: minmax(320px, 380px) 1fr;
+	grid-template-columns: minmax(420px, 520px) 1fr;
 	gap: var(--tv-space-5);
 	align-items: start;
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1240px) {
 	.tv-columns {
 		grid-template-columns: 1fr;
 	}
@@ -1023,6 +1023,7 @@
 
 .tv-backup-name {
 	display: flex;
+	flex-wrap: wrap;
 	align-items: center;
 	gap: var(--tv-space-2);
 	min-width: 0;

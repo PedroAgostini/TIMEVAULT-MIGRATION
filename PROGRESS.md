@@ -7,7 +7,14 @@
 
 **Última atualização:** 2026-07-08
 **Fase atual:** ✅ **TODAS as fases (P0–P7) concluídas e VALIDADAS.** Roteiro do brief completo.
-**Versão atual do plugin:** 0.7.9 · **Schema DB:** v2
+**Versão atual do plugin:** 0.7.10 · **Schema DB:** v2
+
+## UI: espinha temporal mais larga (2026-07-08, v0.7.10)
+
+- Coluna da espinha aumentada de `minmax(320px, 380px)` para `minmax(420px, 520px)` (o botão
+  "Salvar nome" não fica mais colado na borda); breakpoint de empilhamento subiu para 1240px.
+- `.tv-backup-name` ganhou `flex-wrap: wrap` (o botão quebra para a linha de baixo em vez de colar,
+  como segurança em larguras apertadas).
 **Git:** repositório em https://github.com/PedroAgostini/TIMEVAULT-MIGRATION.git (branch `main`)
 
 ## Importar = aplicar (migração em 1 passo) + 2 bugs de restore (2026-07-08, v0.7.9)
