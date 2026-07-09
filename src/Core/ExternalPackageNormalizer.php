@@ -294,16 +294,18 @@ final class ExternalPackageNormalizer {
 	 */
 	private function read_wpress_header( $handle ): string|\WP_Error|null {
 		// phpcs:disable WordPress.WP.AlternativeFunctions -- Fixed-size binary read.
-		$header = '';
+		$header        = '';
+		$header_length = 0;
 
-		while ( strlen( $header ) < self::WPRESS_HEADER ) {
-			$chunk = fread( $handle, self::WPRESS_HEADER - strlen( $header ) );
+		while ( $header_length < self::WPRESS_HEADER ) {
+			$chunk = fread( $handle, self::WPRESS_HEADER - $header_length );
 
 			if ( false === $chunk || '' === $chunk ) {
 				break;
 			}
 
-			$header .= $chunk;
+			$header       .= $chunk;
+			$header_length = strlen( $header );
 		}
 		// phpcs:enable
 
@@ -518,7 +520,7 @@ final class ExternalPackageNormalizer {
 	/**
 	 * Reads the full entry path from a WPRESS header.
 	 *
-	 * name is bytes 0..255; the directory prefix is bytes 281..4377. The full
+	 * Name is bytes 0..255; the directory prefix is bytes 281..4377. The full
 	 * path is prefix + '/' + name (a prefix of '.' means the archive root).
 	 *
 	 * @param string $header 4377-byte header.
