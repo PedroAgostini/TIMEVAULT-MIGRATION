@@ -646,7 +646,10 @@ final class ImportManager {
 		return array(
 			'timevault_dir_suffix'     => get_option( 'timevault_dir_suffix' ),
 			'timevault_schema_version' => get_option( 'timevault_schema_version' ),
+			'siteurl'                  => get_option( 'siteurl' ),
+			'home'                     => get_option( 'home' ),
 			'active_plugins'           => get_option( 'active_plugins' ),
+			'hostinger_options'        => $this->snapshot_hostinger_options(),
 			'plugin_basename'          => plugin_basename( TIMEVAULT_FILE ),
 		);
 	}
@@ -670,6 +673,14 @@ final class ImportManager {
 			update_option( 'timevault_schema_version', $preserved['timevault_schema_version'], false );
 		}
 
+		if ( is_string( $preserved['siteurl'] ) && '' !== $preserved['siteurl'] ) {
+			update_option( 'siteurl', $preserved['siteurl'] );
+		}
+
+		if ( is_string( $preserved['home'] ) && '' !== $preserved['home'] ) {
+			update_option( 'home', $preserved['home'] );
+		}
+
 		// Keep Timevault active regardless of what the restored snapshot said,
 		// otherwise the next pipeline step would run without the plugin loaded.
 		$active   = get_option( 'active_plugins' );
@@ -678,8 +689,106 @@ final class ImportManager {
 
 		if ( ! in_array( $basename, $active, true ) ) {
 			$active[] = $basename;
-			update_option( 'active_plugins', $active );
 		}
+
+		foreach ( $this->hostinger_active_plugins( (array) $preserved['active_plugins'] ) as $provider_plugin ) {
+			if ( ! in_array( $provider_plugin, $active, true ) ) {
+				$active[] = $provider_plugin;
+			}
+		}
+
+		update_option( 'active_plugins', array_values( array_unique( $active ) ) );
+		$this->restore_hostinger_options( (array) ( $preserved['hostinger_options'] ?? array() ) );
+	}
+
+	/**
+	 * Captures Hostinger hPanel integration options before wp_options is replaced.
+	 *
+	 * The hPanel "Admin WordPress" button depends on Hostinger's local bridge.
+	 * A migration should not import another site's hosting bridge nor erase the
+	 * target site's bridge, so these operational rows are carried forward.
+	 *
+	 * @return array<string, array{value: mixed, autoload: string}>
+	 */
+	private function snapshot_hostinger_options(): array {
+		global $wpdb;
+
+		$patterns = array(
+			$wpdb->esc_like( 'hostinger' ) . '%',
+			$wpdb->esc_like( 'hts_' ) . '%',
+		);
+		$where    = array();
+		$args     = array();
+
+		foreach ( $patterns as $pattern ) {
+			$where[] = 'option_name LIKE %s';
+			$args[]  = $pattern;
+		}
+
+		$sql = "SELECT option_name, option_value, autoload FROM {$wpdb->options} WHERE " . implode( ' OR ', $where );
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Restore-time hosting bridge preservation.
+		$rows = $wpdb->get_results( $wpdb->prepare( $sql, $args ), ARRAY_A );
+
+		if ( ! is_array( $rows ) ) {
+			return array();
+		}
+
+		$options = array();
+
+		foreach ( $rows as $row ) {
+			$name = (string) ( $row['option_name'] ?? '' );
+
+			if ( '' === $name ) {
+				continue;
+			}
+
+			$options[ $name ] = array(
+				'value'    => maybe_unserialize( (string) ( $row['option_value'] ?? '' ) ),
+				'autoload' => (string) ( $row['autoload'] ?? 'auto' ),
+			);
+		}
+
+		return $options;
+	}
+
+	/**
+	 * Restores Hostinger hPanel integration options after wp_options is replaced.
+	 *
+	 * @param array<string, array{value?: mixed, autoload?: string}> $options Snapshot from snapshot_hostinger_options().
+	 */
+	private function restore_hostinger_options( array $options ): void {
+		foreach ( $options as $name => $row ) {
+			if ( ! is_string( $name ) || '' === $name ) {
+				continue;
+			}
+
+			update_option( $name, $row['value'] ?? '', (string) ( $row['autoload'] ?? 'auto' ) );
+		}
+	}
+
+	/**
+	 * Keeps only Hostinger plugins that were active before the restore.
+	 *
+	 * @param array<int, mixed> $active_plugins Original active_plugins option.
+	 * @return array<int, string>
+	 */
+	private function hostinger_active_plugins( array $active_plugins ): array {
+		$provider_plugins = array();
+
+		foreach ( $active_plugins as $plugin ) {
+			$plugin = is_string( $plugin ) ? $plugin : '';
+
+			if ( '' === $plugin ) {
+				continue;
+			}
+
+			if ( str_starts_with( $plugin, 'hostinger/' ) || str_starts_with( $plugin, 'hostinger-' ) ) {
+				$provider_plugins[] = $plugin;
+			}
+		}
+
+		return $provider_plugins;
 	}
 
 	/**

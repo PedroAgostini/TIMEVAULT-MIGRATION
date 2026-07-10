@@ -7,7 +7,14 @@
 
 **Última atualização:** 2026-07-10
 **Fase atual:** ✅ **TODAS as fases (P0–P7) concluídas e VALIDADAS.** Roteiro do brief completo.
-**Versão atual do plugin:** 0.7.23 · **Schema DB:** v2
+**Versão atual do plugin:** 0.7.24 · **Schema DB:** v2
+
+## Restore: preservar ponte Hostinger/hPanel (2026-07-10, v0.7.24)
+
+- Restore agora preserva plugins Hostinger que já estavam ativos no site de destino.
+- Opções operacionais com prefixos `hostinger*` e `hts_*` são carregadas antes do banco ser substituído e restauradas depois do SQL importado.
+- `siteurl` e `home` do destino também são preservados, evitando que o WordPress importado tente autenticar/redirecionar usando o domínio de origem.
+- Objetivo: manter o botão "Admin WordPress" do hPanel funcionando após migração, em vez de cair direto na tela de login.
 
 ## Import: WPRESS realista com cache e banco no fim (2026-07-10, v0.7.23)
 
