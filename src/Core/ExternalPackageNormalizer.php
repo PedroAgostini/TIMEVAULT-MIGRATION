@@ -373,6 +373,10 @@ final class ExternalPackageNormalizer {
 		$wp_content_pos = strpos( $lower, 'wp-content/' );
 
 		if ( false !== $wp_content_pos ) {
+			if ( $this->is_external_cache_prefix( substr( $lower, 0, $wp_content_pos ) ) ) {
+				return null;
+			}
+
 			return $this->map_wp_content_entry( substr( $name, $wp_content_pos + strlen( 'wp-content/' ) ) );
 		}
 
@@ -410,7 +414,19 @@ final class ExternalPackageNormalizer {
 
 		// Never re-import a backup tool's own archive folders (avoids nesting
 		// backups-of-backups).
-		foreach ( array( 'ai1wm-backups/', 'updraft/', 'timevault-' ) as $skip ) {
+		$skip_prefixes = array(
+			'ai1wm-backups/',
+			'updraft/',
+			'wpvividbackups/',
+			'cache/',
+			'et-cache/',
+			'litespeed/',
+			'wp-rocket-config/',
+			'wflogs/',
+			'timevault-',
+		);
+
+		foreach ( $skip_prefixes as $skip ) {
 			if ( str_starts_with( $lower, $skip ) ) {
 				return null;
 			}
@@ -425,6 +441,27 @@ final class ExternalPackageNormalizer {
 		// languages, and any custom folder or root file) is imported into
 		// wp-content so the migration brings the whole site over.
 		return 'files/' . $inside;
+	}
+
+	/**
+	 * Detects paths that only reference cached copies of wp-content files.
+	 *
+	 * @param string $prefix Path before a nested wp-content/ segment.
+	 */
+	private function is_external_cache_prefix( string $prefix ): bool {
+		$prefix = trim( str_replace( '\\', '/', $prefix ), '/' );
+
+		if ( '' === $prefix ) {
+			return false;
+		}
+
+		foreach ( array( 'cache', 'et-cache', 'litespeed', 'wp-rocket-config' ) as $segment ) {
+			if ( str_starts_with( $prefix, $segment . '/' ) || $segment === $prefix ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**
@@ -584,14 +621,26 @@ final class ExternalPackageNormalizer {
 	 * @return string
 	 */
 	private function read_wpress_name( string $header ): string {
-		$name   = rtrim( substr( $header, 0, 255 ), "\0" );
-		$prefix = trim( rtrim( substr( $header, 281, 4096 ), "\0" ) );
+		$name   = $this->read_wpress_text_field( substr( $header, 0, 255 ) );
+		$prefix = $this->read_wpress_text_field( substr( $header, 281, 4096 ) );
 
 		if ( '' === $prefix || '.' === $prefix ) {
 			return $name;
 		}
 
 		return rtrim( $prefix, '/' ) . '/' . $name;
+	}
+
+	/**
+	 * Reads a null-terminated text field from a WPRESS header.
+	 *
+	 * Some exporters pad fields aggressively; splitting on the first null byte
+	 * avoids leaving binary padding inside names before validation.
+	 *
+	 * @param string $field Raw fixed-width field.
+	 */
+	private function read_wpress_text_field( string $field ): string {
+		return trim( explode( "\0", $field, 2 )[0] );
 	}
 
 	/**

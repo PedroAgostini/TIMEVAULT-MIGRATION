@@ -151,6 +151,45 @@ final class ImportManagerTest extends WP_UnitTestCase {
 		wp_delete_file( Paths::backup_dir() . '/' . $row['file_name'] );
 	}
 
+	public function test_import_accepts_wpress_with_metadata_cache_and_late_database(): void {
+		$upload = sys_get_temp_dir() . '/tv-ai1wm-realistic-' . wp_generate_password( 8, false ) . '.wpress';
+		$this->write_wpress(
+			$upload,
+			array(
+				'package.json'                                            => wp_json_encode(
+					array(
+						'Database' => array(
+							'Prefix' => 'wp_',
+						),
+					)
+				),
+				'cache/min/1/wp-content/plugins/cached-copy/file.js'      => 'cached',
+				'wpvividbackups/site_wpvivid_2026_backup_all.zip'         => 'nested backup',
+				'uploads/2026/photo.txt'                                  => 'image',
+				'database.sql'                                            => "CREATE TABLE `wp_options` (`option_id` bigint);\n",
+			)
+		);
+
+		$uuid = Plugin::instance()->imports()->import_uploaded_package( $upload, 'realistic-site.wpress' );
+		$this->assertIsString( $uuid, is_wp_error( $uuid ) ? $uuid->get_error_message() : '' );
+
+		$row = Plugin::instance()->backup_repository()->get( $uuid );
+		$this->assertSame( 'completed', $row['status'] );
+		$this->assertSame( 'full', $row['type'] );
+		$this->assertSame( 'all-in-one-wp-migration', $row['meta']['manifest']['external']['source_format'] );
+
+		$zip = new \ZipArchive();
+		$this->assertTrue( true === $zip->open( Paths::backup_dir() . '/' . $row['file_name'] ) );
+		$this->assertNotFalse( $zip->locateName( 'database.sql' ) );
+		$this->assertNotFalse( $zip->locateName( 'uploads/2026/photo.txt' ) );
+		$this->assertFalse( $zip->locateName( 'files/plugins/cached-copy/file.js' ) );
+		$this->assertFalse( $zip->locateName( 'files/wpvividbackups/site_wpvivid_2026_backup_all.zip' ) );
+		$zip->close();
+
+		unlink( $upload );
+		wp_delete_file( Paths::backup_dir() . '/' . $row['file_name'] );
+	}
+
 	/**
 	 * Writes a real All-in-One WP Migration (.wpress) archive for import tests.
 	 *

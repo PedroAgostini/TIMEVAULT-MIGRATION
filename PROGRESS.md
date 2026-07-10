@@ -7,7 +7,14 @@
 
 **Última atualização:** 2026-07-10
 **Fase atual:** ✅ **TODAS as fases (P0–P7) concluídas e VALIDADAS.** Roteiro do brief completo.
-**Versão atual do plugin:** 0.7.22 · **Schema DB:** v2
+**Versão atual do plugin:** 0.7.23 · **Schema DB:** v2
+
+## Import: WPRESS realista com cache e banco no fim (2026-07-10, v0.7.23)
+
+- Leitura de campos `.wpress` ficou mais tolerante a padding binario no cabecalho.
+- Pacotes `.wpress` agora aceitam `database.sql` mesmo quando o dump aparece apenas no fim do arquivo.
+- Normalizacao ignora caches e pastas internas de backups (`cache`, `wpvividbackups`, `ai1wm-backups`, etc.) para evitar importar lixo pesado e backups dentro de backups.
+- Adicionado teste cobrindo `.wpress` com `package.json`, cache, backup WPvivid interno e banco de dados no final.
 
 ## Import: tolerancia a entradas problemáticas em pacotes externos (2026-07-10, v0.7.22)
 
