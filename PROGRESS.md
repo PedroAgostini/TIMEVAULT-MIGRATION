@@ -5,9 +5,15 @@
 > requisitos de segurança e roteiro de prompts P0–P7), depois este arquivo para saber onde paramos.
 > **Ao concluir qualquer fase ou decisão relevante, atualize este arquivo.**
 
-**Última atualização:** 2026-07-09
+**Última atualização:** 2026-07-10
 **Fase atual:** ✅ **TODAS as fases (P0–P7) concluídas e VALIDADAS.** Roteiro do brief completo.
-**Versão atual do plugin:** 0.7.21 · **Schema DB:** v2
+**Versão atual do plugin:** 0.7.22 · **Schema DB:** v2
+
+## Import: tolerancia a entradas problemáticas em pacotes externos (2026-07-10, v0.7.22)
+
+- Normalizacao de `.wpress`/ZIP agora valida a criacao de diretorios antes de gravar entradas.
+- Entradas de arquivos nao essenciais que nao podem ser materializadas sao puladas em vez de derrubar todo o import.
+- `database.sql` continua obrigatorio: se o banco nao puder ser escrito/importado, o import falha para evitar migracao incompleta.
 
 ## Restore: preservar acesso admin apos import (2026-07-09, v0.7.21)
 

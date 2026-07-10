@@ -168,15 +168,23 @@ final class ExternalPackageNormalizer {
 			$target = $this->safe_staging_target( $staging, $mapped );
 
 			if ( is_wp_error( $target ) ) {
-				$zip->close();
-				return $target;
+				if ( 'database.sql' === $mapped ) {
+					$zip->close();
+					return $target;
+				}
+
+				continue;
 			}
 
 			$copied = $this->copy_zip_entry( $zip, $i, $target, (int) $stat['size'] );
 
 			if ( is_wp_error( $copied ) ) {
-				$zip->close();
-				return $copied;
+				if ( 'database.sql' === $mapped || ! in_array( $copied->get_error_code(), array( 'timevault_import_external_mkdir', 'timevault_import_external_write' ), true ) ) {
+					$zip->close();
+					return $copied;
+				}
+
+				continue;
 			}
 
 			++$mapped_entries;
@@ -260,13 +268,21 @@ final class ExternalPackageNormalizer {
 				$target = $this->safe_staging_target( $staging, $mapped );
 
 				if ( is_wp_error( $target ) ) {
-					return $target;
+					if ( 'database.sql' === $mapped || ! $this->skip_wpress_entry( $handle, (int) $size ) ) {
+						return $target;
+					}
+
+					continue;
 				}
 
 				$copied = $this->copy_stream_bytes( $handle, $target, (int) $size );
 
 				if ( is_wp_error( $copied ) ) {
-					return $copied;
+					if ( 'database.sql' === $mapped || ! in_array( $copied->get_error_code(), array( 'timevault_import_external_mkdir', 'timevault_import_external_write' ), true ) || ! $this->skip_wpress_entry( $handle, (int) $size ) ) {
+						return $copied;
+					}
+
+					continue;
 				}
 
 				++$mapped_entries;
@@ -448,7 +464,11 @@ final class ExternalPackageNormalizer {
 			return $valid;
 		}
 
-		wp_mkdir_p( dirname( $staging . '/' . $mapped ) );
+		$dir = dirname( $staging . '/' . $mapped );
+
+		if ( ! wp_mkdir_p( $dir ) && ! is_dir( $dir ) ) {
+			return new \WP_Error( 'timevault_import_external_mkdir', __( 'Could not create the normalized package directory.', 'timevault' ) );
+		}
 
 		return PathGuard::safe_target( $staging, $mapped );
 	}
@@ -508,10 +528,47 @@ final class ExternalPackageNormalizer {
 			}
 
 			$remaining -= strlen( $chunk );
-			fwrite( $out, $chunk );
+			$written = fwrite( $out, $chunk );
+
+			if ( false === $written || $written < strlen( $chunk ) ) {
+				fclose( $out );
+				return new \WP_Error( 'timevault_import_external_stream_write', __( 'Could not finish writing a normalized package entry.', 'timevault' ) );
+			}
 		}
 
 		fclose( $out );
+		// phpcs:enable
+
+		return true;
+	}
+
+	/**
+	 * Skips the content bytes for a WPRESS entry after deciding not to import it.
+	 *
+	 * @param resource $handle Archive stream.
+	 * @param int      $size   Bytes to skip.
+	 */
+	private function skip_wpress_entry( $handle, int $size ): bool {
+		if ( $size <= 0 ) {
+			return true;
+		}
+
+		// phpcs:disable WordPress.WP.AlternativeFunctions -- WPRESS parsing needs stream seeks and fixed-size binary reads.
+		if ( 0 === fseek( $handle, $size, SEEK_CUR ) ) {
+			return true;
+		}
+
+		$remaining = $size;
+
+		while ( $remaining > 0 ) {
+			$chunk = fread( $handle, min( 1048576, $remaining ) );
+
+			if ( false === $chunk || '' === $chunk ) {
+				return false;
+			}
+
+			$remaining -= strlen( $chunk );
+		}
 		// phpcs:enable
 
 		return true;
